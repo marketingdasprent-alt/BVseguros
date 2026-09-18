@@ -3,22 +3,29 @@
 Fonte de verdade para developers humanos e agentes IA (Claude, Codex, Cursor, etc.).
 Regra do AGENTS.md: **o ficheiro mais próximo do que estás a editar prevalece.**
 
-Este repositório tem dois projectos independentes, cada um com o seu deploy:
+Este repositório tem três projectos independentes, cada um com o seu deploy:
 
-| Pasta | O quê | Stack | AGENTS.md | Porta de dev |
+| Pasta | O quê | Stack | Regras | Porta de dev |
 | --- | --- | --- | --- | --- |
-| `/` (raiz) | Site institucional público | HTML + CSS + JS nativo, sem build | este ficheiro | 8090 |
+| `/` (raiz) | Site institucional público, v1 | HTML + CSS + JS nativo, sem build | este ficheiro | 8090 |
+| `site-blueprint/` | Site institucional público, v2 (mesmo conteúdo, outra fundação) | React + TS + Vite + Tailwind v4, sobre o Web Blueprint | [`site-blueprint/BLUEPRINT.md`](site-blueprint/BLUEPRINT.md) + `site-blueprint/docs/` | 5190 |
 | `crm/` | CRM interno (leads, clientes, apólices) | React 18 + TS + Vite + Tailwind + Supabase | [`crm/AGENTS.md`](crm/AGENTS.md) | 5183 |
+
+`site-blueprint/` existe porque a v1 (HTML/CSS/JS à mão) não satisfez visualmente;
+`site-blueprint/` reconstrói o mesmo conteúdo sobre uma fundação com design tokens e
+componentes já testados. As duas versões coexistem até se decidir qual fica — ver
+`documento.md` secção 4. **Não apagar a v1 sem essa decisão ser tomada
+explicitamente.**
 
 Ver [`documento.md`](documento.md) para a visão geral do projecto, o que está por
 confirmar com o cliente e o estado actual.
 
 ---
 
-## Regras gerais (aplicam-se aos dois projectos)
+## Regras gerais (aplicam-se aos três projectos)
 
-1. **Não misturar os dois projectos.** Uma alteração ao site não mexe em `crm/`, e
-   vice-versa, salvo pedido explícito. São deploys Vercel separados.
+1. **Não misturar os projectos.** Uma alteração num não mexe nos outros dois, salvo
+   pedido explícito. São deploys Vercel separados.
 2. **Não inventar dados reais da empresa** (morada, telefone, texto institucional,
    ramos de seguro vendidos) — usar o que já está marcado como placeholder
    (`[por preencher]`, classe `.por-preencher`) até o cliente confirmar. Ver
@@ -30,7 +37,7 @@ confirmar com o cliente e o estado actual.
 
 ---
 
-## Site institucional (raiz) — convenções
+## Site institucional v1 (raiz) — convenções
 
 Site estático de página única, sem passo de build, seguindo o mesmo padrão do
 `AbreuEPereira` e do `Sentinela100Erro` (outros projectos da mesma equipa).
@@ -56,7 +63,7 @@ robots.txt, vercel.json, .vercelignore, .htaccess  ← deploy (Vercel + cPanel)
   (`headers`) e `.htaccess` (mod_headers). Mexeu num, mexe nos outros três.
 - **`.vercelignore` é essencial**, não cosmético — sem ele o Vercel tenta correr
   `server.js` como função serverless (ver comentário no próprio ficheiro). Inclui
-  `crm/` para não interferir no deploy do site.
+  `crm/` e `site-blueprint/` para não interferir no deploy do site v1.
 - **`server.js` bloqueia `/crm/`** propositadamente — o CRM não vive neste servidor.
 - Cores em custom properties CSS (`:root`), não hardcoded espalhadas pelo código.
 - Formulário de contacto usa `action="mailto:..."` (sem backend) — funciona em

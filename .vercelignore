@@ -12,6 +12,10 @@ package-lock.json
 # Não deve ir no deploy do site institucional.
 crm
 
+# Segunda versão do site (React/Vite), o seu próprio projeto Vercel
+# à parte (root directory: site-blueprint/) quando/se for publicada.
+site-blueprint
+
 # Documentação e ficheiros de fonte da marca — não fazem parte do site publicado.
 README.md
 AGENTS.md

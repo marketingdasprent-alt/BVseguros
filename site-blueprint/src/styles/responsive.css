@@ -1,0 +1,59 @@
+/**
+ * RESPONSIVE: Level 1. Most of the system is fluid by default
+ * (clamp/minmax in tokens.css and layout.css) and needs no media
+ * query at all. This file holds the few rules that are genuinely
+ * discrete (nav collapses to a menu, grid goes from 1 to N columns)
+ * rather than continuous.
+ *
+ * Breakpoint reference (QA validation points: not a mandate to add
+ * a media query at each one, see docs/responsive.md):
+ *   480px  mobile-large
+ *   768px  tablet
+ *   1024px laptop / tablet-landscape
+ *   1280px desktop
+ *   1440px desktop-large
+ */
+
+/* Header: mobile menu collapses into the toggle below 1024px */
+@media (min-width: 1024px) {
+  .header__nav {
+    display: flex;
+  }
+
+  .header__toggle {
+    display: none;
+  }
+
+  .header__mobile-panel {
+    display: none;
+  }
+}
+
+/* Footer: columns grow from a single stack to a 4-column row */
+@media (min-width: 768px) {
+  .footer__grid {
+    grid-template-columns: minmax(16rem, 1fr) 2fr;
+  }
+
+  .footer__columns {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .footer__bottom {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Generic 12-col grid: single column below tablet so authored spans
+   (e.g. grid-column: span 4) don't fight a cramped viewport. */
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid > * {
+    grid-column: auto !important;
+  }
+}

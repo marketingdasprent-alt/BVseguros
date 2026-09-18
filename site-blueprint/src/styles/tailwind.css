@@ -1,0 +1,82 @@
+/* Tailwind v4: utilities reference the existing runtime tokens.
+ * Prefix tw: prevents collisions with .container, .grid, .text-*.
+ * Inline aliases must use different names from their source variables:
+ * Tailwind prefixes theme variables too, but Blueprint tokens stay unchanged.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-page: var(--color-background);
+  --color-panel: var(--color-surface);
+  --color-panel-alt: var(--color-surface-alt);
+  --color-line: var(--color-border);
+  --color-line-strong: var(--color-border-strong);
+  --color-brand: var(--color-primary);
+  --color-brand-hover: var(--color-primary-hover);
+  --color-brand-active: var(--color-primary-active);
+  --color-brand-secondary: var(--color-secondary);
+  --color-highlight: var(--color-accent);
+  --color-copy: var(--color-text-primary);
+  --color-copy-secondary: var(--color-text-secondary);
+  --color-copy-muted: var(--color-text-muted);
+  --color-on-brand: var(--color-text-on-primary);
+  --color-on-dark: var(--color-text-on-dark);
+  --color-positive: var(--color-success);
+  --color-positive-surface: var(--color-success-surface);
+  --color-caution: var(--color-warning);
+  --color-caution-surface: var(--color-warning-surface);
+  --color-negative: var(--color-error);
+  --color-negative-surface: var(--color-error-surface);
+  --color-focus: var(--color-focus-ring);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --spacing: initial;
+  --spacing-*: initial;
+  --spacing-0: 0px;
+  --spacing-3xs: var(--space-3xs);
+  --spacing-2xs: var(--space-2xs);
+  --spacing-xs: var(--space-xs);
+  --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md);
+  --spacing-lg: var(--space-lg);
+  --spacing-xl: var(--space-xl);
+  --spacing-2xl: var(--space-2xl);
+  --spacing-3xl: var(--space-3xl);
+
+  --font-*: initial;
+  --font-heading: var(--font-display);
+  --font-copy: var(--font-body);
+  --font-code: var(--font-mono);
+  --text-*: initial;
+  --text-display: var(--font-size-display);
+  --text-h1: var(--font-size-h1);
+  --text-h2: var(--font-size-h2);
+  --text-h3: var(--font-size-h3);
+  --text-h4: var(--font-size-h4);
+  --text-body: var(--font-size-body);
+  --text-body-large: var(--font-size-body-large);
+  --text-body-small: var(--font-size-body-small);
+  --text-caption: var(--font-size-caption);
+  --text-label: var(--font-size-label);
+
+  --radius-*: initial;
+  --radius-control: var(--radius-sm);
+  --radius-card: var(--radius-md);
+  --radius-panel: var(--radius-lg);
+  --radius-feature: var(--radius-xl);
+  --radius-pill: var(--radius-full);
+  --shadow-*: initial;
+  --shadow-low: var(--shadow-sm);
+  --shadow-raised: var(--shadow-md);
+  --shadow-floating: var(--shadow-lg);
+  --shadow-overlay: var(--shadow-xl);
+}
+
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+}
