@@ -1,106 +1,98 @@
 # BV Seguros — Documento do Projecto
 
-> **Estado:** arranque. Este documento e o [`AGENTS.md`](AGENTS.md) são o primeiro
-> commit do repositório, escritos antes de qualquer pedido de "criar o CRM do zero" —
-> por pedido do João, para que o Claude/Codex tenham contexto e regras antes de gerar
-> código.
+> **Estado:** scaffold inicial feito. Site institucional (raiz) e CRM (`crm/`) têm
+> ambos um esqueleto funcional, com conteúdo/dados ainda por confirmar com o cliente.
 
 ## 1. O que é a BV Seguros
 
 Corretora de seguros — "**BV Seguros · Seguros e Soluções**". Logótipo em
-[`brand/logo-bv-seguros.png`](brand/logo-bv-seguros.png): escudo azul-marinho com
-check e casa, comunicando protecção patrimonial/residencial.
+[`brand/logo-bv-seguros.png`](brand/logo-bv-seguros.png): escudo azul-marinho
+(`#184070`) com check e casa, comunicando protecção patrimonial/residencial. Fundo do
+PNG é opaco (cinza-claro `#F7F7F7`, sem transparência) — pedir ao cliente uma versão
+com fundo transparente/SVG quando possível.
 
 Ainda por confirmar com o cliente:
 
 - Ramos de seguro que a corretora efectivamente vende (auto, vida, saúde,
   multirriscos habitação, acidentes de trabalho, ...)
-- Morada, NIF, contactos oficiais
-- Se já existe site institucional/domínio, ou se este projecto também o inclui
+- Morada, NIF, telefone e email oficiais (o site tem estes campos como placeholder,
+  marcados `[por preencher]`)
+- Nome de domínio (o site assume `bvseguros.pt` como exemplo, não confirmado)
+- Texto institucional real (história, missão, diferencial) — o que está no site é
+  genérico, escrito para não bloquear o desenvolvimento
 - Seguradoras parceiras (para eventual integração ou apenas registo manual)
 
-## 2. Objectivo do projecto
+## 2. Estrutura do repositório
 
-Construir um **CRM de gestão de leads e clientes** para a equipa comercial da BV
-Seguros. Inferido do padrão que a equipa (marketingdasprent) já construiu para outros
-clientes — nomeadamente `razao-dinamica/crm` — não de um requisito ainda escrito pelo
-cliente. Funcionalidades prováveis, por analogia:
-
-- Pipeline de leads em Kanban (novo → contactado → proposta enviada → convertido/perdido)
-- Ficha de cliente e apólices associadas
-- Registo de conversas (possivelmente integração WhatsApp, como no `razao-dinamica/crm`)
-- Gestão de utilizadores internos (mediadores/corretores) com permissões
-- Dashboard com métricas de conversão e carteira
-
-**Antes de implementar qualquer uma destas**, confirmar o âmbito real com o
-cliente/João — a lista acima é ponto de partida, não especificação fechada.
-
-## 3. Arquitectura
-
-```
-Page (src/pages/*.tsx)              ← compõe layout + componentes + hooks
-  └─ Component (src/components/**)  ← UI, props in/out
-      └─ Hook (src/hooks/use*.ts)   ← acesso a dados, mutations
-          └─ src/lib/supabase.ts    ← cliente Supabase
-              └─ Supabase + RLS     ← segurança real, dados de clientes/apólices
-```
-
-Detalhe completo de convenções, nomenclatura e regras para agentes IA em
-[`AGENTS.md`](AGENTS.md).
-
-## 4. Stack tecnológico
-
-| Camada          | Escolha                          | Porquê                                                    |
-| ----------------- | ----------------------------------- | -------------------------------------------------------------- |
-| Frontend          | React 18 + TypeScript + Vite        | Stack mais recente já usada pela equipa em CRMs (`razao-dinamica/crm`) |
-| Estilo            | Tailwind CSS                        | Idem                                                            |
-| Routing           | React Router                        | Idem                                                            |
-| Dados/Auth        | Supabase (Postgres + Auth + RLS)    | Idem — evita reinventar auth e backend                          |
-| Drag-and-drop     | `@dnd-kit` (se houver Kanban)       | Já usado em `razao-dinamica/crm` para o pipeline de leads       |
-| Deploy            | Vercel                              | Padrão da equipa para todos os projectos actuais                |
-
-**Não** inclui TanStack Query nem Capacitor — esses vêm de um exemplo de `agents.md`
-de outro projecto (WeGest), com stack diferente. Ver [`AGENTS.md`](AGENTS.md) secção 0
-para o raciocínio completo.
-
-## 5. Estrutura de pastas planeada
+Um repositório, dois projectos — mesmo padrão do `razao-dinamica`: site institucional
+estático na raiz + CRM (Vite/React) em `crm/`. Cada um é o seu próprio deploy Vercel
+(Root Directory diferente por projecto).
 
 ```
 BVseguros/
-├── AGENTS.md              ← regras para agentes IA
-├── documento.md            ← este ficheiro
-├── brand/                  ← logótipo e activos de marca
-├── src/
-│   ├── pages/               ← Dashboard, Leads, Clientes, Apolices, Login, ...
-│   ├── components/
-│   │   ├── ui/               ← primitivos reutilizáveis
-│   │   └── crm/               ← componentes específicos do domínio
-│   ├── hooks/                ← acesso a dados (useLeads, useAuth, ...)
-│   ├── lib/                  ← cliente Supabase, tipos, lógica de negócio
-│   └── assets/
-├── package.json
-├── vite.config.ts
-└── vercel.json
+├── AGENTS.md, documento.md     ← governação (regras + visão geral)
+├── brand/                       ← logótipo, fonte de verdade da marca
+├── index.html, styles.css,      ← site institucional (estático, sem build)
+│   script.js, server.js
+├── images/                      ← imagens do site (cópia do logo)
+├── package.json                 ← só scripts de dev do site (node server.js)
+├── vercel.json, .vercelignore,  ← deploy do site (Vercel + cPanel)
+│   .htaccess, robots.txt
+└── crm/                          ← CRM — projecto Vite/React à parte
+    ├── src/, public/, supabase/
+    ├── package.json, vite.config.ts, ...
+    └── README.md                 ← instruções específicas do CRM
 ```
 
-Ainda não criado — este documento descreve o que será gerado quando o pedido
-"criar o CRM" for feito.
+### Site institucional (raiz)
 
-## 6. Por decidir antes de codificar features
+HTML + CSS + JS nativo, sem passo de build — mesmo padrão do `AbreuEPereira` e do
+`Sentinela100Erro`. `npm start` corre `server.js` (servidor de dev, porta **8090**).
+Conteúdo actual é placeholder (ver secção 1) — página única com secções Sobre,
+Seguros, Porquê a BV, Contacto (formulário via `mailto:`).
 
-- [ ] Confirmar ramos de seguro e vocabulário de domínio (ver `AGENTS.md` secção 3)
-- [ ] Confirmar se há integração WhatsApp desde o início ou fica para fase 2
-- [ ] Perfis de utilizador e permissões (admin, mediador, ...)
-- [ ] Se existirá também um site institucional público (como
-      `AbreuEPereira`/`Sentinela100Erro`) além do CRM, ou só o CRM
-- [ ] Nome de domínio e conta Vercel/Supabase a usar
+### CRM (`crm/`)
 
-## 7. Próximos passos
+React 18 + TypeScript + Vite + Tailwind + Supabase + React Router. Ver
+[`crm/README.md`](crm/README.md) para correr localmente e configurar o Supabase, e
+[`AGENTS.md`](AGENTS.md) para as convenções de arquitectura. Porta de dev: **5183**.
 
-1. Validar este documento e o `AGENTS.md` com o João/cliente.
-2. Confirmar respostas à secção 6.
-3. Só então: scaffold do projecto Vite + criação do schema Supabase inicial (tabelas
-   `leads`, `clientes`, `apolices` com RLS desde a primeira migration).
+Funcionalidades já implementadas (scaffold, sem dados reais):
+
+- Auth com Supabase (login, perfil `ativo`/`is_admin`)
+- Leads: pipeline Kanban com drag-and-drop
+- Clientes e Apólices: listagem + criação
+- Dashboard com KPIs básicos
+- `crm/supabase/schema.sql`: tabelas + RLS desde a primeira migration
+
+## 3. Stack tecnológico
+
+| Projecto | Stack | Porquê |
+| --- | --- | --- |
+| Site (raiz) | HTML + CSS + JS nativo | Mesmo padrão do `AbreuEPereira`/`Sentinela100Erro` — sem build, deploy trivial em Vercel ou cPanel |
+| CRM (`crm/`) | React 18 + TypeScript + Vite + Tailwind + Supabase + React Router | Mesmo padrão do `razao-dinamica/crm` |
+
+**Não** inclui TanStack Query nem Capacitor no CRM — esses vêm de um exemplo de
+`agents.md` de outro projecto (WeGest), com stack diferente. Ver
+[`AGENTS.md`](AGENTS.md) secção 0.
+
+## 4. Por decidir antes de dar conteúdo final
+
+- [ ] Ramos de seguro e vocabulário de domínio definitivos (ver `AGENTS.md` secção 3)
+- [ ] Morada, telefone, email, NIF reais da BV Seguros
+- [ ] Nome de domínio definitivo
+- [ ] Texto institucional real (sobre, diferenciais)
+- [ ] Se há integração WhatsApp no CRM desde já ou fica para fase 2
+- [ ] Perfis de utilizador e permissões no CRM (admin, mediador, ...)
+- [ ] Projecto Supabase real a ligar (o CRM só foi testado com credenciais placeholder)
+
+## 5. Próximos passos
+
+1. Validar o site e o CRM com o João/cliente — conteúdo do site e âmbito do CRM.
+2. Preencher os placeholders do site (contactos, morada, texto institucional).
+3. Criar o projecto Supabase real e correr `crm/supabase/schema.sql`.
+4. Configurar dois projectos Vercel (site: Root Directory `.`; CRM: Root Directory
+   `crm`) e o domínio.
 
 ---
 

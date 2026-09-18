@@ -2,10 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "dev",
+      "name": "site",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 8090
+    },
+    {
+      "name": "crm",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "runtimeArgs": ["--prefix", "crm", "run", "dev"],
+      "port": 5183
     }
   ]
 }
