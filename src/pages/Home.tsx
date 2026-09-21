@@ -79,7 +79,7 @@ export default function Home() {
 
       <Section id="sobre" variant="compact">
         <Container>
-          <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
+          <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 5" }}>
               <p className="text-label text-muted">Sobre a BV Seguros</p>
               <h2>Corretora independente, ao lado do cliente.</h2>
