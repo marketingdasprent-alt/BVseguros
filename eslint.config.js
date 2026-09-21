@@ -6,7 +6,8 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default [
-  { ignores: ["dist", "node_modules"] },
+  // crm/ é outro projeto (npm/eslint próprios); este ESLint não deve entrar lá.
+  { ignores: ["dist", "**/dist/**", "node_modules", "**/node_modules/**", "crm/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

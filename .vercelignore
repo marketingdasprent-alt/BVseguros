@@ -1,26 +1,16 @@
-# O site é estático. Sem este ficheiro, o Vercel encontra o server.js e o
-# script "start" do package.json, conclui que isto é uma aplicação Node e
-# corre o server.js como função serverless — que depois não encontra o
-# styles.css nem o script.js ao lado dele, porque não vão no bundle.
-#
-# O server.js é só para desenvolvimento local (npm start).
-server.js
-package.json
-package-lock.json
-
 # O CRM é outro projeto Vercel à parte (root directory: crm/).
-# Não deve ir no deploy do site institucional.
+# Não faz parte do build deste site e só aumentaria o upload do deploy.
 crm
 
-# Segunda versão do site (React/Vite), o seu próprio projeto Vercel
-# à parte (root directory: site-blueprint/) quando/se for publicada.
-site-blueprint
-
-# Documentação e ficheiros de fonte da marca — não fazem parte do site publicado.
-README.md
+# Documentação, governação do Web Blueprint e fonte da marca: não fazem
+# parte do build (Vite só empacota o que index.html/src referenciam),
+# mas excluir mantém o upload do deploy pequeno.
 AGENTS.md
+README.md
 documento.md
+BLUEPRINT.md
+MASTER-PROMPT.md
+DECISIONS.md
+CHANGELOG.md
+docs
 brand
-
-# Configuração de Apache, para o alojamento cPanel. No Vercel não é lida.
-.htaccess

@@ -29,7 +29,7 @@ TARGET AUDIENCE:      Famílias e pequenas empresas em Portugal à procura de
                        seguro auto, vida, saúde, habitação ou acidentes de
                        trabalho
 PRIMARY GOAL:         Gerar pedidos de contacto/proposta (o site alimenta o
-                       CRM em ../crm/, não vende diretamente)
+                       CRM em crm/, não vende diretamente)
 
 VISUAL DIRECTION:     Profissional e claro, sem jargão financeiro nem
                        linguagem de startup. Navy sóbrio, muito espaço
@@ -41,9 +41,8 @@ BRAND COLORS:         #184070 (navy do logótipo), única cor de marca
                        sistemáticas dela e do neutro, não cores inventadas
                        (ver DECISIONS.md)
 TYPOGRAPHY:           Plus Jakarta Sans (display) + Inter (body), via Google
-                       Fonts: mesma tipografia já usada no CRM (../crm/) e
-                       no site vanilla (../index.html), para consistência de
-                       marca entre os três
+                       Fonts: mesma tipografia já usada no CRM (crm/), para
+                       consistência de marca entre as duas partes
 DESIRED PERSONALITY:  Confiável, próxima, clara. Nem corporativo frio nem
                        startup descontraída
 
@@ -51,8 +50,7 @@ TECH STACK:           React + TypeScript (strict) + Vite + Tailwind CSS v4
                        (default, sem alterações)
 REQUIRED FEATURES:    Hero, Sobre, Seguros (6 ramos), Porquê a BV, Contacto
                        (formulário mailto:), CookieConsent + páginas legais
-                       (Privacy/Terms/Cookies): RGPD real, algo que o site
-                       vanilla original não tinha
+                       (Privacy/Terms/Cookies): RGPD real
 INTEGRATIONS:         Nenhuma ainda (sem GA4/conta de Ads). O default-denied
                        do Consent Mode v2 já deixa isso pronto para quando
                        existir
@@ -62,9 +60,8 @@ RESTRICTIONS:         Não inventar morada, telefone, texto institucional,
                        confirmar (ver Home.tsx e as páginas legais)
 ```
 
-Ver [`../documento.md`](../documento.md) para o estado geral do projeto BV
-Seguros (site vanilla em `../`, CRM em `../crm/`, este site em
-`../site-blueprint/`) e porquê esta segunda versão existe.
+Ver [`documento.md`](documento.md) para o estado geral do projeto BV Seguros
+(este site na raiz, CRM em `crm/`).
 
 ## What an agent does with this brief
 

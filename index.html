@@ -1,182 +1,58 @@
 <!doctype html>
 <html lang="pt-PT">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BV Seguros — Seguros e Soluções</title>
-  <meta name="description" content="BV Seguros — corretora de seguros. Automóvel, vida, saúde, multirriscos habitação e acidentes de trabalho, com acompanhamento próximo em cada apólice." />
-  <link rel="icon" type="image/png" href="images/logo-bv-seguros.png" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/images/logo-bv-seguros.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="BV Seguros — corretora de seguros. Automóvel, vida, saúde, multirriscos habitação e acidentes de trabalho, com acompanhamento próximo em cada apólice." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="BV Seguros — Seguros e Soluções" />
+    <meta property="og:description" content="Corretora de seguros independente: comparamos, explicamos sem jargão e acompanhamos no sinistro." />
+    <meta property="og:type" content="website" />
+    <title>BV Seguros — Seguros e Soluções</title>
 
-  <header class="cabecalho">
-    <div class="wrap cabecalho-conteudo">
-      <a href="#topo" class="marca">
-        <img src="images/logo-bv-seguros.png" alt="BV Seguros" class="marca-logo" />
-        <span class="marca-nome">BV Seguros</span>
-      </a>
-      <nav class="nav" aria-label="Navegação principal">
-        <a href="#sobre">Sobre</a>
-        <a href="#servicos">Seguros</a>
-        <a href="#porque">Porquê a BV</a>
-        <a href="#contacto" class="botao botao--pequeno">Pedir contacto</a>
-      </nav>
-    </div>
-  </header>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
-  <main id="topo">
+    <!--
+      Google Consent Mode v2: default state, denied until the visitor
+      answers the cookie banner (src/components/feedback/CookieConsent.tsx
+      calls gtag('consent', 'update', ...) through
+      src/utils/googleConsentMode.ts). Must run before gtag.js or any
+      other analytics/ads script loads, even on a project with no GA4/Ads
+      account yet: the default-denied state is what makes future
+      analytics additions consent-safe from day one.
 
-    <section class="hero">
-      <div class="wrap hero-conteudo">
-        <p class="hero-etiqueta">Seguros e Soluções</p>
-        <h1>Proteção a sério, explicada em português simples.</h1>
-        <p class="hero-texto">
-          Somos a BV Seguros: ajudamos famílias e empresas a escolher o seguro certo —
-          sem letras miúdas por explicar e com alguém do outro lado quando precisar de
-          usar a apólice.
-        </p>
-        <div class="hero-ctas">
-          <a href="#contacto" class="botao">Pedir uma proposta</a>
-          <a href="#servicos" class="botao botao--secundario">Ver seguros disponíveis</a>
-        </div>
-      </div>
-    </section>
+      When the project gets a real GA4 measurement ID, add the gtag.js
+      loader (<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX">
+      plus `gtag('config', 'G-XXXXXXX')`) after this block, not before it.
+    -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
 
-    <section id="sobre" class="seccao">
-      <div class="wrap seccao-grelha">
-        <div>
-          <p class="seccao-etiqueta">Sobre a BV Seguros</p>
-          <h2>Corretora independente, ao lado do cliente — não da seguradora.</h2>
-        </div>
-        <div class="seccao-texto">
-          <!-- POR PREENCHER: texto real sobre a história, missão e diferencial da BV Seguros -->
-          <p>
-            A BV Seguros trabalha com várias seguradoras para encontrar a apólice que
-            faz sentido para si, não a que rende mais comissão. Acompanhamos o cliente
-            do primeiro orçamento à participação de um sinistro.
-          </p>
-          <p class="por-preencher">
-            [Por preencher: ano de fundação, número de clientes/apólices geridas,
-            zona de atuação, e o que torna a BV Seguros diferente de uma corretora
-            genérica.]
-          </p>
-        </div>
-      </div>
-    </section>
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        analytics_storage: "denied",
+        functionality_storage: "denied",
+        personalization_storage: "denied",
+        security_storage: "granted",
+        wait_for_update: 500
+      });
 
-    <section id="servicos" class="seccao seccao--sombreada">
-      <div class="wrap">
-        <p class="seccao-etiqueta">O que cobrimos</p>
-        <h2>Um seguro para cada fase da vida.</h2>
-        <div class="grelha-servicos">
-          <article class="cartao-servico">
-            <h3>Automóvel</h3>
-            <p>Responsabilidade civil, danos próprios e assistência em viagem.</p>
-          </article>
-          <article class="cartao-servico">
-            <h3>Vida</h3>
-            <p>Proteção financeira para quem depende de si, com capital ajustado à sua fase de vida.</p>
-          </article>
-          <article class="cartao-servico">
-            <h3>Saúde</h3>
-            <p>Acesso a rede de cuidados privados, com e sem internamento.</p>
-          </article>
-          <article class="cartao-servico">
-            <h3>Multirriscos habitação</h3>
-            <p>Casa própria ou arrendada, conteúdo e responsabilidade civil incluídos.</p>
-          </article>
-          <article class="cartao-servico">
-            <h3>Acidentes de trabalho</h3>
-            <p>Obrigatório para quem tem trabalhadores a cargo — tratamos do processo todo.</p>
-          </article>
-          <article class="cartao-servico">
-            <h3>Outros seguros</h3>
-            <p>Responsabilidade civil, viagem e situações à medida — fale connosco.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="porque" class="seccao">
-      <div class="wrap seccao-grelha">
-        <div>
-          <p class="seccao-etiqueta">Porquê a BV Seguros</p>
-          <h2>Três coisas que fazemos sempre.</h2>
-        </div>
-        <div class="lista-diferenciais">
-          <div class="diferencial">
-            <h3>Comparamos por si</h3>
-            <p>Analisamos propostas de várias seguradoras antes de recomendar uma.</p>
-          </div>
-          <div class="diferencial">
-            <h3>Explicamos sem jargão</h3>
-            <p>Sabe exatamente o que está e o que não está coberto, antes de assinar.</p>
-          </div>
-          <div class="diferencial">
-            <h3>Ajudamos no sinistro</h3>
-            <p>Quando precisar de acionar o seguro, tratamos do acompanhamento consigo.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="contacto" class="seccao seccao--sombreada">
-      <div class="wrap seccao-grelha">
-        <div>
-          <p class="seccao-etiqueta">Contacto</p>
-          <h2>Fale connosco sobre o seu seguro.</h2>
-          <p class="contacto-info">
-            <!-- POR PREENCHER: morada, telefone e horário reais -->
-            Telefone: <a href="tel:+351000000000">000 000 000</a><br />
-            Email: <a href="mailto:geral@bvseguros.pt">geral@bvseguros.pt</a><br />
-            Morada: <span class="por-preencher-inline">[morada por preencher]</span>
-          </p>
-        </div>
-        <form class="contacto-form" action="mailto:geral@bvseguros.pt" method="post" enctype="text/plain">
-          <label>
-            Nome
-            <input type="text" name="nome" required />
-          </label>
-          <label>
-            Email
-            <input type="email" name="email" required />
-          </label>
-          <label>
-            Telefone
-            <input type="tel" name="telefone" />
-          </label>
-          <label>
-            Em que seguro está interessado?
-            <select name="ramo">
-              <option>Automóvel</option>
-              <option>Vida</option>
-              <option>Saúde</option>
-              <option>Multirriscos habitação</option>
-              <option>Acidentes de trabalho</option>
-              <option>Outro</option>
-            </select>
-          </label>
-          <label>
-            Mensagem
-            <textarea name="mensagem" rows="4"></textarea>
-          </label>
-          <button type="submit" class="botao">Enviar pedido</button>
-        </form>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="rodape">
-    <div class="wrap rodape-conteudo">
-      <div class="marca">
-        <span class="marca-nome">BV Seguros</span>
-      </div>
-      <p>&copy; <span id="ano"></span> BV Seguros — Seguros e Soluções. Todos os direitos reservados.</p>
-    </div>
-  </footer>
-
-  <script src="script.js"></script>
-</body>
+      gtag("set", "ads_data_redaction", true);
+      gtag("set", "url_passthrough", true);
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

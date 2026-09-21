@@ -70,6 +70,40 @@ DATE:
 ---
 
 ```
+PROJECT DECISION (BV Seguros):
+Removed the original vanilla-JS institutional site (HTML/CSS/JS,
+server.js, no build step) that used to live at the repository root,
+and promoted this Blueprint-based site (previously in a
+site-blueprint/ subfolder) to the root in its place. The client chose
+to keep only this version plus the CRM (crm/).
+
+REASON:
+Both versions existed side by side for comparison (see the two entries
+above, dated 2026-09-18). The client reviewed both and asked explicitly
+to keep only the Blueprint-based site and the CRM.
+
+SCOPE:
+Repository layout only. site-blueprint/* moved to the repository root;
+the old root-level index.html/styles.css/script.js/server.js/
+package.json/vercel.json/.htaccess/robots.txt/images/ were deleted.
+crm/ is untouched. No component, token, or page content changed as
+part of this move (see the two entries above for those).
+
+IMPACT:
+Relative paths that referenced "../crm/" or ".." (the old vanilla
+site) from inside this project's own docs (MASTER-PROMPT.md) were
+updated to the new same-level paths ("crm/"). This DECISIONS.md entry
+itself is the only place the old three-project history is still
+described; earlier entries above are left as written, as a
+chronological record of what was true when they were made.
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
 DECISION:
 Global container/section system (<Container />, <Section />) as the
 only source of page width and vertical rhythm.
