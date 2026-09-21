@@ -11,6 +11,54 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Logo asset (brand/logo-bv-seguros.png and public/images/logo-bv-
+seguros.png) had its background pixels made transparent (a Python/
+Pillow script keyed out the near-uniform #F7F7F7 background, with a
+feathered edge to avoid jagged anti-aliasing artefacts). Buttons
+switched from --radius-md to --radius-full (pill shape). Home.tsx
+restructured: Hero illustration replaced with a real photo + a
+floating info card overlapping it; a new middle-inverted 3-card
+"spotlight" row (.spotlight-card) added right after the Hero, using
+content that used to live in a since-removed "Porquê a BV" split-
+section; "O que cobrimos" icons moved into a colour-chip badge
+(.media-card__icon-chip).
+
+REASON:
+Logo: the PNG's opaque grey canvas was showing as a visible box
+against the white header, flagged directly. Buttons/spotlight-card/
+icon-chip: the client shared two reference sites (a finance-advisory
+site and a digital-agency site) and asked for their visual elements.
+Adopted: pill buttons, a real hero photo with a floating trust card,
+and a middle-inverted 3-card row, all present on the finance-advisory
+reference (the closer match: same professional-services category).
+Deliberately not adopted: the agency reference's purple gradient and
+glassmorphism (docs/anti-ai.md names that exact look as a default to
+avoid) and any fabricated stat/rating badge (neither reference's
+numbers are ours to reuse; see docs/anti-ai.md#content-integrity).
+
+SCOPE:
+brand/ and public/images/ logo files (pixel edit only, not
+regenerated), src/styles/components.css (.btn radius; new .hero-
+photo, .hero-floating-card*, .spotlight-card*, .media-card__icon-chip
+blocks, all additive), src/pages/Home.tsx (Hero markup, new spotlight
+section, removed split-section "Porquê a BV", icon-chip markup).
+
+IMPACT:
+Button.tsx itself untouched (only its CSS radius token changed, so
+every button site-wide picked up the pill shape automatically). The
+"Porquê a BV" anchor (id="porque") now lives on the new spotlight
+section, nav link unaffected. The `porque-bv.jpg` photo now serves
+double duty (Hero here; no other section referenced it after the
+split-section's removal).
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Hero Section given a navy (--color-primary) background via a scoped
 .hero-dark class, instead of white like the rest of the page. Text,
 HeroMark illustration and both buttons get scoped overrides

@@ -150,37 +150,22 @@ function RamoIcon({ tipo }: { tipo: RamoKey }) {
   }
 }
 
-/**
- * Ilustração do Hero: reinterpretação em traço do motivo escudo + check do
- * logótipo (ver brand/), não uma cópia do PNG. Composição deliberadamente
- * assimétrica (círculos desalinhados, escudo deslocado) para não cair no
- * cliché "ícone perfeito dentro de um círculo perfeito, tudo centrado"
- * (ver docs/anti-ai.md).
- */
-function HeroMark() {
+/** Ícone pequeno (escudo + check) para o cartão flutuante do Hero, cor accent. */
+function ShieldCheckIcon() {
   return (
-    <svg
-      viewBox="0 0 340 340"
-      width="100%"
-      role="img"
-      aria-label="Símbolo BV Seguros: escudo com verificação"
-      style={{ maxWidth: 320 }}
-    >
-      <circle cx="255" cy="95" r="105" fill="var(--color-text-on-dark)" fillOpacity="0.08" />
-      <circle cx="70" cy="255" r="54" fill="var(--color-text-on-dark)" fillOpacity="0.1" />
-      <circle cx="288" cy="272" r="14" fill="var(--color-text-on-dark)" fillOpacity="0.35" />
+    <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true">
       <path
-        d="M158 46c-30 18-56 25-79 27v78c0 55 32 92 79 110 47-18 79-55 79-110V73c-23-2-49-9-79-27Z"
+        d="M16 4c-3 2-6 2.5-9 2.8v8c0 6 3.6 10 9 12.2 5.4-2.2 9-6.2 9-12.2v-8c-3-.3-6-.8-9-2.8Z"
         fill="none"
-        stroke="var(--color-text-on-dark)"
-        strokeWidth="7"
+        stroke="var(--color-accent)"
+        strokeWidth="2.2"
         strokeLinejoin="round"
       />
       <path
-        d="M120 158l26 26 52-56"
+        d="M11.5 16.5l3 3 6-6.5"
         fill="none"
-        stroke="var(--color-text-on-dark)"
-        strokeWidth="14"
+        stroke="var(--color-accent)"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -271,15 +256,49 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            <div
-              style={{
-                gridColumn: "span 5",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <HeroMark />
+            <div style={{ gridColumn: "span 5", position: "relative" }}>
+              <img
+                src="/images/porque-bv.jpg"
+                alt="Agente da BV Seguros em reunião com uma cliente"
+                className="hero-photo"
+              />
+              <div className="hero-floating-card">
+                <div className="hero-floating-card__icon">
+                  <ShieldCheckIcon />
+                </div>
+                <div>
+                  <p className="hero-floating-card__title">Aconselhamento independente</p>
+                  <p className="hero-floating-card__sub">Sem compromisso</p>
+                </div>
+              </div>
             </div>
+          </div>
+        </Container>
+      </Section>
+
+      <Section id="porque">
+        <Container>
+          <div className="section-intro">
+            <p className="text-label text-muted">Porquê a BV Seguros</p>
+            <h2>Três coisas que fazemos sempre.</h2>
+          </div>
+          <div
+            className="grid"
+            style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}
+          >
+            {DIFERENCIAIS.map((item, i) => (
+              <div
+                key={item.titulo}
+                className={"spotlight-card" + (i === 1 ? " spotlight-card--dark" : "")}
+                style={{ gridColumn: "span 4" }}
+              >
+                <div className="spotlight-card__icon">
+                  <CheckMark />
+                </div>
+                <h3>{item.titulo}</h3>
+                <p className={i === 1 ? undefined : "text-secondary"}>{item.descricao}</p>
+              </div>
+            ))}
           </div>
         </Container>
       </Section>
@@ -330,53 +349,13 @@ export default function Home() {
                   loading="lazy"
                 />
                 <div className="media-card__body">
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "var(--space-2xs)",
-                      color: "var(--color-accent)",
-                    }}
-                  >
-                    <div style={{ width: 22, height: 22, flex: "none" }}>
-                      <RamoIcon tipo={ramo.key} />
-                    </div>
-                    <h3 style={{ color: "var(--color-text-primary)" }}>{ramo.nome}</h3>
+                  <div className="media-card__icon-chip">
+                    <RamoIcon tipo={ramo.key} />
                   </div>
+                  <h3>{ramo.nome}</h3>
                   <p className="text-secondary">{ramo.descricao}</p>
                 </div>
               </article>
-            ))}
-          </div>
-        </Container>
-      </Section>
-
-      <Section id="porque" className="split-section">
-        {/* Sem Container aqui: a imagem tem de chegar à borda da secção.
-            Padrão "full-bleed split section" de docs/design-system.md. */}
-        <img
-          src="/images/porque-bv.jpg"
-          alt=""
-          className="split-section__media"
-          loading="lazy"
-        />
-        <Container variant="narrow" className="split-section__copy">
-          <p className="text-label text-muted">Porquê a BV Seguros</p>
-          <h2>Três coisas que fazemos sempre.</h2>
-          <div className="stack" style={{ marginTop: "var(--space-lg)", gap: "var(--space-md)" }}>
-            {DIFERENCIAIS.map((item) => (
-              <div key={item.titulo}>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                  <CheckMark />
-                  <h3>{item.titulo}</h3>
-                </div>
-                <p
-                  className="text-secondary"
-                  style={{ marginTop: "var(--space-3xs)", marginLeft: "calc(20px + var(--space-sm))" }}
-                >
-                  {item.descricao}
-                </p>
-              </div>
             ))}
           </div>
         </Container>
