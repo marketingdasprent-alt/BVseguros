@@ -142,31 +142,35 @@ function RamoIcon({ tipo }: { tipo: RamoKey }) {
 
 /**
  * Ilustração do Hero: reinterpretação em traço do motivo escudo + check do
- * logótipo (ver brand/), não uma cópia do PNG. Substitui o hero só-texto
- * que pesava contra nós nas 4 referências (todas têm foto ou ilustração).
+ * logótipo (ver brand/), não uma cópia do PNG. Composição deliberadamente
+ * assimétrica (círculos desalinhados, escudo deslocado) para não cair no
+ * cliché "ícone perfeito dentro de um círculo perfeito, tudo centrado"
+ * (ver docs/anti-ai.md).
  */
 function HeroMark() {
   return (
     <svg
-      viewBox="0 0 120 120"
-      width="96"
-      height="96"
+      viewBox="0 0 340 340"
+      width="100%"
       role="img"
       aria-label="Símbolo BV Seguros: escudo com verificação"
+      style={{ maxWidth: 320 }}
     >
-      <circle cx="60" cy="60" r="58" fill="var(--color-primary)" fillOpacity="0.06" />
+      <circle cx="255" cy="95" r="105" fill="var(--color-primary)" fillOpacity="0.07" />
+      <circle cx="70" cy="255" r="54" fill="var(--color-accent)" fillOpacity="0.1" />
+      <circle cx="288" cy="272" r="14" fill="var(--color-accent)" fillOpacity="0.35" />
       <path
-        d="M60 14c-13 8-24 11-34 12v34c0 24 14 40 34 48 20-8 34-24 34-48V26c-10-1-21-4-34-12Z"
+        d="M158 46c-30 18-56 25-79 27v78c0 55 32 92 79 110 47-18 79-55 79-110V73c-23-2-49-9-79-27Z"
         fill="var(--color-surface)"
         stroke="var(--color-primary)"
-        strokeWidth="3.5"
+        strokeWidth="7"
         strokeLinejoin="round"
       />
       <path
-        d="M42 60l12 12 24-26"
+        d="M120 158l26 26 52-56"
         fill="none"
         stroke="var(--color-accent)"
-        strokeWidth="7"
+        strokeWidth="14"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -179,24 +183,35 @@ export default function Home() {
     <>
       <Section>
         <Container>
-          <div className="section-intro">
-            <HeroMark />
-            <p className="text-label text-muted" style={{ marginTop: "var(--space-sm)" }}>
-              Seguros e Soluções
-            </p>
-            <h1>Proteção a sério, explicada em português simples.</h1>
-            <p className="text-body-large text-secondary">
-              Ajudamos famílias e empresas a escolher o seguro certo, sem
-              letras miúdas por explicar e com alguém do outro lado quando
-              precisar de usar a apólice.
-            </p>
-            <div className="cluster cluster--center">
-              <Button as="a" href="#contacto">
-                Pedir uma proposta
-              </Button>
-              <Button as="a" href="#servicos" variant="secondary">
-                Ver seguros disponíveis
-              </Button>
+          <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
+            <div style={{ gridColumn: "span 7" }}>
+              <p className="text-label text-muted">Seguros e Soluções</p>
+              <h1>Proteção a sério, explicada em português simples.</h1>
+              <p
+                className="text-body-large text-secondary"
+                style={{ marginTop: "var(--space-sm)" }}
+              >
+                Ajudamos famílias e empresas a escolher o seguro certo, sem
+                letras miúdas por explicar e com alguém do outro lado quando
+                precisar de usar a apólice.
+              </p>
+              <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
+                <Button as="a" href="#contacto">
+                  Pedir uma proposta
+                </Button>
+                <Button as="a" href="#servicos" variant="secondary">
+                  Ver seguros disponíveis
+                </Button>
+              </div>
+            </div>
+            <div
+              style={{
+                gridColumn: "span 5",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <HeroMark />
             </div>
           </div>
         </Container>
@@ -242,16 +257,11 @@ export default function Home() {
               <Card key={ramo.key} center>
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 44,
-                    height: 44,
-                    borderRadius: "var(--radius-full)",
-                    background: "var(--color-accent)",
-                    color: "var(--color-text-on-primary)",
+                    color: "var(--color-accent)",
+                    width: 36,
+                    height: 36,
                     marginInline: "auto",
-                    marginBottom: "var(--space-xs)",
+                    marginBottom: "var(--space-2xs)",
                   }}
                 >
                   <RamoIcon tipo={ramo.key} />
@@ -286,7 +296,7 @@ export default function Home() {
 
       <Section variant="compact" surface>
         <Container>
-          <div className="section-intro">
+          <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
             <p className="text-label text-muted">Como funciona</p>
             <h2>Três passos, sem burocracia.</h2>
           </div>
@@ -295,24 +305,21 @@ export default function Home() {
             style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}
           >
             {PASSOS.map((passo, i) => (
-              <div key={passo.titulo} style={{ gridColumn: "span 4" }}>
-                <div
-                  className="text-label"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 32,
-                    height: 32,
-                    borderRadius: "var(--radius-full)",
-                    border: "var(--border-width-thick) solid var(--color-primary)",
-                    color: "var(--color-primary)",
-                    marginBottom: "var(--space-sm)",
-                  }}
+              <div
+                key={passo.titulo}
+                style={{
+                  gridColumn: "span 4",
+                  borderTop: "var(--border-width-thick) solid var(--color-primary)",
+                  paddingTop: "var(--space-sm)",
+                }}
+              >
+                <span
+                  className="text-display"
+                  style={{ color: "var(--color-accent)", fontSize: "var(--font-size-h1)" }}
                 >
                   {i + 1}
-                </div>
-                <h3>{passo.titulo}</h3>
+                </span>
+                <h3 style={{ marginTop: "var(--space-2xs)" }}>{passo.titulo}</h3>
                 <p className="text-secondary">{passo.descricao}</p>
               </div>
             ))}
