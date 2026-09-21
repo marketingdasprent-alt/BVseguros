@@ -77,7 +77,7 @@ export default function Home() {
         </Container>
       </Section>
 
-      <Section id="sobre">
+      <Section id="sobre" variant="compact">
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
             <div style={{ gridColumn: "span 5" }}>
