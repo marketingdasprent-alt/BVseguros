@@ -166,24 +166,58 @@ function HeroMark() {
       aria-label="Símbolo BV Seguros: escudo com verificação"
       style={{ maxWidth: 320 }}
     >
-      <circle cx="255" cy="95" r="105" fill="var(--color-primary)" fillOpacity="0.07" />
-      <circle cx="70" cy="255" r="54" fill="var(--color-accent)" fillOpacity="0.1" />
-      <circle cx="288" cy="272" r="14" fill="var(--color-accent)" fillOpacity="0.35" />
+      <circle cx="255" cy="95" r="105" fill="var(--color-text-on-dark)" fillOpacity="0.08" />
+      <circle cx="70" cy="255" r="54" fill="var(--color-text-on-dark)" fillOpacity="0.1" />
+      <circle cx="288" cy="272" r="14" fill="var(--color-text-on-dark)" fillOpacity="0.35" />
       <path
         d="M158 46c-30 18-56 25-79 27v78c0 55 32 92 79 110 47-18 79-55 79-110V73c-23-2-49-9-79-27Z"
-        fill="var(--color-surface)"
-        stroke="var(--color-primary)"
+        fill="none"
+        stroke="var(--color-text-on-dark)"
         strokeWidth="7"
         strokeLinejoin="round"
       />
       <path
         d="M120 158l26 26 52-56"
         fill="none"
-        stroke="var(--color-accent)"
+        stroke="var(--color-text-on-dark)"
         strokeWidth="14"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+/** Ícones de contacto (telefone, email, localização): mesmo traço mínimo do RamoIcon. */
+function ContactIcon({ tipo }: { tipo: "telefone" | "email" | "morada" }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.75,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  if (tipo === "telefone") {
+    return (
+      <svg {...common}>
+        <path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L14 13l5 2v3a2 2 0 0 1-2 2C10.5 20 4 13.5 4 6a2 2 0 0 1 1-2Z" />
+      </svg>
+    );
+  }
+  if (tipo === "email") {
+    return (
+      <svg {...common}>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m4 7 8 6 8-6" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z" />
+      <circle cx="12" cy="9" r="2.5" />
     </svg>
   );
 }
@@ -195,7 +229,7 @@ function CheckMark() {
       viewBox="0 0 20 20"
       width="20"
       height="20"
-      style={{ flex: "none", marginTop: 3 }}
+      style={{ flex: "none" }}
       aria-hidden="true"
     >
       <circle cx="10" cy="10" r="10" fill="var(--color-accent)" />
@@ -214,15 +248,15 @@ function CheckMark() {
 export default function Home() {
   return (
     <>
-      <Section>
+      <Section className="hero-dark">
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 7" }}>
-              <p className="text-label text-muted">Seguros e Soluções</p>
+              <p className="text-label">Seguros e Soluções</p>
               <h1>Proteção a sério, explicada em português simples.</h1>
               <p
                 className="text-body-large text-secondary"
-                style={{ marginTop: "var(--space-sm)" }}
+                style={{ marginTop: "var(--space-sm)", textAlign: "justify" }}
               >
                 Ajudamos famílias e empresas a escolher o seguro certo, sem
                 letras miúdas por explicar e com alguém do outro lado quando
@@ -282,9 +316,13 @@ export default function Home() {
             <p className="text-label text-muted">O que cobrimos</p>
             <h2>Um seguro para cada fase da vida.</h2>
           </div>
-          <div className="grid-auto" style={{ marginTop: "var(--space-xl)" }}>
+          <div className="grid" style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}>
             {RAMOS.map((ramo) => (
-              <article key={ramo.key} className="media-card">
+              <article
+                key={ramo.key}
+                className="media-card media-card--interactive"
+                style={{ gridColumn: "span 4" }}
+              >
                 <img
                   src={ramo.imagem}
                   alt=""
@@ -327,65 +365,94 @@ export default function Home() {
           <h2>Três coisas que fazemos sempre.</h2>
           <div className="stack" style={{ marginTop: "var(--space-lg)", gap: "var(--space-md)" }}>
             {DIFERENCIAIS.map((item) => (
-              <div key={item.titulo} style={{ display: "flex", gap: "var(--space-sm)" }}>
-                <CheckMark />
-                <div>
+              <div key={item.titulo}>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
+                  <CheckMark />
                   <h3>{item.titulo}</h3>
-                  <p className="text-secondary">{item.descricao}</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </Section>
-
-      <Section variant="compact" surface>
-        <Container>
-          <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
-            <p className="text-label text-muted">Como funciona</p>
-            <h2>Três passos, sem burocracia.</h2>
-          </div>
-          <div
-            className="grid"
-            style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}
-          >
-            {PASSOS.map((passo, i) => (
-              <div
-                key={passo.titulo}
-                style={{
-                  gridColumn: "span 4",
-                  borderTop: "var(--border-width-thick) solid var(--color-primary)",
-                  paddingTop: "var(--space-sm)",
-                }}
-              >
-                <span
-                  className="text-display"
-                  style={{ color: "var(--color-accent)", fontSize: "var(--font-size-h1)" }}
+                <p
+                  className="text-secondary"
+                  style={{ marginTop: "var(--space-3xs)", marginLeft: "calc(20px + var(--space-sm))" }}
                 >
-                  {i + 1}
-                </span>
-                <h3 style={{ marginTop: "var(--space-2xs)" }}>{passo.titulo}</h3>
-                <p className="text-secondary">{passo.descricao}</p>
+                  {item.descricao}
+                </p>
               </div>
             ))}
           </div>
         </Container>
       </Section>
 
-      <Section id="contacto">
+      <Section variant="compact">
+        <Container>
+          <div className="como-funciona-box">
+            <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
+              <p className="text-label text-muted">Como funciona</p>
+              <h2>Três passos, sem burocracia.</h2>
+            </div>
+            <div
+              className="grid"
+              style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}
+            >
+              {PASSOS.map((passo, i) => (
+                <div
+                  key={passo.titulo}
+                  style={{
+                    gridColumn: "span 4",
+                    borderTop: "var(--border-width-thick) solid var(--color-primary)",
+                    paddingTop: "var(--space-sm)",
+                  }}
+                >
+                  <span
+                    className="text-display"
+                    style={{ color: "var(--color-accent)", fontSize: "var(--font-size-h1)" }}
+                  >
+                    {i + 1}
+                  </span>
+                  <h3 style={{ marginTop: "var(--space-2xs)" }}>{passo.titulo}</h3>
+                  <p className="text-secondary">{passo.descricao}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Container>
+      </Section>
+
+      <Section id="contacto" surface>
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
             <div style={{ gridColumn: "span 5" }}>
               <p className="text-label text-muted">Contacto</p>
               <h2>Fale connosco sobre o seu seguro.</h2>
-              <p className="text-secondary" style={{ marginTop: "var(--space-md)" }}>
-                Telefone: <PorConfirmar>[telefone por confirmar]</PorConfirmar>
-                <br />
-                Email: <a href="mailto:geral@bvseguros.pt">geral@bvseguros.pt</a>
-                <br />
-                Morada: <PorConfirmar>[morada por confirmar]</PorConfirmar>
-              </p>
-              <p className="text-caption" style={{ marginTop: "var(--space-md)" }}>
+              <div
+                className="stack"
+                style={{ marginTop: "var(--space-lg)", gap: "var(--space-sm)" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
+                  <div style={{ width: 20, height: 20, flex: "none", color: "var(--color-accent)" }}>
+                    <ContactIcon tipo="telefone" />
+                  </div>
+                  <p className="text-secondary">
+                    <PorConfirmar>[telefone por confirmar]</PorConfirmar>
+                  </p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
+                  <div style={{ width: 20, height: 20, flex: "none", color: "var(--color-accent)" }}>
+                    <ContactIcon tipo="email" />
+                  </div>
+                  <p className="text-secondary">
+                    <a href="mailto:geral@bvseguros.pt">geral@bvseguros.pt</a>
+                  </p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
+                  <div style={{ width: 20, height: 20, flex: "none", color: "var(--color-accent)" }}>
+                    <ContactIcon tipo="morada" />
+                  </div>
+                  <p className="text-secondary">
+                    <PorConfirmar>[morada por confirmar]</PorConfirmar>
+                  </p>
+                </div>
+              </div>
+              <p className="text-caption" style={{ marginTop: "var(--space-lg)" }}>
                 Mediação de seguros:{" "}
                 <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>
               </p>
@@ -396,7 +463,7 @@ export default function Home() {
                 action="mailto:geral@bvseguros.pt"
                 method="post"
                 encType="text/plain"
-                className="stack"
+                className="stack contact-form-card"
               >
                 <Input label="Nome" name="nome" type="text" required />
                 <Input label="Email" name="email" type="email" required />

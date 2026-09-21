@@ -238,7 +238,6 @@
 .header__bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-md);
   padding-block: var(--space-sm);
 }
@@ -247,6 +246,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
+  margin-right: auto;
   font-family: var(--font-display);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-h4);
@@ -352,9 +352,13 @@
 }
 
 .footer__columns {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-lg);
-  grid-template-columns: repeat(2, 1fr);
+}
+
+.footer__columns > * {
+  flex: 1 1 8rem;
 }
 
 .footer__heading {
@@ -717,10 +721,25 @@ body.has-footer-visible .back-to-top {
   overflow: hidden;
 }
 
+.media-card--interactive {
+  transition: box-shadow var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+}
+
+.media-card--interactive:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
 .media-card__media {
   width: 100%;
-  height: 9rem;
+  height: 10rem;
   object-fit: cover;
+  transition: transform var(--duration-slow) var(--easing-standard);
+}
+
+.media-card--interactive:hover .media-card__media {
+  transform: scale(1.04);
 }
 
 .media-card__body {
@@ -766,4 +785,80 @@ body.has-footer-visible .back-to-top {
   .split-section__media {
     min-height: 16rem;
   }
+}
+
+/* ---------------------------------------------------------------- */
+/* HERO-DARK: project-specific, BV Seguros.                          */
+/* Navy background on the Hero for a colour break right under the    */
+/* white header, instead of white-on-white all the way down. Scoped  */
+/* overrides (not new tokens): --color-primary as a background needs */
+/* its own text/button contrast, same values used elsewhere just     */
+/* recombined for a dark surface.                                    */
+/* ---------------------------------------------------------------- */
+
+.hero-dark {
+  background-color: var(--color-primary);
+}
+
+.hero-dark .text-label,
+.hero-dark h1 {
+  color: var(--color-text-on-dark);
+}
+
+.hero-dark .text-secondary {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hero-dark .btn--primary {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.hero-dark .btn--primary:hover:not(:disabled) {
+  background-color: var(--color-surface-alt);
+}
+
+.hero-dark .btn--secondary {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text-on-dark);
+}
+
+.hero-dark .btn--secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-text-on-dark);
+}
+
+/* ---------------------------------------------------------------- */
+/* COMO-FUNCIONA-BOX: project-specific, BV Seguros.                  */
+/* A visible boxed panel for "Como funciona", distinct from the      */
+/* plain page background. color-mix derives the tint from the        */
+/* existing accent token (no new color literal added).               */
+/* ---------------------------------------------------------------- */
+
+.como-funciona-box {
+  background-color: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface));
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl) var(--space-lg);
+}
+
+@media (max-width: 640px) {
+  .como-funciona-box {
+    padding: var(--space-lg) var(--space-md);
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* CONTACT-FORM-CARD: project-specific, BV Seguros.                  */
+/* The contact form sits on a "surface" (grey) Section; card-ifying  */
+/* it gives the form its own visible surface instead of the fields   */
+/* floating directly on the grey background.                        */
+/* ---------------------------------------------------------------- */
+
+.contact-form-card {
+  background-color: var(--color-surface);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
 }

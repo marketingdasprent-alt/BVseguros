@@ -11,6 +11,36 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Hero Section given a navy (--color-primary) background via a scoped
+.hero-dark class, instead of white like the rest of the page. Text,
+HeroMark illustration and both buttons get scoped overrides
+(.hero-dark ...) for contrast on the dark surface: no new component
+variant added to Button or Section themselves.
+
+REASON:
+Direct client feedback ("quebra de coloração"): the page read as
+white-on-white past the header with no visual anchor at the top.
+
+SCOPE:
+src/pages/Home.tsx (Section className, HeroMark colors switched from
+--color-primary/--color-accent to --color-text-on-dark), src/styles/
+components.css (.hero-dark block, additive, all under one selector
+prefix). Button.tsx and Section.tsx unchanged; every other Section on
+the page is unaffected.
+
+IMPACT:
+Any future dark-background Section can reuse this exact pattern
+(scoped class overriding text/button colors) instead of inventing a
+new one; Button/Section keep a single light-surface-only contract.
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Added stock photography (Pexels, free commercial-use license) to
 "O que cobrimos" (one photo per ramo, via a new .media-card pattern)
 and to "Porquê a BV Seguros" (a full-bleed split section, image one

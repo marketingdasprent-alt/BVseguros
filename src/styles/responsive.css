@@ -29,17 +29,15 @@
   }
 }
 
-/* Footer: columns grow from a single stack to a row. auto-fit (not a
-   hardcoded repeat(4,1fr)) sizes to however many nav columns a project
-   actually defines in data/navigation.ts, instead of reserving empty
-   tracks when there are fewer than 4 (see DECISIONS.md, BV Seguros). */
+/* Footer: columns grow from a single stack to a row. .footer__columns
+   itself is flex (components.css), not grid, so it always divides its
+   space evenly across however many nav columns a project actually
+   defines, instead of reserving empty tracks (see DECISIONS.md, BV
+   Seguros: this replaced an earlier repeat(4, 1fr) that hardcoded a
+   column count no data actually had). */
 @media (min-width: 768px) {
   .footer__grid {
     grid-template-columns: minmax(16rem, 1fr) 2fr;
-  }
-
-  .footer__columns {
-    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   }
 
   .footer__bottom {
