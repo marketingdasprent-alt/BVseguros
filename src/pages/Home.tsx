@@ -2,41 +2,51 @@ import type { ReactNode } from "react";
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
 import Input from "../components/forms/Input";
 
 type RamoKey = "auto" | "vida" | "saude" | "habitacao" | "trabalho" | "outros";
 
-const RAMOS: { key: RamoKey; nome: string; descricao: string }[] = [
+/**
+ * Fotografias de stock (Pexels, licença livre para uso comercial, sem
+ * ligação real à BV Seguros): placeholders visuais, ver docs/anti-ai.md
+ * #content-integrity. Não confundir com fotografia própria da empresa.
+ */
+const RAMOS: { key: RamoKey; nome: string; descricao: string; imagem: string }[] = [
   {
     key: "auto",
     nome: "Automóvel",
     descricao: "Responsabilidade civil, danos próprios e assistência em viagem.",
+    imagem: "/images/ramos/auto.jpg",
   },
   {
     key: "vida",
     nome: "Vida",
     descricao: "Proteção financeira para quem depende de si, ajustada à sua fase de vida.",
+    imagem: "/images/ramos/vida.jpg",
   },
   {
     key: "saude",
     nome: "Saúde",
     descricao: "Acesso a rede de cuidados privados, com e sem internamento.",
+    imagem: "/images/ramos/saude.jpg",
   },
   {
     key: "habitacao",
     nome: "Multirriscos habitação",
     descricao: "Casa própria ou arrendada, conteúdo e responsabilidade civil incluídos.",
+    imagem: "/images/ramos/habitacao.jpg",
   },
   {
     key: "trabalho",
     nome: "Acidentes de trabalho",
     descricao: "Obrigatório para quem tem trabalhadores a cargo. Tratamos do processo todo.",
+    imagem: "/images/ramos/trabalho.jpg",
   },
   {
     key: "outros",
     nome: "Outros seguros",
     descricao: "Responsabilidade civil, viagem e situações à medida. Fale connosco.",
+    imagem: "/images/ramos/outros.jpg",
   },
 ];
 
@@ -178,6 +188,29 @@ function HeroMark() {
   );
 }
 
+/** Marcador dos itens de "Porquê a BV": círculo cheio + check, cor accent. */
+function CheckMark() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      width="20"
+      height="20"
+      style={{ flex: "none", marginTop: 3 }}
+      aria-hidden="true"
+    >
+      <circle cx="10" cy="10" r="10" fill="var(--color-accent)" />
+      <path
+        d="M6 10.5l2.5 2.5 5.5-6"
+        fill="none"
+        stroke="var(--color-text-on-primary)"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -249,46 +282,58 @@ export default function Home() {
             <p className="text-label text-muted">O que cobrimos</p>
             <h2>Um seguro para cada fase da vida.</h2>
           </div>
-          <div
-            className="grid-auto grid--center"
-            style={{ marginTop: "var(--space-xl)" }}
-          >
+          <div className="grid-auto" style={{ marginTop: "var(--space-xl)" }}>
             {RAMOS.map((ramo) => (
-              <Card key={ramo.key} center>
-                <div
-                  style={{
-                    color: "var(--color-accent)",
-                    width: 36,
-                    height: 36,
-                    marginInline: "auto",
-                    marginBottom: "var(--space-2xs)",
-                  }}
-                >
-                  <RamoIcon tipo={ramo.key} />
+              <article key={ramo.key} className="media-card">
+                <img
+                  src={ramo.imagem}
+                  alt=""
+                  className="media-card__media"
+                  loading="lazy"
+                />
+                <div className="media-card__body">
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "var(--space-2xs)",
+                      color: "var(--color-accent)",
+                    }}
+                  >
+                    <div style={{ width: 22, height: 22, flex: "none" }}>
+                      <RamoIcon tipo={ramo.key} />
+                    </div>
+                    <h3 style={{ color: "var(--color-text-primary)" }}>{ramo.nome}</h3>
+                  </div>
+                  <p className="text-secondary">{ramo.descricao}</p>
                 </div>
-                <h3>{ramo.nome}</h3>
-                <p className="text-secondary">{ramo.descricao}</p>
-              </Card>
+              </article>
             ))}
           </div>
         </Container>
       </Section>
 
-      <Section id="porque">
-        <Container>
-          <div className="section-intro">
-            <p className="text-label text-muted">Porquê a BV Seguros</p>
-            <h2>Três coisas que fazemos sempre.</h2>
-          </div>
-          <div
-            className="grid-auto grid--center"
-            style={{ marginTop: "var(--space-xl)" }}
-          >
+      <Section id="porque" className="split-section">
+        {/* Sem Container aqui: a imagem tem de chegar à borda da secção.
+            Padrão "full-bleed split section" de docs/design-system.md. */}
+        <img
+          src="/images/porque-bv.jpg"
+          alt=""
+          className="split-section__media"
+          loading="lazy"
+        />
+        <Container variant="narrow" className="split-section__copy">
+          <p className="text-label text-muted">Porquê a BV Seguros</p>
+          <h2>Três coisas que fazemos sempre.</h2>
+          <div className="stack" style={{ marginTop: "var(--space-lg)", gap: "var(--space-md)" }}>
             {DIFERENCIAIS.map((item) => (
-              <Card key={item.titulo} center>
-                <h3>{item.titulo}</h3>
-                <p className="text-secondary">{item.descricao}</p>
-              </Card>
+              <div key={item.titulo} style={{ display: "flex", gap: "var(--space-sm)" }}>
+                <CheckMark />
+                <div>
+                  <h3>{item.titulo}</h3>
+                  <p className="text-secondary">{item.descricao}</p>
+                </div>
+              </div>
             ))}
           </div>
         </Container>

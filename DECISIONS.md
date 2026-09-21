@@ -11,6 +11,43 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Added stock photography (Pexels, free commercial-use license) to
+"O que cobrimos" (one photo per ramo, via a new .media-card pattern)
+and to "Porquê a BV Seguros" (a full-bleed split section, image one
+side, copy the other). Also fixed .footer__columns, which hardcoded
+grid-template-columns: repeat(4, 1fr) and left visible dead space
+when a project (like this one) only defines 2 nav columns: changed
+to repeat(auto-fit, minmax(8rem, 1fr)).
+
+REASON:
+Direct client feedback: the homepage read as too plain/empty, and
+"Porquê a BV Seguros" specifically as bare enough to be
+counter-productive. None of these photos are of the real BV Seguros
+(office, staff, clients): same placeholder convention as
+AbreuEPereira's stock photography, disclosed in the code comment
+next to the RAMOS data and never presented as real company photos.
+
+SCOPE:
+src/pages/Home.tsx (RAMOS gains an `imagem` field, "O que cobrimos"
+and "Porquê a BV" markup), src/styles/components.css (new
+.media-card and .split-section rules, additive), src/styles/
+responsive.css (.footer__columns fix, Level 1 file but a scoped,
+justified bug fix, not a design change), public/images/ramos/*.jpg
+and public/images/porque-bv.jpg (new assets).
+
+IMPACT:
+Container/Section/Button/Input/Header contracts unchanged. Footer's
+fix is backward compatible: repeat(auto-fit, minmax(8rem, 1fr)) still
+produces 4 even columns when a project defines 4, same as before.
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Neutral color ramp replaced with a cool gray-blue scale (Tailwind's
 "slate" values) instead of the foundation's default warm gray, and
 --font-display/--font-body switched from system-ui to Plus Jakarta

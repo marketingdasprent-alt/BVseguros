@@ -29,14 +29,17 @@
   }
 }
 
-/* Footer: columns grow from a single stack to a 4-column row */
+/* Footer: columns grow from a single stack to a row. auto-fit (not a
+   hardcoded repeat(4,1fr)) sizes to however many nav columns a project
+   actually defines in data/navigation.ts, instead of reserving empty
+   tracks when there are fewer than 4 (see DECISIONS.md, BV Seguros). */
 @media (min-width: 768px) {
   .footer__grid {
     grid-template-columns: minmax(16rem, 1fr) 2fr;
   }
 
   .footer__columns {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   }
 
   .footer__bottom {

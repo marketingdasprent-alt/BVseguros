@@ -699,3 +699,71 @@ body.has-footer-visible .back-to-top {
   border-radius: var(--radius-sm);
   font-weight: var(--font-weight-medium);
 }
+
+/* ---------------------------------------------------------------- */
+/* MEDIA-CARD: project-specific, BV Seguros.                         */
+/* A Card look-alike whose photo bleeds to the card's own edges,     */
+/* which .card's uniform padding can't do. Used by "O que cobrimos": */
+/* hand-rolled instead of extending Card, since only this one grid   */
+/* needs a media slot (reuse before create, but not forced reuse).   */
+/* ---------------------------------------------------------------- */
+
+.media-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.media-card__media {
+  width: 100%;
+  height: 9rem;
+  object-fit: cover;
+}
+
+.media-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  padding: var(--space-md);
+}
+
+/* ---------------------------------------------------------------- */
+/* SPLIT-SECTION: project-specific, BV Seguros.                      */
+/* The "full-bleed split section" pattern from docs/design-system.md: */
+/* media runs the full section height on one side, copy stays        */
+/* Container-aligned on the other. Used by "Porquê a BV".             */
+/* ---------------------------------------------------------------- */
+
+.split-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  padding-block: 0;
+}
+
+.split-section__media {
+  width: 100%;
+  height: 100%;
+  min-height: 22rem;
+  object-fit: cover;
+}
+
+.split-section__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--section-padding-normal);
+}
+
+@media (max-width: 768px) {
+  .split-section {
+    grid-template-columns: 1fr;
+  }
+
+  .split-section__media {
+    min-height: 16rem;
+  }
+}
