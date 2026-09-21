@@ -55,7 +55,7 @@ function PorConfirmar({ children }: { children: ReactNode }) {
 export default function Home() {
   return (
     <>
-      <Section variant="spacious">
+      <Section>
         <Container>
           <div className="section-intro">
             <p className="text-label text-muted">Seguros e Soluções</p>
