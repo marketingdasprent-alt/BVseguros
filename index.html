@@ -2,14 +2,54 @@
 <html lang="pt-PT">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/images/logo-icon-bv-seguros.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="BV Seguros: corretora de seguros. Automóvel, vida, saúde, multirriscos habitação e acidentes de trabalho, com acompanhamento próximo em cada apólice." />
     <meta name="robots" content="index, follow" />
+
+    <!--
+      geo.* has no ICBP/county-level registry to draw from until the
+      client's real morada is confirmed (see the PorConfirmar markers on
+      the Home and legal pages), so this stays country-level only. Add
+      geo.placename / geo.position once that address is final.
+    -->
+    <meta name="geo.region" content="PT" />
+    <meta name="geo.country" content="Portugal" />
+
     <meta property="og:title" content="BV Seguros: Seguros e Soluções" />
     <meta property="og:description" content="Corretora de seguros independente: comparamos, explicamos sem jargão e acompanhamos no sinistro." />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BV Seguros" />
+    <meta property="og:locale" content="pt_PT" />
+    <meta property="og:image" content="/images/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BV Seguros: Seguros e Soluções" />
+    <meta name="twitter:description" content="Corretora de seguros independente: comparamos, explicamos sem jargão e acompanhamos no sinistro." />
+    <meta name="twitter:image" content="/images/og-image.jpg" />
     <title>BV Seguros: Seguros e Soluções</title>
+
+    <!--
+      InsuranceAgency structured data. Deliberately omits address/
+      telephone: unlike the on-page PorConfirmar placeholders (visibly
+      flagged, read by a human), a fake address/phone here would be
+      machine-read by search engines and could surface in results
+      before anyone catches it. Add postalAddress/telephone once the
+      real values replace the PorConfirmar markers, not before.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "InsuranceAgency",
+        "name": "BV Seguros",
+        "description": "Corretora de seguros independente: comparamos, explicamos sem jargão e acompanhamos no sinistro.",
+        "url": "/",
+        "logo": "/images/logo-bv-seguros.png",
+        "areaServed": "PT"
+      }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,14 +62,7 @@
       Google Consent Mode v2: default state, denied until the visitor
       answers the cookie banner (src/components/feedback/CookieConsent.tsx
       calls gtag('consent', 'update', ...) through
-      src/utils/googleConsentMode.ts). Must run before gtag.js or any
-      other analytics/ads script loads, even on a project with no GA4/Ads
-      account yet: the default-denied state is what makes future
-      analytics additions consent-safe from day one.
-
-      When the project gets a real GA4 measurement ID, add the gtag.js
-      loader (<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX">
-      plus `gtag('config', 'G-XXXXXXX')`) after this block, not before it.
+      src/utils/googleConsentMode.ts). Must run before gtag.js loads.
     -->
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -49,6 +82,43 @@
 
       gtag("set", "ads_data_redaction", true);
       gtag("set", "url_passthrough", true);
+    </script>
+
+    <!--
+      Google Analytics 4. G-XXXXXXX is a placeholder: replace with the
+      real Measurement ID before launch (invalid IDs like this one are
+      silently ignored by Google's endpoint, no data goes anywhere in
+      the meantime). Config'd with send_page_view: false because the
+      SPA router (src/app/router.ts) does not reload between pages;
+      wire a page_view send into router.ts's navigate() once real
+      page-level reporting is needed, instead of double-counting the
+      initial load.
+    -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+    <script>
+      gtag("js", new Date());
+      gtag("config", "G-XXXXXXX", { send_page_view: false });
+    </script>
+
+    <!--
+      Meta Pixel. Loads in a consent-revoked state (mirrors Google
+      Consent Mode's default-denied pattern above): no event, not even
+      the automatic PageView, fires until the visitor grants marketing
+      consent (src/utils/metaPixel.ts, called from useCookieConsent.ts).
+      PIXEL_ID_AQUI is a placeholder: replace with the real Pixel ID
+      before launch.
+    -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('consent', 'revoke');
+      fbq('init', 'PIXEL_ID_AQUI');
     </script>
   </head>
   <body>

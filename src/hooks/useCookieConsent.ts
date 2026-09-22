@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { applyGoogleConsentMode } from "../utils/googleConsentMode";
+import { applyMetaPixelConsent } from "../utils/metaPixel";
 
 const STORAGE_KEY = "blueprint_cookie_consent";
-export type Consent = "necessary" | "all";
+const CONSENT_VALUES = ["necessary", "analytics", "marketing", "all"] as const;
+export type Consent = (typeof CONSENT_VALUES)[number];
 export type CookiePreferencesEvent = CustomEvent<{ trigger?: HTMLElement } | undefined>;
 
 declare global {
@@ -12,9 +14,15 @@ declare global {
 }
 
 /**
- * Two-tier consent model: "necessary" (optional categories declined) or
- * "all" (optional categories accepted). Not a granular multi-category CMP:
- * see DECISIONS.md for why that scope was deliberately left out.
+ * Three-tier consent model: "necessary" plus two independent optional
+ * categories, analytics (GA4) and marketing (Meta Pixel), stored as one
+ * of "necessary" / "analytics" / "marketing" / "all" rather than a
+ * granular per-vendor CMP. Grew from the original two-tier model
+ * ("necessary" | "all", see DECISIONS.md) specifically because
+ * marketing/ad tracking is not the same consent category as analytics
+ * (docs/anti-ai.md, src/utils/googleConsentMode.ts): once a project's
+ * actual integrations include an ads pixel, silently folding it into
+ * "analytics" consent would misrepresent what the visitor agreed to.
  *
  * Consent is module-level shared state (via useSyncExternalStore), not
  * per-call useState: CookieConsent and any other consumer (the
@@ -22,10 +30,27 @@ declare global {
  * value and re-render when one of them changes it, in the same tab,
  * without a page reload.
  */
+export function hasAnalyticsConsent(consent: Consent): boolean {
+  return consent === "analytics" || consent === "all";
+}
+
+export function hasMarketingConsent(consent: Consent): boolean {
+  return consent === "marketing" || consent === "all";
+}
+
+export function consentFrom(analytics: boolean, marketing: boolean): Consent {
+  if (analytics && marketing) return "all";
+  if (analytics) return "analytics";
+  if (marketing) return "marketing";
+  return "necessary";
+}
+
 function readConsent(): Consent | null {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
-    return value === "necessary" || value === "all" ? value : null;
+    return (CONSENT_VALUES as readonly string[]).includes(value ?? "")
+      ? (value as Consent)
+      : null;
   } catch {
     return null;
   }
@@ -50,11 +75,13 @@ function getSnapshot() {
 export default function useCookieConsent() {
   const consent = useSyncExternalStore(subscribe, getSnapshot);
 
-  // Re-sends the Consent Mode v2 signal on every load for a returning
-  // visitor: gtag's default (denied) state resets each page load until
-  // this runs, it isn't persisted by Google itself.
+  // Re-sends the Consent Mode v2 / Meta Pixel consent signal on every
+  // load for a returning visitor: both default to denied/revoked each
+  // page load until this runs, neither is persisted by the vendor itself.
   useEffect(() => {
-    if (consent) applyGoogleConsentMode(consent);
+    if (!consent) return;
+    applyGoogleConsentMode(consent);
+    applyMetaPixelConsent(hasMarketingConsent(consent));
   }, [consent]);
 
   const setConsent = useCallback((value: Consent) => {

@@ -2,13 +2,17 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Button from "../ui/Button";
 import Link from "../../app/Link";
 import useCookieConsent, {
+  consentFrom,
+  hasAnalyticsConsent,
+  hasMarketingConsent,
   useOpenCookiePreferences,
 } from "../../hooks/useCookieConsent";
 
 /**
  * Cookie consent banner + preferences dialog. See
  * docs/design-system.md#cookieconsent for the contract and
- * DECISIONS.md for the two-tier consent model and the trigger pattern.
+ * DECISIONS.md for the three-tier consent model (necessary / analytics
+ * / marketing) and the trigger pattern.
  *
  * Content below (`COPY`) is a placeholder: replace it with the real
  * cookie categories and legal text for the project before shipping
@@ -16,15 +20,17 @@ import useCookieConsent, {
  */
 const COPY = {
   title: "Cookies e privacidade",
-  body: "Usamos cookies estritamente necessários para o site funcionar e, com a sua autorização, cookies que nos ajudam a perceber como é usado.",
+  body: "Usamos cookies estritamente necessários para o site funcionar e, com a sua autorização, cookies que nos ajudam a perceber como é usado e a mostrar publicidade relevante.",
   acceptAll: "Aceitar todos",
   necessaryOnly: "Só os necessários",
   managePreferences: "Gerir preferências",
   dialogTitle: "Preferências de cookies",
   necessaryLabel: "Estritamente necessários",
   necessaryDescription: "Obrigatórios para o site funcionar. Sempre ativos.",
-  optionalLabel: "Análise opcional",
-  optionalDescription: "Ajuda a perceber o uso do site. Só carregado com a sua autorização.",
+  analyticsLabel: "Análise",
+  analyticsDescription: "Ajuda a perceber o uso do site. Só carregado com a sua autorização.",
+  marketingLabel: "Marketing e publicidade",
+  marketingDescription: "Usado para medir e personalizar anúncios. Só carregado com a sua autorização.",
   save: "Guardar preferências",
   close: "Fechar",
 };
@@ -32,10 +38,12 @@ const COPY = {
 export default function CookieConsent() {
   const { consent, setConsent } = useCookieConsent();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [optionalChecked, setOptionalChecked] = useState(consent === "all");
+  const [analyticsChecked, setAnalyticsChecked] = useState(hasAnalyticsConsent(consent ?? "necessary"));
+  const [marketingChecked, setMarketingChecked] = useState(hasMarketingConsent(consent ?? "necessary"));
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
-  const optionalId = useId();
+  const analyticsId = useId();
+  const marketingId = useId();
 
   const bannerVisible = consent === null && !dialogOpen;
 
@@ -47,7 +55,8 @@ export default function CookieConsent() {
   const openDialog = useCallback(
     (trigger?: HTMLElement) => {
       triggerRef.current = trigger ?? null;
-      setOptionalChecked(consent === "all");
+      setAnalyticsChecked(hasAnalyticsConsent(consent ?? "necessary"));
+      setMarketingChecked(hasMarketingConsent(consent ?? "necessary"));
       setDialogOpen(true);
     },
     [consent]
@@ -136,18 +145,35 @@ export default function CookieConsent() {
 
           <div className="cookie-category">
             <div className="cookie-category__text">
-              <label htmlFor={optionalId} className="cookie-category__label">
-                {COPY.optionalLabel}
+              <label htmlFor={analyticsId} className="cookie-category__label">
+                {COPY.analyticsLabel}
               </label>
               <p className="cookie-category__description">
-                {COPY.optionalDescription}
+                {COPY.analyticsDescription}
               </p>
             </div>
             <input
-              id={optionalId}
+              id={analyticsId}
               type="checkbox"
-              checked={optionalChecked}
-              onChange={(event) => setOptionalChecked(event.target.checked)}
+              checked={analyticsChecked}
+              onChange={(event) => setAnalyticsChecked(event.target.checked)}
+            />
+          </div>
+
+          <div className="cookie-category">
+            <div className="cookie-category__text">
+              <label htmlFor={marketingId} className="cookie-category__label">
+                {COPY.marketingLabel}
+              </label>
+              <p className="cookie-category__description">
+                {COPY.marketingDescription}
+              </p>
+            </div>
+            <input
+              id={marketingId}
+              type="checkbox"
+              checked={marketingChecked}
+              onChange={(event) => setMarketingChecked(event.target.checked)}
             />
           </div>
 
@@ -156,7 +182,7 @@ export default function CookieConsent() {
             variant="primary"
             className="cookie-dialog__save"
             onClick={() => {
-              setConsent(optionalChecked ? "all" : "necessary");
+              setConsent(consentFrom(analyticsChecked, marketingChecked));
               closeDialog();
             }}
           >

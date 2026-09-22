@@ -11,6 +11,170 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+z-index tokens: removed .section-decor > .container's z-index:1 (now
+implicit auto) and changed .section-lines' z-index:0 to
+var(--z-base). Both are positioned elements with no z-index; per the
+CSS stacking spec they resolve to the same "0" stacking level and
+order by DOM position, so .container (later in the DOM than
+.section-lines) still paints above it without needing an explicit
+value. Removes the last two `npm run qa` z-index warnings
+(BLUEPRINT.md: "--z-* is the only place a z-index value should come
+from").
+
+SCOPE: src/styles/components.css only. Visually re-confirmed the
+decorative lines still render behind card/text content, not on top.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+SEO / social sharing / GEO pass, prompted by the client's own launch
+punch-list ("o que falta ainda pro nosso site"):
+- Added public/favicon.png (copied from the existing icon) plus
+  <link rel="icon">/<link rel="apple-touch-icon"> pointing at it
+  (previously only pointed at /images/logo-icon-bv-seguros.png,
+  which `npm run qa` doesn't recognize as a favicon and which some
+  browsers/bookmark UIs skip in favor of the conventional path).
+- Generated public/images/og-image.jpg (1200x630, Python/PIL: logo
+  lockup centered on white, the same low-opacity corner-blob language
+  as .section-blob/.section-lines, tagline text). Wired it plus
+  og:site_name/og:locale/twitter:card meta into index.html.
+- Added geo.region/geo.country meta (country-level only: no
+  city/district to draw from until the real morada replaces the
+  PorConfirmar placeholders, see the entry below).
+- Added InsuranceAgency JSON-LD structured data (name, description,
+  url, logo, areaServed). Deliberately excludes address/telephone:
+  unlike the on-page PorConfirmar text (visibly flagged, read by a
+  human), a fake address/phone in JSON-LD is machine-read and could
+  surface in Google results before anyone catches it. Add
+  postalAddress/telephone once real values exist, not before.
+- robots.txt: added `Disallow: /laboratory` (the internal design-
+  system showcase page was previously crawlable; it isn't in
+  sitemap.xml but nothing stopped a crawler finding it via links).
+- sitemap.xml intentionally left at the example.com placeholder: no
+  hosting/domain has been chosen yet (see the earlier 404-page entry
+  for the same reasoning re: SPA-fallback hosting config).
+
+SCOPE: index.html, public/favicon.png (new), public/images/og-image.jpg
+(new), public/robots.txt.
+
+IMPACT: `npm run qa`'s SEO section (favicon, og:image, og:title) is
+clean. Confirmed /favicon.png and /images/og-image.jpg both 200 in
+the dev server.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Extended cookie consent from two tiers ("necessary" | "all") to three
+("necessary" | "analytics" | "marketing" | "all") and wired Google
+Analytics 4 (gtag.js, placeholder ID G-XXXXXXX) and Meta Pixel
+(placeholder ID PIXEL_ID_AQUI), both consent-gated, both currently
+inert (invalid placeholder IDs, so no real tracking data goes
+anywhere until the real IDs are dropped in).
+
+REASON:
+Client asked to "configurar analytics, e meta [pixel]". Meta Pixel is
+an advertising/remarketing tool, a different consent category from
+"analytics" under GDPR; googleConsentMode.ts's own prior comment and
+the original CookieConsent DECISIONS.md entry both already flagged
+this exact scenario ("a project that also needs ads consent must add
+a third category... rather than silently granting ad consent nobody
+was asked about" / "build [a granular category] when a project's
+actual integrations require distinguishing categories"). Asked the
+client directly (AskUserQuestion) whether to build the proper third
+category, fold Meta Pixel into the existing analytics category, or
+skip Meta Pixel for now; they chose the proper third category.
+
+SCOPE:
+- src/hooks/useCookieConsent.ts: Consent type widened to 4 values;
+  added hasAnalyticsConsent/hasMarketingConsent/consentFrom helpers;
+  the sync effect now also calls the new applyMetaPixelConsent.
+- src/utils/googleConsentMode.ts: ad_storage/ad_user_data/
+  ad_personalization now follow marketing consent specifically
+  (previously always denied, since there was no category for them);
+  analytics_storage/functionality_storage/personalization_storage
+  follow analytics consent, independently.
+- src/utils/metaPixel.ts (new): applyMetaPixelConsent(granted), mirrors
+  googleConsentMode.ts's shape. fbq('consent','revoke') is the default
+  in index.html; grant only fires the queued PageView once marketing
+  consent is given.
+- src/components/feedback/CookieConsent.tsx: dialog now has 3
+  checkboxes (necessary/disabled, analytics, marketing) instead of 2;
+  banner's two buttons (Aceitar todos / Só os necessários) unchanged.
+- index.html: GA4 gtag.js loader (send_page_view: false, since the SPA
+  router doesn't reload between pages; a future per-navigation
+  page_view send belongs in router.ts's navigate(), not here) and the
+  Meta Pixel base snippet, both after the existing consent-default
+  block. No noscript pixel fallback: it can't be consent-gated (fires
+  unconditionally for JS-disabled visitors), which would defeat the
+  whole point of this change.
+- src/pages/legal/Cookies.tsx: documents all three categories and
+  which gtag consent fields each one controls.
+
+IMPACT:
+Confirmed via npm run check (clean) and live testing: selecting only
+"Marketing e publicidade" in the preferences dialog sends a gtag
+consent update with ad_* granted and analytics_*/functionality_*/
+personalization_* still denied; selecting only "Análise" sends the
+exact inverse. Neither category grants the other's fields. fbq loads
+and processes consent/track calls with no console errors even with
+the placeholder Pixel ID.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Filled the legal pages' identity placeholders (morada, telefone,
+comarca/foro) with fictitious but realistically formatted values
+("Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)",
+"+351 21 000 0000 (fictício, por confirmar)", "Comarca de Lisboa
+(fictício, por confirmar)"), kept inside the existing PorConfirmar
+highlight component (extracted from Home.tsx to
+src/components/ui/PorConfirmar.tsx so Terms/Privacy could reuse it).
+Also set updatedAt on all three legal pages to today's real date.
+
+REASON:
+Client, explicitly: "pode criar as páginas com dados fictícios já,
+depois adicionamos os dados reais." Bracket placeholders like
+"[MORADA REGISTADA]" read as an obviously-unfinished template;
+realistic-looking values (still highlighted) let the pages read as
+complete for review/layout purposes while remaining impossible to
+mistake for verified fact. The ASF mediator registration number was
+deliberately NOT given a fictitious value (still "[nº de registo na
+ASF por confirmar]"): unlike an address or phone, a fabricated
+regulatory registration number is a compliance claim, a materially
+different kind of risk than placeholder contact info. Section-content
+placeholders that describe actual business policy (payment terms,
+cancellation policy, liability limits, data retention period) were
+also left untouched for the same reason: those need a real decision
+from the client, not invented text.
+
+SCOPE:
+src/components/ui/PorConfirmar.tsx (new, extracted from Home.tsx),
+src/pages/Home.tsx (contact section: telefone, morada), src/pages/
+legal/Terms.tsx (morada, comarca/foro, updatedAt), src/pages/legal/
+Privacy.tsx (morada, telefone, updatedAt, plus two new bullets under
+"Finalidades e base legal" naming Google Analytics and Meta Pixel by
+name, accurate now that both are actually wired in), src/pages/legal/
+Cookies.tsx (updatedAt).
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Added a real 404 page (src/pages/NotFound.tsx) and wired it as the
 router's fallback (App.tsx: `ROUTES[pathname] ?? NotFound`, was
 `?? Home`). Also taught router.ts's navigate() to handle a hash

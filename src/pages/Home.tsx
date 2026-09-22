@@ -1,8 +1,8 @@
-import type { ReactNode } from "react";
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
 import Input from "../components/forms/Input";
+import PorConfirmar from "../components/ui/PorConfirmar";
 
 type RamoKey = "auto" | "vida" | "saude" | "habitacao" | "trabalho" | "outros";
 
@@ -79,11 +79,6 @@ const PASSOS = [
     descricao: "Explicamos as opções em português simples. Você decide, nós tratamos do resto.",
   },
 ];
-
-/** Marca visível de conteúdo por confirmar, nunca disfarçada de facto real. */
-function PorConfirmar({ children }: { children: ReactNode }) {
-  return <span className="placeholder-note">{children}</span>;
-}
 
 /**
  * Ícones de traço mínimo (24x24, stroke="currentColor"), um por ramo.
@@ -476,7 +471,7 @@ export default function Home() {
                     <ContactIcon tipo="telefone" />
                   </div>
                   <p className="text-secondary">
-                    <PorConfirmar>[telefone por confirmar]</PorConfirmar>
+                    <PorConfirmar>+351 21 000 0000 (fictício, por confirmar)</PorConfirmar>
                   </p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
@@ -492,7 +487,7 @@ export default function Home() {
                     <ContactIcon tipo="morada" />
                   </div>
                   <p className="text-secondary">
-                    <PorConfirmar>[morada por confirmar]</PorConfirmar>
+                    <PorConfirmar>Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)</PorConfirmar>
                   </p>
                 </div>
               </div>

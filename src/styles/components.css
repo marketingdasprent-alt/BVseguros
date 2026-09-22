@@ -996,8 +996,10 @@ body.has-footer-visible .back-to-top {
 }
 
 .section-decor > .container {
+  /* No explicit z-index: this positioned element already paints above
+     .section-lines (also positioned, explicit z-index below) by DOM
+     order alone, per the two counting as the same stacking level. */
   position: relative;
-  z-index: 1;
 }
 
 .section-lines {
@@ -1005,7 +1007,7 @@ body.has-footer-visible .back-to-top {
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: var(--z-base);
   pointer-events: none;
 }
 

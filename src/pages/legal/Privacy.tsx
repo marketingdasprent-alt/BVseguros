@@ -1,4 +1,5 @@
 import LegalLayout from "../../components/layout/LegalLayout";
+import PorConfirmar from "../../components/ui/PorConfirmar";
 
 /**
  * Política de Privacidade com estrutura RGPD. Estrutura e referências
@@ -6,11 +7,13 @@ import LegalLayout from "../../components/layout/LegalLayout";
  * DECISIONS.md): o conteúdo dentro de cada secção é placeholder
  * (entre parênteses retos) e tem de ser substituído pelos dados reais
  * da BV Seguros antes de publicar (docs/anti-ai.md#content-integrity).
- * Não publicar com os parênteses retos por preencher.
+ * A morada e o telefone são fictícios, propositadamente (mesmo valor
+ * usado em Terms.tsx e no contacto da Home), marcados com
+ * PorConfirmar. Não publicar com os parênteses retos por preencher.
  */
 export default function Privacy() {
   return (
-    <LegalLayout title="Política de Privacidade" updatedAt="[DATA]">
+    <LegalLayout title="Política de Privacidade" updatedAt="22 de setembro de 2026">
       <p>
         Esta Política de Privacidade descreve como a{" "}
         <strong>BV Seguros</strong> (&quot;nós&quot;) recolhe, usa e protege
@@ -21,10 +24,10 @@ export default function Privacy() {
       <h2>1. Responsável pelo tratamento</h2>
       <p>
         O responsável pelo tratamento é a <strong>BV Seguros</strong>,{" "}
-        [MORADA REGISTADA]. Para qualquer questão sobre privacidade,
-        contacte-nos através de{" "}
+        <PorConfirmar>Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)</PorConfirmar>
+        . Para qualquer questão sobre privacidade, contacte-nos através de{" "}
         <a href="mailto:geral@bvseguros.pt">geral@bvseguros.pt</a> ou{" "}
-        <a href="tel:[TELEFONE DE CONTACTO]">[TELEFONE DE CONTACTO]</a>.
+        <PorConfirmar>+351 21 000 0000 (fictício, por confirmar)</PorConfirmar>.
       </p>
 
       <h2>2. Dados pessoais que recolhemos</h2>
@@ -63,8 +66,12 @@ export default function Privacy() {
           al. c)).
         </li>
         <li>
-          <strong>Melhoria do site e análise anonimizada</strong>, com o seu
-          consentimento, revogável a qualquer momento.
+          <strong>Melhoria do site e análise anonimizada</strong> (Google
+          Analytics), com o seu consentimento, revogável a qualquer momento.
+        </li>
+        <li>
+          <strong>Medição e personalização de publicidade</strong> (Meta
+          Pixel), com o seu consentimento, revogável a qualquer momento.
         </li>
       </ul>
 

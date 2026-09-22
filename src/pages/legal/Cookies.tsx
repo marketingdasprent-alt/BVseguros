@@ -12,7 +12,7 @@ import { OPEN_PREFERENCES_EVENT } from "../../hooks/useCookieConsent";
  */
 export default function Cookies() {
   return (
-    <LegalLayout title="Política de Cookies" updatedAt="[DATA]">
+    <LegalLayout title="Política de Cookies" updatedAt="22 de setembro de 2026">
       <p>
         Esta Política de Cookies explica o que são cookies, quais os que
         este site usa, e como pode gerir as suas preferências. Complementa
@@ -29,7 +29,7 @@ export default function Cookies() {
 
       <h2>2. Categorias que usamos</h2>
       <p>
-        Este site oferece duas categorias de cookies, escolhidas na
+        Este site oferece três categorias de cookies, escolhidas na
         barra ou no painel de preferências abaixo:
       </p>
       <ul>
@@ -39,8 +39,13 @@ export default function Cookies() {
           consentimento.
         </li>
         <li>
-          <strong>Análise opcional</strong>, ajuda-nos a perceber como os
-          visitantes usam o site, de forma agregada e anonimizada.
+          <strong>Análise</strong>, ajuda-nos a perceber como os
+          visitantes usam o site, de forma agregada e anonimizada
+          (Google Analytics).
+        </li>
+        <li>
+          <strong>Marketing e publicidade</strong>, usado para medir e
+          personalizar anúncios (Meta Pixel).
         </li>
       </ul>
 
@@ -50,11 +55,11 @@ export default function Cookies() {
         todos os sinais de consentimento (<code>ad_storage</code>,{" "}
         <code>ad_user_data</code>, <code>ad_personalization</code>,{" "}
         <code>analytics_storage</code>) estão <strong>negados</strong> até
-        dar consentimento explícito na barra de cookies. O modelo de
-        consentimento deste site apenas concede{" "}
-        <code>analytics_storage</code>: não veiculamos anúncios nem
-        pedimos consentimento relacionado com publicidade (ver
-        DECISIONS.md caso isso mude).
+        dar consentimento explícito na barra de cookies.{" "}
+        <code>analytics_storage</code> é concedido pela categoria
+        Análise; <code>ad_storage</code>, <code>ad_user_data</code> e{" "}
+        <code>ad_personalization</code> só são concedidos pela categoria
+        Marketing e publicidade, nunca pela categoria Análise sozinha.
       </p>
 
       <h2>4. Gerir as suas preferências</h2>
