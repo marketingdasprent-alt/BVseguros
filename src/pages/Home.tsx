@@ -57,7 +57,7 @@ const DIFERENCIAIS = [
   },
   {
     titulo: "Explicamos sem jargão",
-    descricao: "Sabe exatamente o que está e o que não está coberto, antes de assinar.",
+    descricao: "Sabe exatamente o que está e o que não está coberto, antes de assinar.",
   },
   {
     titulo: "Ajudamos no sinistro",

@@ -11,6 +11,44 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Joined "antes de assinar" with non-breaking spaces (U+00A0) in the
+"Explicamos sem jargão" card copy, so that closing clause always
+wraps as one unit instead of splitting across two lines.
+
+REASON:
+Client screenshot showed "antes" stranded at the end of one line and
+"de assinar." alone on the next, inside the narrow spotlight-card
+column. Client asked whether a global rule already covers this:
+p { text-wrap: pretty } (typography.css) already applies everywhere
+and is active here (confirmed via computed style), but it only
+optimizes against a short orphan LAST line; a 2-word last line like
+"de assinar." doesn't trigger it, so it does nothing for a short
+connector word (here, "antes") being stranded mid-paragraph. No CSS
+property solves that class of problem generically; the standard fix
+is gluing the specific phrase that must not split, same technique as
+a manual break hint on a heading, just via non-breaking spaces
+instead of <br>.
+
+SCOPE:
+src/pages/Home.tsx (DIFERENCIAIS[1].descricao only; the other two
+DIFERENCIAIS and other card copy were not reported as wrapping badly
+and were left alone rather than pre-emptively nbsp-joining phrases
+that aren't causing a visible problem).
+
+IMPACT:
+Confirmed via npm run check (clean) and a DOM line-split check at
+768px width (the width the client's screenshot was taken at): the
+paragraph now breaks as "Sabe exatamente / o que está e o que / não
+está coberto, / antes de assinar." with the closing phrase intact.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Follow-up on the footer alignment fix below: flattened the footer's
 DOM so "BV Seguros" (brand), "Seguros" and "Empresa" are three direct
 siblings inside .footer__grid (removed the .footer__columns wrapper
