@@ -104,10 +104,10 @@ function RamoIcon({ tipo }: { tipo: RamoKey }) {
     case "auto":
       return (
         <svg {...common}>
-          <path d="M4 16V12l2-5h12l2 5v4" />
-          <path d="M3 16h18v3a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-1H6.5v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3Z" />
-          <circle cx="7.5" cy="16" r="1.5" />
-          <circle cx="16.5" cy="16" r="1.5" />
+          <path d="M4 16.5V12l2.2-5.5A2 2 0 0 1 8 5h8a2 2 0 0 1 1.8 1.5L20 12v4.5" />
+          <path d="M3 16.5h18" />
+          <circle cx="7.5" cy="17" r="1.6" />
+          <circle cx="16.5" cy="17" r="1.6" />
         </svg>
       );
     case "vida":

@@ -11,6 +11,38 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Removed the coloured chip background behind the "O que cobrimos"
+icons (.media-card__icon-chip: dropped background-color and
+border-radius, kept it as a plain 32px icon holder) and redrew the
+"auto" (car) RamoIcon with a simpler single-outline body + two wheel
+circles, replacing the earlier two-path version with small rounded
+wheel-arch cutouts.
+
+REASON:
+Direct client feedback (WhatsApp screenshot, zoomed on the car icon):
+"icones com fundo, deixa so o icone e ajeita esse do automóvel." The
+chip's tinted square read as a smudge behind the line art at 32-40px,
+and the car icon specifically had too much small detail (rounded
+corner cutouts for wheel arches) to stay legible at that size.
+
+SCOPE:
+src/styles/components.css (.media-card__icon-chip), src/pages/Home.tsx
+(RamoIcon's "auto" case only; the other five RamoIcon glyphs were
+already simple enough and untouched).
+
+IMPACT:
+Visual only, no markup/structure change. Confirmed via npm run check
+(lint+typecheck+build clean) and a DOM check that the chip now
+computes to a transparent background, 32x32, no border-radius.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Replaced the section-blob / body-wash pattern (both prior entries
 below) with .section-lines: a pair of flowing SVG curves per
 decorated section (Porquê a BV, Sobre, O que cobrimos, Como funciona,

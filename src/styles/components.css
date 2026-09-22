@@ -971,19 +971,17 @@ body.has-footer-visible .back-to-top {
 }
 
 /* ---------------------------------------------------------------- */
-/* MEDIA-CARD ICON CHIP: project-specific, BV Seguros.                */
-/* Colour-chip icon treatment (also from the finance-advisory         */
-/* reference) for "O que cobrimos", replacing a bare inline icon.     */
+/* MEDIA-CARD ICON: project-specific, BV Seguros.                     */
+/* Bare icon, no chip background, per client feedback (the coloured  */
+/* box read as a smudge behind the line-art icon at small sizes).    */
 /* ---------------------------------------------------------------- */
 
 .media-card__icon-chip {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  width: 32px;
+  height: 32px;
   color: var(--color-accent);
   margin-bottom: var(--space-2xs);
 }
