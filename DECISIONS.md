@@ -11,6 +11,45 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Removed min-height: 7rem from .hero-floating-card again (added two
+entries below, same day), now that align-items:flex-start makes the
+box's height directly follow padding + content with no centering
+ambiguity to guard against.
+
+REASON:
+Client: "agora piorou" (now it's worse), after the flex-start +
+bigger padding-top change. With align-items:center gone, min-height
+no longer gets absorbed as balanced top/bottom slack around the
+content; it just forces extra blank space below the subtitle instead
+(content stays pinned to the top padding, box stays pinned to
+min-height regardless of whether content needs it), which read as an
+oversized, dead-space-heavy card. The original overflow bug this
+min-height was defending against was most likely specific to
+align-items:center's height-balancing math in the first place: with
+flex-start, the box's height is just padding-top + content +
+padding-bottom by ordinary flex auto-sizing, always, so there is no
+"too-short box" case left to guard against.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card: removed min-height
+only, no other property touched).
+
+IMPACT:
+Card height back to content-driven (~95.8px at 375px, was
+artificially 112px). Confirmed the image-overlap amount (32px) is
+unchanged (it comes from the fixed -32px offset, not from the card's
+own height), so this was never actually covering more of the photo;
+the visible regression was the card's own proportions. Verified
+visually at 375px and 1440px, npm run check clean.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Follow-up on the min-height fix below: .hero-floating-card switched
 from align-items: center to align-items: flex-start, and padding
 from a uniform var(--space-sm) var(--space-md) to an asymmetric

@@ -894,7 +894,6 @@ body.has-footer-visible .back-to-top {
   align-items: flex-start;
   gap: var(--space-sm);
   max-width: 15rem;
-  min-height: 7rem;
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
   padding: var(--space-md) var(--space-md) var(--space-sm);
