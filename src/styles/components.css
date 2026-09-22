@@ -923,15 +923,6 @@ body.has-footer-visible .back-to-top {
   color: var(--color-text-muted);
 }
 
-@media (max-width: 640px) {
-  .hero-floating-card {
-    position: static;
-    margin-top: calc(-1 * var(--space-lg));
-    margin-inline: var(--space-md);
-    max-width: none;
-  }
-}
-
 /* ---------------------------------------------------------------- */
 /* SPOTLIGHT-CARD: project-specific, BV Seguros.                     */
 /* Three-card row with the middle card inverted, from the finance-   */

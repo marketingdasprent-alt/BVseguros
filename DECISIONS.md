@@ -11,6 +11,53 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Removed the @media (max-width:640px) override that switched
+.hero-floating-card from position:absolute to position:static
+(with a negative margin-top standing in for the offset). The card now
+uses position:absolute unconditionally, at every width.
+
+REASON:
+Root cause of every "text outside/floating loose over the photo"
+report in this thread, finally confirmed with a private/incognito
+window screenshot (ruling out cache) plus a side-by-side against the
+correct >640px rendering: below 640px, the card fell back to
+position:static, and in that mode the browser was painting the
+image's own top layer OVER the card's white background while still
+showing the card's text and icon on top of that, i.e. only the white
+fill was invisible, not the content. static positioning removes an
+element from the "positioned" paint layer that CSS normally keeps
+above static in-flow content, so it stops being reliably guaranteed
+above a sibling image the way position:absolute is; the desktop mode
+(position:absolute, confirmed correct in the client's own
+screenshot) never had this problem because absolutely-positioned
+content always paints in a later, higher layer regardless of DOM
+order. Rather than debug why static-mode stacking failed on the
+client's device, removing the static fallback removes the entire
+class of bug: one positioning mechanism, proven to work, used
+everywhere.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card: deleted the
+max-width:640px block entirely; no other rule touched).
+
+IMPACT:
+Card is now position:absolute (240px, capped by the existing
+max-width:15rem) at every width tested (340, 375, 1440px). Confirmed
+via DOM: position computes to "absolute" at 375px (was "static"
+before this fix), card correctly overlaps the photo's bottom-left
+corner with its white background visible, matching the client's own
+"this width is correct" screenshot. No new horizontal overflow at
+375px+; 340px and below already had a known, accepted overflow edge
+case from the header CTA fix earlier today, unrelated to this card.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Reverted "O que cobrimos" (RAMOS, 6 cards) from .grid-auto back to
 the 12-col .grid with explicit grid-column: span 4 per card, plus a
 new .grid--services class with a 768-1023px override to span 6
