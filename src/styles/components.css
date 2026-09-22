@@ -239,7 +239,7 @@
 .header__bar {
   display: flex;
   align-items: center;
-  gap: clamp(0.75rem, 0.4rem + 2vw, var(--space-md));
+  gap: var(--space-sm);
   padding-block: var(--space-sm);
 }
 

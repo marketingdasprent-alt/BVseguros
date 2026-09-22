@@ -36,6 +36,10 @@
     display: none;
   }
 
+  .header__bar {
+    gap: var(--space-md);
+  }
+
   .footer__grid {
     justify-content: space-between;
   }

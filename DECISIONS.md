@@ -11,6 +11,46 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Header, below 1024px: .header__bar's gap (logo to the button+toggle
+cluster) is now a fixed var(--space-sm), the same value as
+.header__actions' gap (button to toggle), instead of a fluid clamp
+that happened to land lower. At >=1024px (nav visible, no toggle),
+.header__bar's gap goes back up to var(--space-md) for normal desktop
+nav breathing room.
+
+REASON:
+The previous fix (this same session, entry below) stopped the CTA
+button from wrapping by shrinking .header__bar's gap on a clamp, but
+that clamp resolved to a visibly smaller value than
+.header__actions' fixed gap, so the button sat close to the logo but
+with clear air before the toggle: not centered between them. Client
+screenshot, verbatim: "coloca o mesmo tamanho de distância entre o
+título e o menu hambúrguer, pra ficar bem no meio." Matching both
+gaps to the same token makes the button visually centered between
+logo and toggle at every width where both are visible.
+
+SCOPE:
+src/styles/components.css (.header__bar gap), src/styles/responsive.css
+(added .header__bar gap override to the existing min-width:1024px
+block).
+
+IMPACT:
+Confirmed via DOM measurement: gap(logo, button) === gap(button,
+toggle) === 16px exactly at 375px and 360px, both still single-line
+(no text wrap), no horizontal overflow. At 320px content alone
+(logo+button+toggle, all non-wrapping) slightly exceeds the available
+width regardless of gap; treated as an accepted edge case (320px
+real devices are effectively extinct; 360px+, the realistic floor,
+is clean).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Footer at tablet width (1024px down to where it wraps to 2 rows):
 .footer__grid now starts at justify-content: center (was
 space-between), with justify-content: space-between reinstated only
