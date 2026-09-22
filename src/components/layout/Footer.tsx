@@ -59,22 +59,20 @@ export default function Footer() {
             )}
           </div>
 
-          <div className="footer__columns">
-            {columns.map((column) => (
-              <div key={column.heading}>
-                <p className="footer__heading">{column.heading}</p>
-                <ul className="footer__list">
-                  {column.links.map((link) => (
-                    <li key={link.label}>
-                      <Link href={link.href} className="footer__link">
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          {columns.map((column) => (
+            <div key={column.heading} className="footer__column">
+              <p className="footer__heading">{column.heading}</p>
+              <ul className="footer__list">
+                {column.links.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="footer__link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         <div className="footer__bottom">

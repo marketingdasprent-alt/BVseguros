@@ -11,6 +11,47 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Follow-up on the footer alignment fix below: flattened the footer's
+DOM so "BV Seguros" (brand), "Seguros" and "Empresa" are three direct
+siblings inside .footer__grid (removed the .footer__columns wrapper
+div), and made .footer__grid itself the single flex row with
+justify-content: space-between across all three.
+
+REASON:
+The previous fix (justify-content: space-between on .footer__columns
+only) fixed the "Empresa" column's right edge but left a two-tier
+structure: the brand-to-Seguros gap was the fixed .footer__grid gap
+token, while the Seguros-to-Empresa gap was whatever space-between
+left over inside the wider nav-columns track, a different, larger
+value. Client feedback, with the element inspector output attached:
+"como está, porque não consegue manter as 3 informações alinhadas?"
+(why can't the 3 blocks stay in line with each other). With all three
+as siblings of one space-between row, both gaps are now the same
+distributed value by construction.
+
+SCOPE:
+src/components/layout/Footer.tsx (removed the footer__columns wrapper
+div; each nav column gets a footer__column class instead),
+src/styles/components.css (.footer__grid now flex+space-between,
+.footer__brand content-hugging instead of grid-track-filling,
+.footer__columns rules replaced by .footer__column).
+
+IMPACT:
+Confirmed via npm run check (clean) and a DOM measurement at 1440px:
+gap between brand and "Seguros" and gap between "Seguros" and
+"Empresa" are both exactly 195.86px. No media query needed: the same
+flex-wrap row now also reflows correctly at 375px (brand stacks full
+width, each nav column stacks on its own row below it, no horizontal
+overflow) since there is no explicit mobile breakpoint anymore.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Four content/layout fixes from direct client feedback (4 annotated
 screenshots): (1) widened "Porquê a BV"'s section-intro to the
 --wide measure (50rem) so "Três coisas que fazemos sempre." sets on

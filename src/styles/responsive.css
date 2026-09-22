@@ -29,17 +29,12 @@
   }
 }
 
-/* Footer: columns grow from a single stack to a row. .footer__columns
-   itself is flex (components.css), not grid, so it always divides its
-   space evenly across however many nav columns a project actually
-   defines, instead of reserving empty tracks (see DECISIONS.md, BV
-   Seguros: this replaced an earlier repeat(4, 1fr) that hardcoded a
-   column count no data actually had). */
+/* Footer: .footer__grid is flex + flex-wrap (components.css), so
+   brand and nav columns reflow from stacked to a row on their own as
+   width allows, no breakpoint needed here (see DECISIONS.md, BV
+   Seguros). Only the bottom bar (copyright/legal) needs an explicit
+   switch from stacked to a row. */
 @media (min-width: 768px) {
-  .footer__grid {
-    grid-template-columns: minmax(16rem, 1fr) 2fr;
-  }
-
   .footer__bottom {
     flex-direction: row;
     align-items: center;
