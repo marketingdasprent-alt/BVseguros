@@ -47,7 +47,7 @@ export default function Header({ transparent = false, cta }: { transparent?: boo
       <Container>
         <div className="header__bar">
           <Link href="/" className="header__logo">
-            <img src="/images/logo-bv-seguros.png" alt="" className="header__logo-mark" />
+            <img src="/images/logo-icon-bv-seguros.png" alt="" className="header__logo-mark" />
             BV Seguros
           </Link>
 

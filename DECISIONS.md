@@ -11,6 +11,43 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Added public/images/logo-icon-bv-seguros.png: a tight crop of just
+the shield mark, cut from the full "shield + BV Seguros + Seguros e
+Soluções" lockup. Header.tsx and index.html's favicon link now point
+to it instead of the full lockup image.
+
+REASON:
+Two earlier passes at this same logo (transparent background, then
+edge decontamination) both missed the actual bug, flagged a third
+time by the client. The file was never just an icon: it is the full
+lockup (shield + two lines of wordmark) on one canvas. Squeezed into
+a 28x28 box (object-fit: contain), the wordmark rendered as an
+illegible smudge under the shield, which is what looked like a
+leftover "box" behind it. The background-transparency fixes were
+real and correct, but they could never fix this, because the
+remaining artefact was compressed text, not a background colour.
+
+SCOPE:
+public/images/logo-icon-bv-seguros.png (new file, cropped from the
+already-transparent public/images/logo-bv-seguros.png), src/
+components/navigation/Header.tsx (one src attribute), index.html
+(favicon href). brand/logo-bv-seguros.png and public/images/logo-bv-
+seguros.png keep the full lockup (shield + wordmark): still correct
+for anywhere the full brand mark is wanted, just not a 28px square.
+
+IMPACT:
+No component contract changed. If the full lockup is ever needed
+somewhere else on the site, it is still at its original path; this
+only redirects the two places that actually wanted the icon alone.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Logo asset (brand/logo-bv-seguros.png and public/images/logo-bv-
 seguros.png) had its background pixels made transparent (a Python/
 Pillow script keyed out the near-uniform #F7F7F7 background, with a
