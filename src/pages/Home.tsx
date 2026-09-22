@@ -317,6 +317,7 @@ export default function Home() {
 
       <Section id="sobre" variant="compact" className="section-decor">
         <Blob variant="accent" style={{ width: 320, height: 320, top: -140, left: "38%" }} />
+        <Blob variant="primary" style={{ width: 220, height: 220, bottom: -120, right: -70 }} />
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 5" }}>
@@ -344,6 +345,7 @@ export default function Home() {
 
       <Section id="servicos" surface className="section-decor">
         <Blob variant="primary" style={{ width: 380, height: 380, bottom: -220, right: -120 }} />
+        <Blob variant="accent" style={{ width: 240, height: 240, top: -100, left: -80 }} />
         <Container>
           <div className="section-intro section-intro--wide">
             <p className="text-label text-muted">O que cobrimos</p>
@@ -377,6 +379,7 @@ export default function Home() {
 
       <Section variant="compact" className="section-decor">
         <Blob variant="primary" style={{ width: 260, height: 260, top: -120, right: "10%" }} />
+        <Blob variant="accent" style={{ width: 180, height: 180, bottom: -90, left: "8%" }} />
         <Container>
           <div className="como-funciona-box">
             <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
@@ -413,6 +416,7 @@ export default function Home() {
 
       <Section id="contacto" surface className="section-decor">
         <Blob variant="accent" style={{ width: 300, height: 300, top: -120, left: -100 }} />
+        <Blob variant="primary" style={{ width: 220, height: 220, bottom: -110, right: -70 }} />
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
             <div style={{ gridColumn: "span 5" }}>

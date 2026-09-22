@@ -11,6 +11,44 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Amplified the section-blob pattern (2 blobs per decorated section
+instead of 1, opposite corners) and added a second, independent
+layer: a page-wide "wash" on `body` (components.css) of four soft
+radial gradients, `background-attachment: fixed` on desktop so the
+same ambient colour sits behind whichever section is in view as the
+page scrolls, `scroll` on mobile (<=640px) to avoid known jank with
+fixed backgrounds on some mobile browsers.
+
+REASON:
+Client asked for more: "quero mais manchas... algo no background do
+site... faixas uniformes ou bolhas." The two systems are kept
+deliberately non-overlapping: section-blob decorates sections with an
+opaque background of their own (Cobrimos, Contacto, Hero, Footer);
+the body wash only becomes visible through sections that render
+transparent (Porquê a BV, Sobre, Como funciona's outer Section), so
+neither is ever painted over the other in the same spot.
+
+SCOPE:
+src/styles/components.css (opacity bump on .section-blob--primary/
+--accent, new body background-image block + mobile override),
+src/pages/Home.tsx (one extra <Blob/> in Sobre, Cobrimos, Como
+funciona and Contacto; Porquê a BV already had two).
+
+IMPACT:
+Still purely decorative and non-interactive. Confirmed via
+npm run check (lint+typecheck+build clean) and DOM checks: 10
+.section-blob instances at their intended sizes/opacities, no
+horizontal overflow at mobile width, body background-attachment
+correctly "fixed" on desktop and "scroll" under the 640px breakpoint.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Added a .section-decor / .section-blob pattern (components.css): a
 soft, low-opacity, oversized circle positioned at a section's corner,
 clipped by the section's own overflow:hidden. Applied to "Porquê a
