@@ -11,6 +11,50 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Added min-height: 7rem to .hero-floating-card (the "Aconselhamento
+independente / Sem compromisso" badge over the Hero photo).
+
+REASON:
+Client sent repeated screenshots (twice) of the card's white
+background ending before the title's second line and the subtitle,
+which rendered directly on the navy section background instead of on
+white. Extensive testing in this session's browser (every width from
+320 to 1024px, both the static/stacked and absolute/floating layout
+modes) could not reproduce it: the box is a plain flex container with
+no fixed height and no overflow:hidden, and it consistently measured
+with 16px of clearance below the subtitle in every case tried here.
+The most plausible explanation for a client-side-only, non-
+reproducible-in-Chromium repaint mismatch is a known WebKit/Safari
+issue: the box's height is first computed against a fallback system
+font (before the Google Fonts request resolves), and Safari has
+historically not always repainted an absolutely positioned box's
+background after the swapped-in web font changes how many lines the
+text needs. A fixed min-height removes the dependency on that
+timing entirely: the box already reserves enough room from its very
+first paint (a static CSS value, unaffected by which font measured
+the text), so there is nothing for a late repaint to get wrong.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card only).
+
+IMPACT:
+7rem covers the current 2-line-title + subtitle content (~87.8px
+including padding) with real room to spare, plus a 3-line-title
+worst case. Confirmed via npm run check (clean) and DOM measurement
+that the card still renders at a natural, non-oversized height in
+both the mobile/stacked and desktop/floating modes (no visible empty
+gap). This is a defensive fix for a bug not reproducible in this
+session's testing environment; ask the client to confirm on their
+actual device once deployed.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Found and fixed the actual bug behind the previous "equal gap" fix
 still not looking right: added flex-shrink: 0 to .header__logo, and
 tightened (but kept equal) .header__bar's and .header__actions' gap
