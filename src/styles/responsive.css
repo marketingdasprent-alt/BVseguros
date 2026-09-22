@@ -14,7 +14,15 @@
  *   1440px desktop-large
  */
 
-/* Header: mobile menu collapses into the toggle below 1024px */
+/* Header: mobile menu collapses into the toggle below 1024px.
+   Footer: brand + the 2 nav columns fit one row from 1024px up, so
+   .footer__grid spreads them space-between (flush with the same
+   container edges as the rest of the page). Below that they wrap
+   to 2 rows (brand+first column, then the second column alone); if
+   both stayed space-between, that lone second row would hug the
+   left edge instead of sitting under the row above, so below 1024px
+   .footer__grid centers instead, giving a symmetric "V" (see
+   DECISIONS.md, BV Seguros) instead of a left-heavy stagger. */
 @media (min-width: 1024px) {
   .header__nav {
     display: flex;
@@ -26,6 +34,10 @@
 
   .header__mobile-panel {
     display: none;
+  }
+
+  .footer__grid {
+    justify-content: space-between;
   }
 }
 

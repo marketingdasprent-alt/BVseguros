@@ -19,6 +19,7 @@
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-medium);
   line-height: 1;
+  white-space: nowrap;
   border-radius: var(--radius-full);
   border: var(--border-width-thin) solid transparent;
   min-height: 2.75rem;
@@ -238,7 +239,7 @@
 .header__bar {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: clamp(0.75rem, 0.4rem + 2vw, var(--space-md));
   padding-block: var(--space-sm);
 }
 
@@ -251,6 +252,7 @@
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-h4);
   color: var(--color-text-primary);
+  white-space: nowrap;
 }
 
 .header__logo-mark {
@@ -330,7 +332,7 @@
 .footer__grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--space-xl);
   padding-bottom: var(--space-xl);
 }

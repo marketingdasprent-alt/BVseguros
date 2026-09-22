@@ -309,14 +309,19 @@ export default function Home() {
             <h2>Três coisas que fazemos sempre.</h2>
           </div>
           <div
-            className="grid"
-            style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "var(--space-lg)",
+              marginTop: "var(--space-xl)",
+            }}
           >
             {DIFERENCIAIS.map((item, i) => (
               <div
                 key={item.titulo}
                 className={"spotlight-card" + (i === 1 ? " spotlight-card--dark" : "")}
-                style={{ gridColumn: "span 4" }}
+                style={{ flex: "1 1 16rem", maxWidth: "24rem" }}
               >
                 <div className="spotlight-card__icon">
                   <CheckMark />
@@ -375,12 +380,11 @@ export default function Home() {
             <p className="text-label text-muted">O que cobrimos</p>
             <h2>Um seguro para cada fase da vida.</h2>
           </div>
-          <div className="grid" style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}>
+          <div className="grid-auto" style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}>
             {RAMOS.map((ramo) => (
               <article
                 key={ramo.key}
                 className="media-card media-card--interactive"
-                style={{ gridColumn: "span 4" }}
               >
                 <img
                   src={ramo.imagem}
@@ -416,14 +420,20 @@ export default function Home() {
               <h2>Três passos, sem burocracia.</h2>
             </div>
             <div
-              className="grid"
-              style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: "var(--space-lg)",
+                marginTop: "var(--space-xl)",
+              }}
             >
               {PASSOS.map((passo, i) => (
                 <div
                   key={passo.titulo}
                   style={{
-                    gridColumn: "span 4",
+                    flex: "1 1 16rem",
+                    maxWidth: "24rem",
                     borderTop: "var(--border-width-thick) solid var(--color-primary)",
                     paddingTop: "var(--space-sm)",
                   }}

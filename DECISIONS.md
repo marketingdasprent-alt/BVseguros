@@ -11,6 +11,101 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Footer at tablet width (1024px down to where it wraps to 2 rows):
+.footer__grid now starts at justify-content: center (was
+space-between), with justify-content: space-between reinstated only
+at >=1024px in the existing header-nav media query in responsive.css.
+
+REASON:
+Below 1024px, brand + "Seguros" fit one row and "Empresa" wraps to a
+second row alone; with space-between at every width, that lone
+second-row item sits at flex-start (left), directly under "BV
+Seguros" instead of under the middle of the row above, a left-heavy
+stagger. Client asked for the 3 blocks to read as a symmetric "V"
+instead. Centering only changes anything when a row is underfull
+(mobile's fully-stacked single-item rows look identical either way),
+so this is safe at every width below the 1024px cutover; confirmed
+row-1/row-2 center X matches exactly (350.0px both) at 700px width.
+
+SCOPE:
+src/styles/components.css (.footer__grid default justify-content),
+src/styles/responsive.css (space-between added to the existing
+min-width:1024px block, same breakpoint already used for the header
+nav switch, not a new number).
+
+IMPACT:
+Confirmed via npm run check (clean) and DOM measurement: at 700px the
+two rows share the same center X exactly; at >=1024px all three
+blocks still sit space-between, flush with the same container edges
+as the rest of the page (unchanged from the prior footer fix below).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Header CTA fix + broad responsive audit, triggered by "revisa para
+todo o site, em todas as resolucoes":
+(1) .btn and .header__logo now have white-space: nowrap, and
+.header__bar's gap is a fluid clamp() instead of a fixed
+var(--space-md). (2) The three 3-across card grids on the homepage
+("Porquê a BV" / DIFERENCIAIS, "O que cobrimos" / RAMOS, "Como
+funciona" / PASSOS) no longer use the generic 12-col .grid with a
+hardcoded span-4 per card; RAMOS switched to the existing .grid-auto
+utility (auto-fit, minmax(16rem,1fr)), and DIFERENCIAIS/PASSOS switched
+to an inline flex-wrap + justify-content:center (same technique as
+the footer V fix below) since they have an odd count (3) and a lone
+wrapped item needs centering, which CSS Grid's auto-fit doesn't give
+for an underfull last row the way flex-wrap does.
+
+REASON:
+(1) The mobile header CTA "Pedir contacto" was wrapping to 2 lines;
+with .btn's border-radius: 999px (full pill), a 2-line label makes
+the corners round to the new (taller) height, producing a squashed/
+lopsided shape instead of a clean pill, read by the client as "torto"
+(crooked). Root cause: at 375px, logo + button + toggle's combined
+natural width slightly exceeded the available header row (~338px
+needed vs 328px available), so the browser's flex-shrink wrapped
+text in BOTH the logo and the button rather than overflowing;
+nowrap alone would have caused real overflow, so the bar's gap also
+had to shrink to close that ~10px deficit. (2) Client sent a
+screenshot of "Responsabilidade civil, danos próprios e assistência
+em viagem." wrapping to 4 lines inside a card; the actual cause
+wasn't the text but the grid: at 768-1023px, 3 cards per row (span 4
+of 12) left each card too narrow, and .grid's existing single-column
+collapse only kicks in below 768px (see the "Generic 12-col grid"
+comment in responsive.css), so tablet widths got the worst of both:
+too narrow for comfortable text, not narrow enough to trigger the
+existing 1-column fallback.
+
+SCOPE:
+src/styles/components.css (.btn, .header__logo, .header__bar),
+src/pages/Home.tsx (DIFERENCIAIS grid, RAMOS grid, PASSOS grid:
+container element and per-item className/style only, no content or
+component structure changed).
+
+IMPACT:
+Confirmed via npm run check (clean) and DOM audits (line-break
+detection + overflow check) at 320, 375, 768, 1024 and 1440px: no
+horizontal overflow at any width; the header CTA and logo render on
+one line at every width tested; RAMOS is 1/2/3 columns and
+DIFERENCIAIS/PASSOS are 1/(2+centered 1)/3 columns across mobile/
+tablet/desktop with no leftover single-word orphan lines in any card
+body copy at 768px (previously up to 6 lines with 3 single-word
+lines on the worst case). Desktop (1440px) layout is pixel-identical
+to before this change (single-row 3-across for all three grids).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Joined "antes de assinar" with non-breaking spaces (U+00A0) in the
 "Explicamos sem jargão" card copy, so that closing clause always
 wraps as one unit instead of splitting across two lines.
