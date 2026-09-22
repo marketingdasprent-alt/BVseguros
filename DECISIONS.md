@@ -11,6 +11,47 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Added a real 404 page (src/pages/NotFound.tsx) and wired it as the
+router's fallback (App.tsx: `ROUTES[pathname] ?? NotFound`, was
+`?? Home`). Also taught router.ts's navigate() to handle a hash
+fragment that also changes page (e.g. "/#contacto" clicked from a
+non-home route): it now scrolls to that element after the new page
+mounts, and scrolls to the top on an ordinary cross-page navigation
+with no hash, neither of which it did before.
+
+REASON:
+Client asked directly: "tem página de 404?" Before this, any
+unmatched pathname silently rendered the Home page while leaving the
+wrong URL in the address bar (no error, no signal anything was
+wrong), and there was no way to tell a mistyped/dead link from a real
+page. Fixing the fallback exposed a second, smaller gap: the new
+page's own "Falar connosco" button (/#contacto) changed the URL but
+never scrolled to the section, because navigate() only ever did
+pushState + a re-render, with no scroll handling of any kind.
+
+SCOPE:
+src/pages/NotFound.tsx (new), src/App.tsx (fallback route),
+src/app/router.ts (navigate: hash + cross-page scroll handling).
+Deliberately did not add hosting-level SPA-fallback/redirect config
+(netlify.toml, vercel.json, _redirects): no hosting target has been
+chosen for this project yet, so that config would be speculative
+either way, not settable in a client-only Vite dev/build.
+
+IMPACT:
+Confirmed via npm run check (clean) and manual navigation: an
+unmatched path renders NotFound (title, "404", heading, lede, two
+CTAs) while keeping that path in the URL; "Voltar ao início" navigates
+to "/" and scrolls to top; "Falar connosco" navigates to "/#contacto"
+and lands scrolled to that section. Verified at 375px and 1440px.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Removed the @media (max-width:640px) override that switched
 .hero-floating-card from position:absolute to position:static
 (with a negative margin-top standing in for the offset). The card now

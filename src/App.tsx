@@ -8,6 +8,7 @@ import Laboratory from "./pages/Laboratory";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
 import Cookies from "./pages/legal/Cookies";
+import NotFound from "./pages/NotFound";
 import { usePathname } from "./app/router";
 
 const ROUTES: Partial<Record<string, ComponentType>> = {
@@ -20,7 +21,7 @@ const ROUTES: Partial<Record<string, ComponentType>> = {
 
 export default function App() {
   const pathname = usePathname();
-  const Page = ROUTES[pathname] ?? Home;
+  const Page = ROUTES[pathname] ?? NotFound;
 
   return (
     <>
