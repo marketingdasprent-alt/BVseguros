@@ -40,6 +40,10 @@
     gap: var(--space-md);
   }
 
+  .header__actions .btn {
+    padding-inline: var(--space-sm);
+  }
+
   .footer__grid {
     justify-content: space-between;
   }

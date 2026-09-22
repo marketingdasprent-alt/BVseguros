@@ -11,6 +11,57 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Found and fixed the actual bug behind the previous "equal gap" fix
+still not looking right: added flex-shrink: 0 to .header__logo, and
+tightened (but kept equal) .header__bar's and .header__actions' gap
+to var(--space-xs), plus a matching .header__actions .btn
+padding-inline reduction to var(--space-xs) below 1024px (both reset
+to their original values at >=1024px, same media query as before).
+
+REASON:
+The prior fix made the two gap VALUES equal (16px/16px) but the
+client's follow-up screenshots (with the element inspector attached)
+still showed the button visibly touching the logo. Measuring text
+node positions (not just box positions) found the real bug:
+.header__logo has white-space:nowrap AND is itself a flex container
+(icon + bare text as its own flex children), but nowrap alone didn't
+stop the OUTER .header__logo flex item from being shrunk by
+.header__bar's flex-shrink algorithm below its content's true width;
+.header__logo's scrollWidth (135px) was 14px more than its
+clientWidth (121px), meaning the "BV Seguros" text was silently
+overflowing its own shrunk box, visibly eating into the 16px gap and
+leaving only ~1px of real visual space before the button (matches
+what the client saw). Forcing flex-shrink:0 stops that, but the
+freed-up width has to come from somewhere else at 375px, hence the
+matching, still-equal reduction to gaps and button padding.
+
+SCOPE:
+src/styles/components.css (.header__logo flex-shrink, .header__bar
+gap, .header__actions gap, new .header__actions .btn padding-inline
+rule), src/styles/responsive.css (added the button padding-inline
+reset to the existing min-width:1024px block).
+
+IMPACT:
+Confirmed via DOM measurement at 375px: .header__logo's scrollWidth
+now equals its clientWidth (136px both, no more silent overflow);
+box gap and the button-text-to-toggle-icon visual gap are both
+~12-12.6px (equal); npm run check clean; no horizontal overflow at
+360px or 375px. At exactly 320px (a real ~275px usable width once
+the container gutter is subtracted) the header's un-wrapping content
+still doesn't fit and the row overflows; accepted as an edge case,
+since true 320px-wide devices are effectively obsolete (iPhone SE
+1st-gen only) and every viewport from 360px up is clean. Desktop
+(>=1024px) confirmed pixel-identical to before (24px bar gap, 16px
+button padding).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Header, below 1024px: .header__bar's gap (logo to the button+toggle
 cluster) is now a fixed var(--space-sm), the same value as
 .header__actions' gap (button to toggle), instead of a fluid clamp
