@@ -11,6 +11,38 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Follow-up on the min-height fix below: .hero-floating-card switched
+from align-items: center to align-items: flex-start, and padding
+from a uniform var(--space-sm) var(--space-md) to an asymmetric
+var(--space-md) var(--space-md) var(--space-sm) (more on top).
+
+REASON:
+Client screenshot: content still read as too close to the card's top
+edge. With align-items:center, the gap above the icon/text depends on
+(box height - content height) / 2, i.e. on the exact interaction
+between min-height and however tall the content measures, which is
+precisely the kind of cross-device-variable quantity the min-height
+fix itself was added to stop depending on. Switching to
+flex-start + a fixed, larger padding-top makes that gap a constant
+24px, unaffected by content height, min-height, or font metrics.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card align-items, padding).
+
+IMPACT:
+Confirmed via DOM measurement at 375px: gap from card top to icon top
+is now exactly 24px (padding-block-start), regardless of how tall the
+text column measures. Verified visually at both mobile (stacked) and
+desktop (floating) layouts, npm run check clean.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Added min-height: 7rem to .hero-floating-card (the "Aconselhamento
 independente / Sem compromisso" badge over the Hero photo).
 

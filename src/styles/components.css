@@ -891,13 +891,13 @@ body.has-footer-visible .back-to-top {
   left: var(--space-lg);
   bottom: calc(-1 * var(--space-lg));
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-sm);
   max-width: 15rem;
   min-height: 7rem;
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md) var(--space-md) var(--space-sm);
   box-shadow: var(--shadow-lg);
 }
 
