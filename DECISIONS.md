@@ -11,6 +11,46 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Replaced the section-blob / body-wash pattern (both prior entries
+below) with .section-lines: a pair of flowing SVG curves per
+decorated section (Porquê a BV, Sobre, O que cobrimos, Como funciona,
+Contacto), each with its own viewBox and path pair rather than one
+repeated preset. The circular blobs and the fixed body wash are both
+removed; a single decorative system now covers the same five
+sections.
+
+REASON:
+Direct client instruction, with a sketch drawn over a screenshot:
+"remove as bolhas... queria algo tipo assim, pelo site todo, várias
+linhas azuis." The blobs were a reasonable first read of "mais
+manchas," but the annotated sketch made the actual intent explicit:
+flowing lines, not circles.
+
+SCOPE:
+src/styles/components.css (removed .section-blob rules and the body
+background-image wash block; added .section-lines/.section-lines path
+rules), src/pages/Home.tsx (removed the Blob component and its 10
+<Blob/> call sites; added FlowLines + one <FlowLines/> call per
+decorated section, each with hand-picked bezier paths). .section-decor
+(overflow clipping, Container z-index) is unchanged and still shared
+by both the old and new decoration.
+
+IMPACT:
+Still purely decorative: aria-hidden SVG, pointer-events:none,
+z-index:0 under the Container's z-index:1. Confirmed via npm run
+check (lint+typecheck+build clean) and DOM checks: all 5 sections
+carry exactly 2 <path> elements at the intended viewBox/stroke, no
+horizontal overflow at mobile width, verified visually at both
+desktop and mobile viewports.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Amplified the section-blob pattern (2 blobs per decorated section
 instead of 1, opposite corners) and added a second, independent
 layer: a page-wide "wash" on `body` (components.css) of four soft

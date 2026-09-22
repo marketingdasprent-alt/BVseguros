@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
@@ -231,13 +231,22 @@ function CheckMark() {
 }
 
 /**
- * Mancha decorativa desfocada (mesma linguagem do HeroMark), usada para
- * quebrar o branco/cinza corrido do resto da página. Decorativa só:
- * aria-hidden, sem interação, sempre atrás do conteúdo (section-decor
- * dá z-index:1 ao Container).
+ * Linhas azuis decorativas em SVG, a pedido direto do cliente (esboço
+ * anotado por cima do site). Substituem as manchas circulares
+ * anteriores. Decorativas só: aria-hidden, sem interação, sempre atrás
+ * do conteúdo (section-decor dá z-index:1 ao Container). Cada secção
+ * recebe o seu próprio par de curvas (viewBox e traçado próprios) em
+ * vez de um preset repetido, para não ler como o mesmo carimbo cinco
+ * vezes.
  */
-function Blob({ variant, style }: { variant: "primary" | "accent"; style: CSSProperties }) {
-  return <div aria-hidden="true" className={`section-blob section-blob--${variant}`} style={style} />;
+function FlowLines({ paths, viewBox }: { paths: string[]; viewBox: string }) {
+  return (
+    <svg aria-hidden="true" className="section-lines" viewBox={viewBox} preserveAspectRatio="none">
+      {paths.map((d) => (
+        <path key={d} d={d} />
+      ))}
+    </svg>
+  );
 }
 
 export default function Home() {
@@ -287,8 +296,13 @@ export default function Home() {
       </Section>
 
       <Section id="porque" className="section-decor">
-        <Blob variant="primary" style={{ width: 420, height: 420, top: -180, right: -140 }} />
-        <Blob variant="accent" style={{ width: 200, height: 200, bottom: -100, left: -60 }} />
+        <FlowLines
+          viewBox="0 0 1440 520"
+          paths={[
+            "M -60,120 C 260,10 420,280 760,160 S 1180,20 1500,200",
+            "M -60,420 C 300,300 520,480 820,360 S 1220,220 1500,380",
+          ]}
+        />
         <Container>
           <div className="section-intro">
             <p className="text-label text-muted">Porquê a BV Seguros</p>
@@ -316,8 +330,13 @@ export default function Home() {
       </Section>
 
       <Section id="sobre" variant="compact" className="section-decor">
-        <Blob variant="accent" style={{ width: 320, height: 320, top: -140, left: "38%" }} />
-        <Blob variant="primary" style={{ width: 220, height: 220, bottom: -120, right: -70 }} />
+        <FlowLines
+          viewBox="0 0 1440 360"
+          paths={[
+            "M -60,80 C 240,220 480,10 760,140 S 1200,260 1500,120",
+            "M -60,300 C 260,180 520,340 800,240 S 1220,120 1500,260",
+          ]}
+        />
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 5" }}>
@@ -344,8 +363,13 @@ export default function Home() {
       </Section>
 
       <Section id="servicos" surface className="section-decor">
-        <Blob variant="primary" style={{ width: 380, height: 380, bottom: -220, right: -120 }} />
-        <Blob variant="accent" style={{ width: 240, height: 240, top: -100, left: -80 }} />
+        <FlowLines
+          viewBox="0 0 1440 600"
+          paths={[
+            "M -60,140 C 300,40 560,260 860,150 S 1240,20 1500,180",
+            "M -60,480 C 320,380 580,560 880,440 S 1260,300 1500,460",
+          ]}
+        />
         <Container>
           <div className="section-intro section-intro--wide">
             <p className="text-label text-muted">O que cobrimos</p>
@@ -378,8 +402,13 @@ export default function Home() {
       </Section>
 
       <Section variant="compact" className="section-decor">
-        <Blob variant="primary" style={{ width: 260, height: 260, top: -120, right: "10%" }} />
-        <Blob variant="accent" style={{ width: 180, height: 180, bottom: -90, left: "8%" }} />
+        <FlowLines
+          viewBox="0 0 1440 360"
+          paths={[
+            "M -60,60 C 260,180 500,-20 780,120 S 1220,240 1500,90",
+            "M -60,320 C 300,220 540,360 820,260 S 1240,140 1500,280",
+          ]}
+        />
         <Container>
           <div className="como-funciona-box">
             <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
@@ -415,8 +444,13 @@ export default function Home() {
       </Section>
 
       <Section id="contacto" surface className="section-decor">
-        <Blob variant="accent" style={{ width: 300, height: 300, top: -120, left: -100 }} />
-        <Blob variant="primary" style={{ width: 220, height: 220, bottom: -110, right: -70 }} />
+        <FlowLines
+          viewBox="0 0 1440 520"
+          paths={[
+            "M -60,100 C 300,220 540,20 820,150 S 1240,280 1500,110",
+            "M -60,420 C 320,320 560,480 840,380 S 1260,240 1500,400",
+          ]}
+        />
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
             <div style={{ gridColumn: "span 5" }}>
