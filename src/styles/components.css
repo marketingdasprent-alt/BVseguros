@@ -957,13 +957,7 @@ body.has-footer-visible .back-to-top {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
   margin-bottom: var(--space-sm);
-}
-
-.spotlight-card--dark .spotlight-card__icon {
-  background-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ---------------------------------------------------------------- */

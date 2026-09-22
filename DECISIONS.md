@@ -11,6 +11,38 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Removed all 6 section-eyebrow labels from the homepage (the small
+uppercase .text-label above each h1/h2: "Seguros e Soluções",
+"Porquê a BV Seguros", "Sobre a BV Seguros", "O que cobrimos", "Como
+funciona", "Contacto"), and the background chip behind the "Porquê a
+BV" cards' checkmark icon (.spotlight-card__icon, same treatment
+already applied earlier to the "O que cobrimos" media-card icons).
+
+REASON: Direct client instruction ("remove TODOS os nomes de sessao
+do site" / "remove o background dos icones"), with a screenshot of
+both.
+
+SCOPE: src/pages/Home.tsx (6 <p className="text-label..."> removals,
+no other markup changed), src/styles/components.css
+(.spotlight-card__icon and .spotlight-card--dark .spotlight-card__icon
+background-color removed; CheckMark is a self-filled accent circle,
+doesn't need a chip background for contrast).
+
+IMPACT: Confirmed via npm run check (clean) and a DOM query
+(document.querySelectorAll('.text-label') returns empty on the
+homepage). Laboratory.tsx and NotFound.tsx's own text-label usages
+were left alone: neither is "the site" the client is reviewing (an
+internal showcase page and a status label on an error page,
+respectively), and the instruction's own screenshots were both of
+homepage sections.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 z-index tokens: removed .section-decor > .container's z-index:1 (now
 implicit auto) and changed .section-lines' z-index:0 to
 var(--z-base). Both are positioned elements with no z-index; per the

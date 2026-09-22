@@ -251,7 +251,6 @@ export default function Home() {
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 7" }}>
-              <p className="text-label">Seguros e Soluções</p>
               <h1>Proteção a sério, de corretora independente.</h1>
               <p
                 className="text-body-large text-secondary"
@@ -300,7 +299,6 @@ export default function Home() {
         />
         <Container>
           <div className="section-intro section-intro--wide">
-            <p className="text-label text-muted">Porquê a BV Seguros</p>
             <h2>Três coisas que fazemos sempre.</h2>
           </div>
           <div
@@ -340,7 +338,6 @@ export default function Home() {
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 6" }}>
-              <p className="text-label text-muted">Sobre a BV Seguros</p>
               <h2>Corretora independente, ao lado do cliente.</h2>
             </div>
             <div style={{ gridColumn: "span 6" }}>
@@ -372,7 +369,6 @@ export default function Home() {
         />
         <Container>
           <div className="section-intro section-intro--wide">
-            <p className="text-label text-muted">O que cobrimos</p>
             <h2>Um seguro para cada fase da vida.</h2>
           </div>
           <div className="grid grid--services" style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}>
@@ -412,7 +408,6 @@ export default function Home() {
         <Container>
           <div className="como-funciona-box">
             <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
-              <p className="text-label text-muted">Como funciona</p>
               <h2>Três passos, sem burocracia.</h2>
             </div>
             <div
@@ -460,7 +455,6 @@ export default function Home() {
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
             <div style={{ gridColumn: "span 5" }}>
-              <p className="text-label text-muted">Contacto</p>
               <h2>Fale connosco sobre o seu seguro.</h2>
               <div
                 className="stack"
