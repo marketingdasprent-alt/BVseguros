@@ -1,0 +1,16 @@
+# O CRM é outro projeto Vercel à parte (root directory: crm/).
+# Não faz parte do build deste site e só aumentaria o upload do deploy.
+crm
+
+# Documentação, governação do Web Blueprint e fonte da marca: não fazem
+# parte do build (Vite só empacota o que index.html/src referenciam),
+# mas excluir mantém o upload do deploy pequeno.
+AGENTS.md
+README.md
+documento.md
+BLUEPRINT.md
+MASTER-PROMPT.md
+DECISIONS.md
+CHANGELOG.md
+docs
+brand

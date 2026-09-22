@@ -1,0 +1,20 @@
+/**
+ * STYLE ENTRY POINT: import order defines the cascade and is part
+ * of the Level 1 contract. Do not reorder without a documented
+ * reason (see DECISIONS.md).
+ */
+
+@layer theme, base, components, utilities;
+
+/* Keep the Blueprint reset; do not inject Tailwind Preflight a second time. */
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "./styles/tokens.css" layer(theme);
+@import "./styles/reset.css" layer(base);
+@import "./styles/global.css" layer(base);
+@import "./styles/typography.css" layer(base);
+@import "./styles/layout.css" layer(components);
+@import "./styles/components.css" layer(components);
+@import "./styles/utilities.css" layer(components);
+@import "./styles/responsive.css" layer(components);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
+@import "./styles/tailwind.css";

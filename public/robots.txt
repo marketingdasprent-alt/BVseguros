@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /laboratory
+
+Sitemap: /sitemap.xml

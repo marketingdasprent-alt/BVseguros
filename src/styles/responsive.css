@@ -1,0 +1,88 @@
+/**
+ * RESPONSIVE: Level 1. Most of the system is fluid by default
+ * (clamp/minmax in tokens.css and layout.css) and needs no media
+ * query at all. This file holds the few rules that are genuinely
+ * discrete (nav collapses to a menu, grid goes from 1 to N columns)
+ * rather than continuous.
+ *
+ * Breakpoint reference (QA validation points: not a mandate to add
+ * a media query at each one, see docs/responsive.md):
+ *   480px  mobile-large
+ *   768px  tablet
+ *   1024px laptop / tablet-landscape
+ *   1280px desktop
+ *   1440px desktop-large
+ */
+
+/* Header: mobile menu collapses into the toggle below 1024px.
+   Footer: brand + the 2 nav columns fit one row from 1024px up, so
+   .footer__grid spreads them space-between (flush with the same
+   container edges as the rest of the page). Below that they wrap
+   to 2 rows (brand+first column, then the second column alone); if
+   both stayed space-between, that lone second row would hug the
+   left edge instead of sitting under the row above, so below 1024px
+   .footer__grid centers instead, giving a symmetric "V" (see
+   DECISIONS.md, BV Seguros) instead of a left-heavy stagger. */
+@media (min-width: 1024px) {
+  .header__nav {
+    display: flex;
+  }
+
+  .header__toggle {
+    display: none;
+  }
+
+  .header__mobile-panel {
+    display: none;
+  }
+
+  .header__bar {
+    gap: var(--space-md);
+  }
+
+  .header__actions .btn {
+    padding-inline: var(--space-sm);
+  }
+
+  .footer__grid {
+    justify-content: space-between;
+  }
+}
+
+/* Footer: .footer__grid is flex + flex-wrap (components.css), so
+   brand and nav columns reflow from stacked to a row on their own as
+   width allows, no breakpoint needed here (see DECISIONS.md, BV
+   Seguros). Only the bottom bar (copyright/legal) needs an explicit
+   switch from stacked to a row. */
+@media (min-width: 768px) {
+  .footer__bottom {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Generic 12-col grid: single column below tablet so authored spans
+   (e.g. grid-column: span 4) don't fight a cramped viewport. */
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid > * {
+    grid-column: auto !important;
+  }
+}
+
+/* .grid--services ("O que cobrimos", 6 cards, BV Seguros): 3-per-row
+   is too narrow at tablet width (see DECISIONS.md), but a divides-
+   evenly-by-2 grid is exactly what auto-fit can't guarantee (it picks
+   a column count from available width alone, and at some widths that
+   lands on 4, splitting 6 cards 4+2 with a ragged trailing row). Kept
+   as an explicit 12-col override instead, so it's always 1/2/3
+   columns and 6 always divides evenly. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid--services > * {
+    grid-column: span 6 !important;
+  }
+}

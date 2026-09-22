@@ -1,0 +1,41 @@
+/**
+ * GLOBAL BEHAVIOR: Level 1. Cross-cutting rules that aren't
+ * "typography" and aren't a single component: focus, selection,
+ * skip-navigation, scrollbars.
+ */
+
+:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-sm);
+  z-index: var(--z-toast);
+  padding: var(--space-2xs) var(--space-sm);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-radius: var(--radius-sm);
+  transition: top var(--duration-fast) var(--easing-standard);
+}
+
+.skip-link:focus-visible {
+  top: var(--space-sm);
+}
+
+img,
+video {
+  border-radius: 0;
+}

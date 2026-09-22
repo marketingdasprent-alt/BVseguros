@@ -1,0 +1,87 @@
+/**
+ * TYPOGRAPHY BASELINE: Level 1 rules bound to Level 2 tokens.
+ * Every rule references a token; no literal font-size or color here.
+ */
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading);
+  color: var(--color-text-primary);
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+}
+
+h3 {
+  font-size: var(--font-size-h3);
+}
+
+h4 {
+  font-size: var(--font-size-h4);
+}
+
+.text-display {
+  font-family: var(--font-display);
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.01em;
+}
+
+.text-body-large {
+  font-size: var(--font-size-body-large);
+}
+
+.text-body-small {
+  font-size: var(--font-size-body-small);
+}
+
+.text-caption {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.text-label {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+p {
+  max-width: 70ch;
+}
+
+p.text-body-large {
+  max-width: 60ch;
+}
+
+/* Progressive enhancement: avoid short last lines without fixed breaks. */
+p { text-wrap: pretty; }
+h1, h2, h3, h4, .text-display { text-wrap: balance; }
+.text-nowrap { white-space: nowrap; }

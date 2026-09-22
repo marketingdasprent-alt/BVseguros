@@ -1,0 +1,1721 @@
+# Decision Log
+
+Structural decisions, and documented rule-breaks (overrides), in
+chronological order.
+
+Current stack note (v2.0.0): the historical JavaScript-only decision below
+is superseded by the TypeScript/Tailwind migration entry. Historical paths
+remain as recorded; application files now use `.ts` / `.tsx`.
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Removed all 6 section-eyebrow labels from the homepage (the small
+uppercase .text-label above each h1/h2: "Seguros e Soluções",
+"Porquê a BV Seguros", "Sobre a BV Seguros", "O que cobrimos", "Como
+funciona", "Contacto"), and the background chip behind the "Porquê a
+BV" cards' checkmark icon (.spotlight-card__icon, same treatment
+already applied earlier to the "O que cobrimos" media-card icons).
+
+REASON: Direct client instruction ("remove TODOS os nomes de sessao
+do site" / "remove o background dos icones"), with a screenshot of
+both.
+
+SCOPE: src/pages/Home.tsx (6 <p className="text-label..."> removals,
+no other markup changed), src/styles/components.css
+(.spotlight-card__icon and .spotlight-card--dark .spotlight-card__icon
+background-color removed; CheckMark is a self-filled accent circle,
+doesn't need a chip background for contrast).
+
+IMPACT: Confirmed via npm run check (clean) and a DOM query
+(document.querySelectorAll('.text-label') returns empty on the
+homepage). Laboratory.tsx and NotFound.tsx's own text-label usages
+were left alone: neither is "the site" the client is reviewing (an
+internal showcase page and a status label on an error page,
+respectively), and the instruction's own screenshots were both of
+homepage sections.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+z-index tokens: removed .section-decor > .container's z-index:1 (now
+implicit auto) and changed .section-lines' z-index:0 to
+var(--z-base). Both are positioned elements with no z-index; per the
+CSS stacking spec they resolve to the same "0" stacking level and
+order by DOM position, so .container (later in the DOM than
+.section-lines) still paints above it without needing an explicit
+value. Removes the last two `npm run qa` z-index warnings
+(BLUEPRINT.md: "--z-* is the only place a z-index value should come
+from").
+
+SCOPE: src/styles/components.css only. Visually re-confirmed the
+decorative lines still render behind card/text content, not on top.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+SEO / social sharing / GEO pass, prompted by the client's own launch
+punch-list ("o que falta ainda pro nosso site"):
+- Added public/favicon.png (copied from the existing icon) plus
+  <link rel="icon">/<link rel="apple-touch-icon"> pointing at it
+  (previously only pointed at /images/logo-icon-bv-seguros.png,
+  which `npm run qa` doesn't recognize as a favicon and which some
+  browsers/bookmark UIs skip in favor of the conventional path).
+- Generated public/images/og-image.jpg (1200x630, Python/PIL: logo
+  lockup centered on white, the same low-opacity corner-blob language
+  as .section-blob/.section-lines, tagline text). Wired it plus
+  og:site_name/og:locale/twitter:card meta into index.html.
+- Added geo.region/geo.country meta (country-level only: no
+  city/district to draw from until the real morada replaces the
+  PorConfirmar placeholders, see the entry below).
+- Added InsuranceAgency JSON-LD structured data (name, description,
+  url, logo, areaServed). Deliberately excludes address/telephone:
+  unlike the on-page PorConfirmar text (visibly flagged, read by a
+  human), a fake address/phone in JSON-LD is machine-read and could
+  surface in Google results before anyone catches it. Add
+  postalAddress/telephone once real values exist, not before.
+- robots.txt: added `Disallow: /laboratory` (the internal design-
+  system showcase page was previously crawlable; it isn't in
+  sitemap.xml but nothing stopped a crawler finding it via links).
+- sitemap.xml intentionally left at the example.com placeholder: no
+  hosting/domain has been chosen yet (see the earlier 404-page entry
+  for the same reasoning re: SPA-fallback hosting config).
+
+SCOPE: index.html, public/favicon.png (new), public/images/og-image.jpg
+(new), public/robots.txt.
+
+IMPACT: `npm run qa`'s SEO section (favicon, og:image, og:title) is
+clean. Confirmed /favicon.png and /images/og-image.jpg both 200 in
+the dev server.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Extended cookie consent from two tiers ("necessary" | "all") to three
+("necessary" | "analytics" | "marketing" | "all") and wired Google
+Analytics 4 (gtag.js, placeholder ID G-XXXXXXX) and Meta Pixel
+(placeholder ID PIXEL_ID_AQUI), both consent-gated, both currently
+inert (invalid placeholder IDs, so no real tracking data goes
+anywhere until the real IDs are dropped in).
+
+REASON:
+Client asked to "configurar analytics, e meta [pixel]". Meta Pixel is
+an advertising/remarketing tool, a different consent category from
+"analytics" under GDPR; googleConsentMode.ts's own prior comment and
+the original CookieConsent DECISIONS.md entry both already flagged
+this exact scenario ("a project that also needs ads consent must add
+a third category... rather than silently granting ad consent nobody
+was asked about" / "build [a granular category] when a project's
+actual integrations require distinguishing categories"). Asked the
+client directly (AskUserQuestion) whether to build the proper third
+category, fold Meta Pixel into the existing analytics category, or
+skip Meta Pixel for now; they chose the proper third category.
+
+SCOPE:
+- src/hooks/useCookieConsent.ts: Consent type widened to 4 values;
+  added hasAnalyticsConsent/hasMarketingConsent/consentFrom helpers;
+  the sync effect now also calls the new applyMetaPixelConsent.
+- src/utils/googleConsentMode.ts: ad_storage/ad_user_data/
+  ad_personalization now follow marketing consent specifically
+  (previously always denied, since there was no category for them);
+  analytics_storage/functionality_storage/personalization_storage
+  follow analytics consent, independently.
+- src/utils/metaPixel.ts (new): applyMetaPixelConsent(granted), mirrors
+  googleConsentMode.ts's shape. fbq('consent','revoke') is the default
+  in index.html; grant only fires the queued PageView once marketing
+  consent is given.
+- src/components/feedback/CookieConsent.tsx: dialog now has 3
+  checkboxes (necessary/disabled, analytics, marketing) instead of 2;
+  banner's two buttons (Aceitar todos / Só os necessários) unchanged.
+- index.html: GA4 gtag.js loader (send_page_view: false, since the SPA
+  router doesn't reload between pages; a future per-navigation
+  page_view send belongs in router.ts's navigate(), not here) and the
+  Meta Pixel base snippet, both after the existing consent-default
+  block. No noscript pixel fallback: it can't be consent-gated (fires
+  unconditionally for JS-disabled visitors), which would defeat the
+  whole point of this change.
+- src/pages/legal/Cookies.tsx: documents all three categories and
+  which gtag consent fields each one controls.
+
+IMPACT:
+Confirmed via npm run check (clean) and live testing: selecting only
+"Marketing e publicidade" in the preferences dialog sends a gtag
+consent update with ad_* granted and analytics_*/functionality_*/
+personalization_* still denied; selecting only "Análise" sends the
+exact inverse. Neither category grants the other's fields. fbq loads
+and processes consent/track calls with no console errors even with
+the placeholder Pixel ID.
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Filled the legal pages' identity placeholders (morada, telefone,
+comarca/foro) with fictitious but realistically formatted values
+("Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)",
+"+351 21 000 0000 (fictício, por confirmar)", "Comarca de Lisboa
+(fictício, por confirmar)"), kept inside the existing PorConfirmar
+highlight component (extracted from Home.tsx to
+src/components/ui/PorConfirmar.tsx so Terms/Privacy could reuse it).
+Also set updatedAt on all three legal pages to today's real date.
+
+REASON:
+Client, explicitly: "pode criar as páginas com dados fictícios já,
+depois adicionamos os dados reais." Bracket placeholders like
+"[MORADA REGISTADA]" read as an obviously-unfinished template;
+realistic-looking values (still highlighted) let the pages read as
+complete for review/layout purposes while remaining impossible to
+mistake for verified fact. The ASF mediator registration number was
+deliberately NOT given a fictitious value (still "[nº de registo na
+ASF por confirmar]"): unlike an address or phone, a fabricated
+regulatory registration number is a compliance claim, a materially
+different kind of risk than placeholder contact info. Section-content
+placeholders that describe actual business policy (payment terms,
+cancellation policy, liability limits, data retention period) were
+also left untouched for the same reason: those need a real decision
+from the client, not invented text.
+
+SCOPE:
+src/components/ui/PorConfirmar.tsx (new, extracted from Home.tsx),
+src/pages/Home.tsx (contact section: telefone, morada), src/pages/
+legal/Terms.tsx (morada, comarca/foro, updatedAt), src/pages/legal/
+Privacy.tsx (morada, telefone, updatedAt, plus two new bullets under
+"Finalidades e base legal" naming Google Analytics and Meta Pixel by
+name, accurate now that both are actually wired in), src/pages/legal/
+Cookies.tsx (updatedAt).
+
+DATE: 2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Added a real 404 page (src/pages/NotFound.tsx) and wired it as the
+router's fallback (App.tsx: `ROUTES[pathname] ?? NotFound`, was
+`?? Home`). Also taught router.ts's navigate() to handle a hash
+fragment that also changes page (e.g. "/#contacto" clicked from a
+non-home route): it now scrolls to that element after the new page
+mounts, and scrolls to the top on an ordinary cross-page navigation
+with no hash, neither of which it did before.
+
+REASON:
+Client asked directly: "tem página de 404?" Before this, any
+unmatched pathname silently rendered the Home page while leaving the
+wrong URL in the address bar (no error, no signal anything was
+wrong), and there was no way to tell a mistyped/dead link from a real
+page. Fixing the fallback exposed a second, smaller gap: the new
+page's own "Falar connosco" button (/#contacto) changed the URL but
+never scrolled to the section, because navigate() only ever did
+pushState + a re-render, with no scroll handling of any kind.
+
+SCOPE:
+src/pages/NotFound.tsx (new), src/App.tsx (fallback route),
+src/app/router.ts (navigate: hash + cross-page scroll handling).
+Deliberately did not add hosting-level SPA-fallback/redirect config
+(netlify.toml, vercel.json, _redirects): no hosting target has been
+chosen for this project yet, so that config would be speculative
+either way, not settable in a client-only Vite dev/build.
+
+IMPACT:
+Confirmed via npm run check (clean) and manual navigation: an
+unmatched path renders NotFound (title, "404", heading, lede, two
+CTAs) while keeping that path in the URL; "Voltar ao início" navigates
+to "/" and scrolls to top; "Falar connosco" navigates to "/#contacto"
+and lands scrolled to that section. Verified at 375px and 1440px.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Removed the @media (max-width:640px) override that switched
+.hero-floating-card from position:absolute to position:static
+(with a negative margin-top standing in for the offset). The card now
+uses position:absolute unconditionally, at every width.
+
+REASON:
+Root cause of every "text outside/floating loose over the photo"
+report in this thread, finally confirmed with a private/incognito
+window screenshot (ruling out cache) plus a side-by-side against the
+correct >640px rendering: below 640px, the card fell back to
+position:static, and in that mode the browser was painting the
+image's own top layer OVER the card's white background while still
+showing the card's text and icon on top of that, i.e. only the white
+fill was invisible, not the content. static positioning removes an
+element from the "positioned" paint layer that CSS normally keeps
+above static in-flow content, so it stops being reliably guaranteed
+above a sibling image the way position:absolute is; the desktop mode
+(position:absolute, confirmed correct in the client's own
+screenshot) never had this problem because absolutely-positioned
+content always paints in a later, higher layer regardless of DOM
+order. Rather than debug why static-mode stacking failed on the
+client's device, removing the static fallback removes the entire
+class of bug: one positioning mechanism, proven to work, used
+everywhere.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card: deleted the
+max-width:640px block entirely; no other rule touched).
+
+IMPACT:
+Card is now position:absolute (240px, capped by the existing
+max-width:15rem) at every width tested (340, 375, 1440px). Confirmed
+via DOM: position computes to "absolute" at 375px (was "static"
+before this fix), card correctly overlaps the photo's bottom-left
+corner with its white background visible, matching the client's own
+"this width is correct" screenshot. No new horizontal overflow at
+375px+; 340px and below already had a known, accepted overflow edge
+case from the header CTA fix earlier today, unrelated to this card.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Reverted "O que cobrimos" (RAMOS, 6 cards) from .grid-auto back to
+the 12-col .grid with explicit grid-column: span 4 per card, plus a
+new .grid--services class with a 768-1023px override to span 6
+(2-per-row).
+
+REASON:
+Client screenshot: at a wide-but-not-huge desktop width, the 6 cards
+rendered as 4 in the first row and 2 left-aligned in the second, with
+a visible empty gap on the right. .grid-auto's auto-fit picks however
+many minmax(16rem,1fr) columns fit the container, which for this
+container's width landed on 4, not 3, and 6 doesn't divide evenly by
+4. auto-fit was the right idea for the two earlier 3-item grids
+("Porquê a BV", "Como funciona": there flex-wrap + justify-content:
+center was used instead, and centers ANY leftover row regardless of
+column count) but wrong here: 6 items need a GUARANTEED even split
+(1, 2, or 3 columns), not "whatever count fits."
+
+SCOPE:
+src/pages/Home.tsx (RAMOS grid: className and per-card gridColumn
+style), src/styles/responsive.css (new .grid--services rule in the
+existing 768-1023px range, alongside the tablet overrides added
+earlier today).
+
+IMPACT:
+Confirmed via DOM measurement: exactly 3 unique row positions at
+1500px (3-per-row), 3 at 768px (2-per-row, i.e. 3 rows of 2), 6 at
+375px (1-per-row, i.e. 6 rows of 1). No horizontal overflow at any
+width. npm run check clean.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Removed min-height: 7rem from .hero-floating-card again (added two
+entries below, same day), now that align-items:flex-start makes the
+box's height directly follow padding + content with no centering
+ambiguity to guard against.
+
+REASON:
+Client: "agora piorou" (now it's worse), after the flex-start +
+bigger padding-top change. With align-items:center gone, min-height
+no longer gets absorbed as balanced top/bottom slack around the
+content; it just forces extra blank space below the subtitle instead
+(content stays pinned to the top padding, box stays pinned to
+min-height regardless of whether content needs it), which read as an
+oversized, dead-space-heavy card. The original overflow bug this
+min-height was defending against was most likely specific to
+align-items:center's height-balancing math in the first place: with
+flex-start, the box's height is just padding-top + content +
+padding-bottom by ordinary flex auto-sizing, always, so there is no
+"too-short box" case left to guard against.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card: removed min-height
+only, no other property touched).
+
+IMPACT:
+Card height back to content-driven (~95.8px at 375px, was
+artificially 112px). Confirmed the image-overlap amount (32px) is
+unchanged (it comes from the fixed -32px offset, not from the card's
+own height), so this was never actually covering more of the photo;
+the visible regression was the card's own proportions. Verified
+visually at 375px and 1440px, npm run check clean.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Follow-up on the min-height fix below: .hero-floating-card switched
+from align-items: center to align-items: flex-start, and padding
+from a uniform var(--space-sm) var(--space-md) to an asymmetric
+var(--space-md) var(--space-md) var(--space-sm) (more on top).
+
+REASON:
+Client screenshot: content still read as too close to the card's top
+edge. With align-items:center, the gap above the icon/text depends on
+(box height - content height) / 2, i.e. on the exact interaction
+between min-height and however tall the content measures, which is
+precisely the kind of cross-device-variable quantity the min-height
+fix itself was added to stop depending on. Switching to
+flex-start + a fixed, larger padding-top makes that gap a constant
+24px, unaffected by content height, min-height, or font metrics.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card align-items, padding).
+
+IMPACT:
+Confirmed via DOM measurement at 375px: gap from card top to icon top
+is now exactly 24px (padding-block-start), regardless of how tall the
+text column measures. Verified visually at both mobile (stacked) and
+desktop (floating) layouts, npm run check clean.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Added min-height: 7rem to .hero-floating-card (the "Aconselhamento
+independente / Sem compromisso" badge over the Hero photo).
+
+REASON:
+Client sent repeated screenshots (twice) of the card's white
+background ending before the title's second line and the subtitle,
+which rendered directly on the navy section background instead of on
+white. Extensive testing in this session's browser (every width from
+320 to 1024px, both the static/stacked and absolute/floating layout
+modes) could not reproduce it: the box is a plain flex container with
+no fixed height and no overflow:hidden, and it consistently measured
+with 16px of clearance below the subtitle in every case tried here.
+The most plausible explanation for a client-side-only, non-
+reproducible-in-Chromium repaint mismatch is a known WebKit/Safari
+issue: the box's height is first computed against a fallback system
+font (before the Google Fonts request resolves), and Safari has
+historically not always repainted an absolutely positioned box's
+background after the swapped-in web font changes how many lines the
+text needs. A fixed min-height removes the dependency on that
+timing entirely: the box already reserves enough room from its very
+first paint (a static CSS value, unaffected by which font measured
+the text), so there is nothing for a late repaint to get wrong.
+
+SCOPE:
+src/styles/components.css (.hero-floating-card only).
+
+IMPACT:
+7rem covers the current 2-line-title + subtitle content (~87.8px
+including padding) with real room to spare, plus a 3-line-title
+worst case. Confirmed via npm run check (clean) and DOM measurement
+that the card still renders at a natural, non-oversized height in
+both the mobile/stacked and desktop/floating modes (no visible empty
+gap). This is a defensive fix for a bug not reproducible in this
+session's testing environment; ask the client to confirm on their
+actual device once deployed.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Found and fixed the actual bug behind the previous "equal gap" fix
+still not looking right: added flex-shrink: 0 to .header__logo, and
+tightened (but kept equal) .header__bar's and .header__actions' gap
+to var(--space-xs), plus a matching .header__actions .btn
+padding-inline reduction to var(--space-xs) below 1024px (both reset
+to their original values at >=1024px, same media query as before).
+
+REASON:
+The prior fix made the two gap VALUES equal (16px/16px) but the
+client's follow-up screenshots (with the element inspector attached)
+still showed the button visibly touching the logo. Measuring text
+node positions (not just box positions) found the real bug:
+.header__logo has white-space:nowrap AND is itself a flex container
+(icon + bare text as its own flex children), but nowrap alone didn't
+stop the OUTER .header__logo flex item from being shrunk by
+.header__bar's flex-shrink algorithm below its content's true width;
+.header__logo's scrollWidth (135px) was 14px more than its
+clientWidth (121px), meaning the "BV Seguros" text was silently
+overflowing its own shrunk box, visibly eating into the 16px gap and
+leaving only ~1px of real visual space before the button (matches
+what the client saw). Forcing flex-shrink:0 stops that, but the
+freed-up width has to come from somewhere else at 375px, hence the
+matching, still-equal reduction to gaps and button padding.
+
+SCOPE:
+src/styles/components.css (.header__logo flex-shrink, .header__bar
+gap, .header__actions gap, new .header__actions .btn padding-inline
+rule), src/styles/responsive.css (added the button padding-inline
+reset to the existing min-width:1024px block).
+
+IMPACT:
+Confirmed via DOM measurement at 375px: .header__logo's scrollWidth
+now equals its clientWidth (136px both, no more silent overflow);
+box gap and the button-text-to-toggle-icon visual gap are both
+~12-12.6px (equal); npm run check clean; no horizontal overflow at
+360px or 375px. At exactly 320px (a real ~275px usable width once
+the container gutter is subtracted) the header's un-wrapping content
+still doesn't fit and the row overflows; accepted as an edge case,
+since true 320px-wide devices are effectively obsolete (iPhone SE
+1st-gen only) and every viewport from 360px up is clean. Desktop
+(>=1024px) confirmed pixel-identical to before (24px bar gap, 16px
+button padding).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Header, below 1024px: .header__bar's gap (logo to the button+toggle
+cluster) is now a fixed var(--space-sm), the same value as
+.header__actions' gap (button to toggle), instead of a fluid clamp
+that happened to land lower. At >=1024px (nav visible, no toggle),
+.header__bar's gap goes back up to var(--space-md) for normal desktop
+nav breathing room.
+
+REASON:
+The previous fix (this same session, entry below) stopped the CTA
+button from wrapping by shrinking .header__bar's gap on a clamp, but
+that clamp resolved to a visibly smaller value than
+.header__actions' fixed gap, so the button sat close to the logo but
+with clear air before the toggle: not centered between them. Client
+screenshot, verbatim: "coloca o mesmo tamanho de distância entre o
+título e o menu hambúrguer, pra ficar bem no meio." Matching both
+gaps to the same token makes the button visually centered between
+logo and toggle at every width where both are visible.
+
+SCOPE:
+src/styles/components.css (.header__bar gap), src/styles/responsive.css
+(added .header__bar gap override to the existing min-width:1024px
+block).
+
+IMPACT:
+Confirmed via DOM measurement: gap(logo, button) === gap(button,
+toggle) === 16px exactly at 375px and 360px, both still single-line
+(no text wrap), no horizontal overflow. At 320px content alone
+(logo+button+toggle, all non-wrapping) slightly exceeds the available
+width regardless of gap; treated as an accepted edge case (320px
+real devices are effectively extinct; 360px+, the realistic floor,
+is clean).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Footer at tablet width (1024px down to where it wraps to 2 rows):
+.footer__grid now starts at justify-content: center (was
+space-between), with justify-content: space-between reinstated only
+at >=1024px in the existing header-nav media query in responsive.css.
+
+REASON:
+Below 1024px, brand + "Seguros" fit one row and "Empresa" wraps to a
+second row alone; with space-between at every width, that lone
+second-row item sits at flex-start (left), directly under "BV
+Seguros" instead of under the middle of the row above, a left-heavy
+stagger. Client asked for the 3 blocks to read as a symmetric "V"
+instead. Centering only changes anything when a row is underfull
+(mobile's fully-stacked single-item rows look identical either way),
+so this is safe at every width below the 1024px cutover; confirmed
+row-1/row-2 center X matches exactly (350.0px both) at 700px width.
+
+SCOPE:
+src/styles/components.css (.footer__grid default justify-content),
+src/styles/responsive.css (space-between added to the existing
+min-width:1024px block, same breakpoint already used for the header
+nav switch, not a new number).
+
+IMPACT:
+Confirmed via npm run check (clean) and DOM measurement: at 700px the
+two rows share the same center X exactly; at >=1024px all three
+blocks still sit space-between, flush with the same container edges
+as the rest of the page (unchanged from the prior footer fix below).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Header CTA fix + broad responsive audit, triggered by "revisa para
+todo o site, em todas as resolucoes":
+(1) .btn and .header__logo now have white-space: nowrap, and
+.header__bar's gap is a fluid clamp() instead of a fixed
+var(--space-md). (2) The three 3-across card grids on the homepage
+("Porquê a BV" / DIFERENCIAIS, "O que cobrimos" / RAMOS, "Como
+funciona" / PASSOS) no longer use the generic 12-col .grid with a
+hardcoded span-4 per card; RAMOS switched to the existing .grid-auto
+utility (auto-fit, minmax(16rem,1fr)), and DIFERENCIAIS/PASSOS switched
+to an inline flex-wrap + justify-content:center (same technique as
+the footer V fix below) since they have an odd count (3) and a lone
+wrapped item needs centering, which CSS Grid's auto-fit doesn't give
+for an underfull last row the way flex-wrap does.
+
+REASON:
+(1) The mobile header CTA "Pedir contacto" was wrapping to 2 lines;
+with .btn's border-radius: 999px (full pill), a 2-line label makes
+the corners round to the new (taller) height, producing a squashed/
+lopsided shape instead of a clean pill, read by the client as "torto"
+(crooked). Root cause: at 375px, logo + button + toggle's combined
+natural width slightly exceeded the available header row (~338px
+needed vs 328px available), so the browser's flex-shrink wrapped
+text in BOTH the logo and the button rather than overflowing;
+nowrap alone would have caused real overflow, so the bar's gap also
+had to shrink to close that ~10px deficit. (2) Client sent a
+screenshot of "Responsabilidade civil, danos próprios e assistência
+em viagem." wrapping to 4 lines inside a card; the actual cause
+wasn't the text but the grid: at 768-1023px, 3 cards per row (span 4
+of 12) left each card too narrow, and .grid's existing single-column
+collapse only kicks in below 768px (see the "Generic 12-col grid"
+comment in responsive.css), so tablet widths got the worst of both:
+too narrow for comfortable text, not narrow enough to trigger the
+existing 1-column fallback.
+
+SCOPE:
+src/styles/components.css (.btn, .header__logo, .header__bar),
+src/pages/Home.tsx (DIFERENCIAIS grid, RAMOS grid, PASSOS grid:
+container element and per-item className/style only, no content or
+component structure changed).
+
+IMPACT:
+Confirmed via npm run check (clean) and DOM audits (line-break
+detection + overflow check) at 320, 375, 768, 1024 and 1440px: no
+horizontal overflow at any width; the header CTA and logo render on
+one line at every width tested; RAMOS is 1/2/3 columns and
+DIFERENCIAIS/PASSOS are 1/(2+centered 1)/3 columns across mobile/
+tablet/desktop with no leftover single-word orphan lines in any card
+body copy at 768px (previously up to 6 lines with 3 single-word
+lines on the worst case). Desktop (1440px) layout is pixel-identical
+to before this change (single-row 3-across for all three grids).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Joined "antes de assinar" with non-breaking spaces (U+00A0) in the
+"Explicamos sem jargão" card copy, so that closing clause always
+wraps as one unit instead of splitting across two lines.
+
+REASON:
+Client screenshot showed "antes" stranded at the end of one line and
+"de assinar." alone on the next, inside the narrow spotlight-card
+column. Client asked whether a global rule already covers this:
+p { text-wrap: pretty } (typography.css) already applies everywhere
+and is active here (confirmed via computed style), but it only
+optimizes against a short orphan LAST line; a 2-word last line like
+"de assinar." doesn't trigger it, so it does nothing for a short
+connector word (here, "antes") being stranded mid-paragraph. No CSS
+property solves that class of problem generically; the standard fix
+is gluing the specific phrase that must not split, same technique as
+a manual break hint on a heading, just via non-breaking spaces
+instead of <br>.
+
+SCOPE:
+src/pages/Home.tsx (DIFERENCIAIS[1].descricao only; the other two
+DIFERENCIAIS and other card copy were not reported as wrapping badly
+and were left alone rather than pre-emptively nbsp-joining phrases
+that aren't causing a visible problem).
+
+IMPACT:
+Confirmed via npm run check (clean) and a DOM line-split check at
+768px width (the width the client's screenshot was taken at): the
+paragraph now breaks as "Sabe exatamente / o que está e o que / não
+está coberto, / antes de assinar." with the closing phrase intact.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Follow-up on the footer alignment fix below: flattened the footer's
+DOM so "BV Seguros" (brand), "Seguros" and "Empresa" are three direct
+siblings inside .footer__grid (removed the .footer__columns wrapper
+div), and made .footer__grid itself the single flex row with
+justify-content: space-between across all three.
+
+REASON:
+The previous fix (justify-content: space-between on .footer__columns
+only) fixed the "Empresa" column's right edge but left a two-tier
+structure: the brand-to-Seguros gap was the fixed .footer__grid gap
+token, while the Seguros-to-Empresa gap was whatever space-between
+left over inside the wider nav-columns track, a different, larger
+value. Client feedback, with the element inspector output attached:
+"como está, porque não consegue manter as 3 informações alinhadas?"
+(why can't the 3 blocks stay in line with each other). With all three
+as siblings of one space-between row, both gaps are now the same
+distributed value by construction.
+
+SCOPE:
+src/components/layout/Footer.tsx (removed the footer__columns wrapper
+div; each nav column gets a footer__column class instead),
+src/styles/components.css (.footer__grid now flex+space-between,
+.footer__brand content-hugging instead of grid-track-filling,
+.footer__columns rules replaced by .footer__column).
+
+IMPACT:
+Confirmed via npm run check (clean) and a DOM measurement at 1440px:
+gap between brand and "Seguros" and gap between "Seguros" and
+"Empresa" are both exactly 195.86px. No media query needed: the same
+flex-wrap row now also reflows correctly at 375px (brand stacks full
+width, each nav column stacks on its own row below it, no horizontal
+overflow) since there is no explicit mobile breakpoint anymore.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Four content/layout fixes from direct client feedback (4 annotated
+screenshots): (1) widened "Porquê a BV"'s section-intro to the
+--wide measure (50rem) so "Três coisas que fazemos sempre." sets on
+one line instead of wrapping mid-phrase; (2) reworded the Hero H1's
+second clause from "explicada em português simples" (which just
+repeated the lede's own "sem letras miúdas" promise) to "de corretora
+independente", stating the actual differentiator instead of a second
+plain-language claim; (3) widened Sobre's heading column from a 5/7
+to a 6/6 grid split so "Corretora independente, ao lado do cliente."
+breaks after "independente," instead of wrapping to three lines;
+(4) footer nav columns (.footer__columns) switched from flex-grow
+(stretching each column to fill its grid track, leaving the actual
+short link text stranded in the left part of a wide invisible box)
+to justify-content: space-between with content-hugging columns, so
+"Empresa"'s column now visually reaches the same right edge as the
+rest of the page's content instead of reading as left-clustered.
+
+REASON:
+Client feedback, verbatim: keep headings from breaking mid-phrase
+("preservar... textos sempre inteiros, sem quebra"), a distinct
+second clause for the Hero H1, and the footer "centralizado com
+referência global" instead of looking anchored to the left. h1-h4
+already had text-wrap: balance (see typography.css); balance only
+redistributes an existing line count evenly, it can't reduce 3 lines
+to 1 or 2 on its own; the actual fix in each heading case was giving
+it enough column width to need fewer lines in the first place.
+
+SCOPE:
+src/pages/Home.tsx (Hero h1 text, Porquê a BV section-intro class,
+Sobre grid column spans), src/styles/components.css
+(.footer__columns / .footer__columns > *).
+
+IMPACT:
+Confirmed via npm run check (clean) and DOM measurement (Range
+getBoundingClientRect per character) at 1440px width: "Três coisas
+que fazemos sempre." now 1 line; "Corretora independente, ao lado do
+cliente." now breaks exactly after "independente,"; footer's
+"Empresa" column and the legal links row now share the same right
+edge. Verified no horizontal overflow and no visual regression at
+375px (mobile) width.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Removed the coloured chip background behind the "O que cobrimos"
+icons (.media-card__icon-chip: dropped background-color and
+border-radius, kept it as a plain 32px icon holder) and redrew the
+"auto" (car) RamoIcon with a simpler single-outline body + two wheel
+circles, replacing the earlier two-path version with small rounded
+wheel-arch cutouts.
+
+REASON:
+Direct client feedback (WhatsApp screenshot, zoomed on the car icon):
+"icones com fundo, deixa so o icone e ajeita esse do automóvel." The
+chip's tinted square read as a smudge behind the line art at 32-40px,
+and the car icon specifically had too much small detail (rounded
+corner cutouts for wheel arches) to stay legible at that size.
+
+SCOPE:
+src/styles/components.css (.media-card__icon-chip), src/pages/Home.tsx
+(RamoIcon's "auto" case only; the other five RamoIcon glyphs were
+already simple enough and untouched).
+
+IMPACT:
+Visual only, no markup/structure change. Confirmed via npm run check
+(lint+typecheck+build clean) and a DOM check that the chip now
+computes to a transparent background, 32x32, no border-radius.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Replaced the section-blob / body-wash pattern (both prior entries
+below) with .section-lines: a pair of flowing SVG curves per
+decorated section (Porquê a BV, Sobre, O que cobrimos, Como funciona,
+Contacto), each with its own viewBox and path pair rather than one
+repeated preset. The circular blobs and the fixed body wash are both
+removed; a single decorative system now covers the same five
+sections.
+
+REASON:
+Direct client instruction, with a sketch drawn over a screenshot:
+"remove as bolhas... queria algo tipo assim, pelo site todo, várias
+linhas azuis." The blobs were a reasonable first read of "mais
+manchas," but the annotated sketch made the actual intent explicit:
+flowing lines, not circles.
+
+SCOPE:
+src/styles/components.css (removed .section-blob rules and the body
+background-image wash block; added .section-lines/.section-lines path
+rules), src/pages/Home.tsx (removed the Blob component and its 10
+<Blob/> call sites; added FlowLines + one <FlowLines/> call per
+decorated section, each with hand-picked bezier paths). .section-decor
+(overflow clipping, Container z-index) is unchanged and still shared
+by both the old and new decoration.
+
+IMPACT:
+Still purely decorative: aria-hidden SVG, pointer-events:none,
+z-index:0 under the Container's z-index:1. Confirmed via npm run
+check (lint+typecheck+build clean) and DOM checks: all 5 sections
+carry exactly 2 <path> elements at the intended viewBox/stroke, no
+horizontal overflow at mobile width, verified visually at both
+desktop and mobile viewports.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Amplified the section-blob pattern (2 blobs per decorated section
+instead of 1, opposite corners) and added a second, independent
+layer: a page-wide "wash" on `body` (components.css) of four soft
+radial gradients, `background-attachment: fixed` on desktop so the
+same ambient colour sits behind whichever section is in view as the
+page scrolls, `scroll` on mobile (<=640px) to avoid known jank with
+fixed backgrounds on some mobile browsers.
+
+REASON:
+Client asked for more: "quero mais manchas... algo no background do
+site... faixas uniformes ou bolhas." The two systems are kept
+deliberately non-overlapping: section-blob decorates sections with an
+opaque background of their own (Cobrimos, Contacto, Hero, Footer);
+the body wash only becomes visible through sections that render
+transparent (Porquê a BV, Sobre, Como funciona's outer Section), so
+neither is ever painted over the other in the same spot.
+
+SCOPE:
+src/styles/components.css (opacity bump on .section-blob--primary/
+--accent, new body background-image block + mobile override),
+src/pages/Home.tsx (one extra <Blob/> in Sobre, Cobrimos, Como
+funciona and Contacto; Porquê a BV already had two).
+
+IMPACT:
+Still purely decorative and non-interactive. Confirmed via
+npm run check (lint+typecheck+build clean) and DOM checks: 10
+.section-blob instances at their intended sizes/opacities, no
+horizontal overflow at mobile width, body background-attachment
+correctly "fixed" on desktop and "scroll" under the 640px breakpoint.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Added a .section-decor / .section-blob pattern (components.css): a
+soft, low-opacity, oversized circle positioned at a section's corner,
+clipped by the section's own overflow:hidden. Applied to "Porquê a
+BV", "Sobre", "O que cobrimos", "Como funciona" and "Contacto" (Hero
+and Footer already had enough colour of their own).
+
+REASON:
+Direct client feedback: the page still read as too flat white/grey
+outside the Hero and footer. Extends a language the Hero already
+used successfully (HeroMark's own offset background circles) instead
+of inventing a new visual device, so the page reads as one system.
+
+SCOPE:
+src/styles/components.css (new block, additive), src/pages/Home.tsx
+(new local Blob component + one <Blob/> per decorated Section, each
+sized/positioned per section rather than a single repeated preset,
+so it doesn't read as the same stamp copy-pasted five times).
+
+IMPACT:
+Purely decorative: aria-hidden, pointer-events:none, z-index below
+the Container in every case, so no interactive element or text is
+ever at risk of being covered. Confirmed no horizontal overflow at
+mobile width (documentElement.scrollWidth === clientWidth).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Added public/images/logo-icon-bv-seguros.png: a tight crop of just
+the shield mark, cut from the full "shield + BV Seguros + Seguros e
+Soluções" lockup. Header.tsx and index.html's favicon link now point
+to it instead of the full lockup image.
+
+REASON:
+Two earlier passes at this same logo (transparent background, then
+edge decontamination) both missed the actual bug, flagged a third
+time by the client. The file was never just an icon: it is the full
+lockup (shield + two lines of wordmark) on one canvas. Squeezed into
+a 28x28 box (object-fit: contain), the wordmark rendered as an
+illegible smudge under the shield, which is what looked like a
+leftover "box" behind it. The background-transparency fixes were
+real and correct, but they could never fix this, because the
+remaining artefact was compressed text, not a background colour.
+
+SCOPE:
+public/images/logo-icon-bv-seguros.png (new file, cropped from the
+already-transparent public/images/logo-bv-seguros.png), src/
+components/navigation/Header.tsx (one src attribute), index.html
+(favicon href). brand/logo-bv-seguros.png and public/images/logo-bv-
+seguros.png keep the full lockup (shield + wordmark): still correct
+for anywhere the full brand mark is wanted, just not a 28px square.
+
+IMPACT:
+No component contract changed. If the full lockup is ever needed
+somewhere else on the site, it is still at its original path; this
+only redirects the two places that actually wanted the icon alone.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Logo asset (brand/logo-bv-seguros.png and public/images/logo-bv-
+seguros.png) had its background pixels made transparent (a Python/
+Pillow script keyed out the near-uniform #F7F7F7 background, with a
+feathered edge to avoid jagged anti-aliasing artefacts). Buttons
+switched from --radius-md to --radius-full (pill shape). Home.tsx
+restructured: Hero illustration replaced with a real photo + a
+floating info card overlapping it; a new middle-inverted 3-card
+"spotlight" row (.spotlight-card) added right after the Hero, using
+content that used to live in a since-removed "Porquê a BV" split-
+section; "O que cobrimos" icons moved into a colour-chip badge
+(.media-card__icon-chip).
+
+REASON:
+Logo: the PNG's opaque grey canvas was showing as a visible box
+against the white header, flagged directly. Buttons/spotlight-card/
+icon-chip: the client shared two reference sites (a finance-advisory
+site and a digital-agency site) and asked for their visual elements.
+Adopted: pill buttons, a real hero photo with a floating trust card,
+and a middle-inverted 3-card row, all present on the finance-advisory
+reference (the closer match: same professional-services category).
+Deliberately not adopted: the agency reference's purple gradient and
+glassmorphism (docs/anti-ai.md names that exact look as a default to
+avoid) and any fabricated stat/rating badge (neither reference's
+numbers are ours to reuse; see docs/anti-ai.md#content-integrity).
+
+SCOPE:
+brand/ and public/images/ logo files (pixel edit only, not
+regenerated), src/styles/components.css (.btn radius; new .hero-
+photo, .hero-floating-card*, .spotlight-card*, .media-card__icon-chip
+blocks, all additive), src/pages/Home.tsx (Hero markup, new spotlight
+section, removed split-section "Porquê a BV", icon-chip markup).
+
+IMPACT:
+Button.tsx itself untouched (only its CSS radius token changed, so
+every button site-wide picked up the pill shape automatically). The
+"Porquê a BV" anchor (id="porque") now lives on the new spotlight
+section, nav link unaffected. The `porque-bv.jpg` photo now serves
+double duty (Hero here; no other section referenced it after the
+split-section's removal).
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Hero Section given a navy (--color-primary) background via a scoped
+.hero-dark class, instead of white like the rest of the page. Text,
+HeroMark illustration and both buttons get scoped overrides
+(.hero-dark ...) for contrast on the dark surface: no new component
+variant added to Button or Section themselves.
+
+REASON:
+Direct client feedback ("quebra de coloração"): the page read as
+white-on-white past the header with no visual anchor at the top.
+
+SCOPE:
+src/pages/Home.tsx (Section className, HeroMark colors switched from
+--color-primary/--color-accent to --color-text-on-dark), src/styles/
+components.css (.hero-dark block, additive, all under one selector
+prefix). Button.tsx and Section.tsx unchanged; every other Section on
+the page is unaffected.
+
+IMPACT:
+Any future dark-background Section can reuse this exact pattern
+(scoped class overriding text/button colors) instead of inventing a
+new one; Button/Section keep a single light-surface-only contract.
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Added stock photography (Pexels, free commercial-use license) to
+"O que cobrimos" (one photo per ramo, via a new .media-card pattern)
+and to "Porquê a BV Seguros" (a full-bleed split section, image one
+side, copy the other). Also fixed .footer__columns, which hardcoded
+grid-template-columns: repeat(4, 1fr) and left visible dead space
+when a project (like this one) only defines 2 nav columns: changed
+to repeat(auto-fit, minmax(8rem, 1fr)).
+
+REASON:
+Direct client feedback: the homepage read as too plain/empty, and
+"Porquê a BV Seguros" specifically as bare enough to be
+counter-productive. None of these photos are of the real BV Seguros
+(office, staff, clients): same placeholder convention as
+AbreuEPereira's stock photography, disclosed in the code comment
+next to the RAMOS data and never presented as real company photos.
+
+SCOPE:
+src/pages/Home.tsx (RAMOS gains an `imagem` field, "O que cobrimos"
+and "Porquê a BV" markup), src/styles/components.css (new
+.media-card and .split-section rules, additive), src/styles/
+responsive.css (.footer__columns fix, Level 1 file but a scoped,
+justified bug fix, not a design change), public/images/ramos/*.jpg
+and public/images/porque-bv.jpg (new assets).
+
+IMPACT:
+Container/Section/Button/Input/Header contracts unchanged. Footer's
+fix is backward compatible: repeat(auto-fit, minmax(8rem, 1fr)) still
+produces 4 even columns when a project defines 4, same as before.
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Neutral color ramp replaced with a cool gray-blue scale (Tailwind's
+"slate" values) instead of the foundation's default warm gray, and
+--font-display/--font-body switched from system-ui to Plus Jakarta
+Sans + Inter (Google Fonts, font-display: swap, preconnect in
+index.html).
+
+REASON:
+The warm/olive-tinted default neutral ramp clashed with the brand navy
+(#184070, from the confirmed logo). A cool ramp sits next to it without
+fighting it. The webfont swap matches the typography already used in
+the BV Seguros CRM (../crm/) and the original vanilla site (../), so
+all three surfaces read as the same brand instead of three unrelated
+projects. Per MASTER-PROMPT.md, this is expected Level 2 (token value)
+customization, not a Level 1 override.
+
+SCOPE:
+src/styles/tokens.css (color ramp, --color-primary/-hover/-active,
+--font-display, --font-body), index.html (font preconnect/link tags).
+Token *names* and every component contract are unchanged.
+
+IMPACT:
+Container/Section/Button/Card/Input/Header/Footer/CookieConsent code is
+untouched; they pick up the new values automatically because they only
+ever reference token names.
+
+DATE:
+2026-09-18
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Added a `.placeholder-note` utility (components.css) reusing the
+existing --color-warning / --color-warning-surface tokens, plus a
+local `PorConfirmar` wrapper in Home.tsx, instead of inventing new
+colors for "content not confirmed yet" markers.
+
+REASON:
+docs/anti-ai.md#content-integrity requires placeholders to be visibly
+marked, not disguised as fact. The warning tokens already exist and
+already mean "needs attention" elsewhere in the system (Input's
+`status="error"`-adjacent semantics); reusing them is "reuse before
+create" rather than adding a fourth semantic color.
+
+SCOPE:
+src/styles/components.css (new rule, additive), src/pages/Home.tsx
+(local helper, not exported/shared).
+
+IMPACT:
+No existing component or token changed.
+
+DATE:
+2026-09-18
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
+Removed the original vanilla-JS institutional site (HTML/CSS/JS,
+server.js, no build step) that used to live at the repository root,
+and promoted this Blueprint-based site (previously in a
+site-blueprint/ subfolder) to the root in its place. The client chose
+to keep only this version plus the CRM (crm/).
+
+REASON:
+Both versions existed side by side for comparison (see the two entries
+above, dated 2026-09-18). The client reviewed both and asked explicitly
+to keep only the Blueprint-based site and the CRM.
+
+SCOPE:
+Repository layout only. site-blueprint/* moved to the repository root;
+the old root-level index.html/styles.css/script.js/server.js/
+package.json/vercel.json/.htaccess/robots.txt/images/ were deleted.
+crm/ is untouched. No component, token, or page content changed as
+part of this move (see the two entries above for those).
+
+IMPACT:
+Relative paths that referenced "../crm/" or ".." (the old vanilla
+site) from inside this project's own docs (MASTER-PROMPT.md) were
+updated to the new same-level paths ("crm/"). This DECISIONS.md entry
+itself is the only place the old three-project history is still
+described; earlier entries above are left as written, as a
+chronological record of what was true when they were made.
+
+DATE:
+2026-09-21
+```
+
+---
+
+```
+DECISION:
+Global container/section system (<Container />, <Section />) as the
+only source of page width and vertical rhythm.
+
+REASON:
+Prevents every section from inventing its own max-width/padding,
+which is the #1 source of misaligned sections in ad-hoc-built sites.
+
+SCOPE:
+Global.
+
+LEVEL:
+Immutable (Level 1).
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+Hand-rolled minimal router (src/app/router.js, ~25 lines) instead of
+react-router or another routing library.
+
+REASON:
+Two routes (Home, Laboratory) don't justify a routing dependency.
+The Blueprint's stated priority order is native browser →  React →
+internal reusable solution → external dependency, and the History
+API + a small hook covers this case completely.
+
+SCOPE:
+Global (src/app/router.js, src/app/Link.jsx, App.jsx route table).
+
+LEVEL:
+Immutable (Level 1), but expected to be swapped for react-router (or
+similar) once a project's route count/complexity genuinely justifies
+it: that swap should be a new DECISIONS.md entry, not a silent
+change.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+ESLint (flat config, v9) instead of the oxlint that `npm create
+vite@latest` now scaffolds by default.
+
+REASON:
+MASTER-PROMPT.md explicitly specifies ESLint as the intended tooling.
+eslint-plugin-react / react-hooks / react-refresh give React-specific
+rules (hooks rules, prop patterns) that the newer oxlint setup didn't
+have configured out of the box.
+
+SCOPE:
+Global (eslint.config.js, package.json scripts/devDependencies).
+
+LEVEL:
+Immutable (Level 1).
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+`react/prop-types` disabled in eslint.config.js.
+
+REASON:
+The project deliberately excludes TypeScript (MASTER-PROMPT.md tech
+stack rules) and does not install the separate `prop-types` package.
+Adding it purely to satisfy this lint rule would itself violate the
+"dependencies must earn their weight" rule. Runtime prop validation
+without TS/prop-types isn't a real option here, so the rule can only
+ever produce noise, not signal.
+
+SCOPE:
+Global lint config.
+
+LEVEL:
+Immutable (Level 1) unless the project later adopts TypeScript, at
+which point prop validation comes from types instead and this stays
+irrelevant.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+OVERRIDE:
+Root-level laboratory/ directory (present in MASTER-PROMPT.md §5's
+example tree) was not created. The Laboratory is implemented purely
+as src/pages/Laboratory.jsx behind the /laboratory route.
+
+REASON:
+MASTER-PROMPT.md §5 explicitly allows improving the example
+architecture with clear technical justification. A directory outside
+src/ has no role in a Vite build and would either sit unused or
+require separate tooling to serve: pure duplication of a page that
+already exists as a normal route, with no upside. §33 independently
+describes the Laboratory as "uma rota/página," i.e. a page/route,
+which is what's implemented.
+
+SCOPE:
+Directory structure only. No functional change: the Laboratory page
+exists and behaves as specified.
+
+IMPACT:
+No other structural decision is affected. If a future need arises for
+standalone (non-routed) QA fixtures, that's a separate, new decision.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+v1.0.0 component set limited to Container, Section, Button, Input,
+Card, Header, Footer: not the full list in MASTER-PROMPT.md §14.
+
+REASON:
+§14 and §36 both explicitly instruct against building "dezenas de
+componentes" to pad the library, and prioritize defining the
+architecture/contract correctly over exhaustive implementation.
+Input and Card were added beyond the §36 minimum (Container, Section,
+Button, Header, Footer) because the Laboratory page needs to
+demonstrate form and card component states per §33, and both were
+cheap to build correctly once Button's state pattern existed.
+
+SCOPE:
+src/components/**, docs/design-system.md.
+
+LEVEL:
+Level 3 (Component System): additive only. Adding Select, Modal,
+Accordion, etc. later doesn't require revisiting this decision, only
+recording their own.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+Global structural centering: section openers (label + heading + lede),
+feature grids, and button rows under a centered heading are centered
+by default (.section-intro, .grid--center, .cluster--center, Card
+`center`). Body prose, lists, and forms stay left-aligned regardless.
+
+REASON:
+Explicit project requirement. Reconciled against docs/anti-ai.md's
+warning about an automatically centered Hero: that rule is about not
+defaulting into a pattern without deciding it. This is the opposite
+case, a deliberately chosen and documented default, applied only to
+structural elements where centering doesn't hurt readability. Long-form
+text stays left-aligned specifically because centering hurts readability
+past a line or two.
+
+SCOPE:
+src/styles/tokens.css (--measure-intro, --measure-intro-wide),
+src/styles/layout.css (.section-intro, .grid--center, .cluster--center),
+src/styles/components.css (.card--center), src/components/ui/Card.jsx
+(`center` prop), src/pages/Home.jsx (applied to the worked example).
+
+LEVEL:
+Immutable (Level 1) as a rule; the token values it depends on stay
+Level 2.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+Purged AI-tell writing patterns from all code, comments, docs, and
+visible copy: em-dash used as a clause separator (140 occurrences,
+replaced with periods/commas/colons depending on context), and the
+"not X. It's Y" rhetorical construction in README.md.
+
+REASON:
+Explicit project requirement, aimed at output quality for client-facing
+work. See docs/content-style.md for the full rule and the pattern list
+to keep avoiding in new content.
+
+SCOPE:
+Every .md/.js/.jsx/.css/.html file in the repository except
+node_modules and dist (build output, regenerated).
+
+LEVEL:
+Immutable (Level 1), documented in docs/content-style.md.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+OVERRIDE:
+Replaced create-vite's default favicon.svg (a purple/blue gradient
+blob, the exact "generic AI-adjacent visual" docs/anti-ai.md warns
+against) with a flat two-tone mark, and removed the unloaded "Inter"
+font-family claim from tokens.css (declared but never actually loaded,
+silently falling back to the system stack).
+
+REASON:
+Both were left over from create-vite's default scaffold and are
+exactly the kind of unconsidered default this project's own rules
+argue against. Fixing them is enforcing BLUEPRINT.md/anti-ai.md against
+this repository itself, not a new rule.
+
+SCOPE:
+public/favicon.svg, src/styles/tokens.css (--font-display/--font-body).
+
+IMPACT:
+No component or token name changed. A project still swaps the favicon
+and adds a real typeface (with its loading mechanism) as part of
+Creative Direction, per MASTER-PROMPT.md.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+Added `CookieConsent` (src/components/feedback/CookieConsent.jsx) as a new
+Level 3 component: a consent banner plus a native `<dialog>` preferences
+panel, with a two-tier model (`"necessary"` / `"all"`), not a granular
+multi-category CMP.
+
+REASON:
+Cookie consent is close to mandatory for real client work and was a gap:
+`docs/design-system.md`'s "Not yet implemented" list never mentioned it.
+The two-tier model matches what most starter projects actually need; a
+granular per-category CMP is real added complexity (more state, more
+copy, more a11y surface) that should be built when a project's actual
+integrations require distinguishing categories, not speculatively now.
+
+`useCookieConsent` shares one module-level value across every call via
+`useSyncExternalStore`, not a per-call `useState`.
+
+SCOPE:
+src/hooks/useCookieConsent.js (new), src/components/feedback/CookieConsent.jsx
+(new), src/styles/components.css (new "COOKIE CONSENT" block), src/App.jsx
+(renders it globally), docs/design-system.md, docs/accessibility.md,
+docs/qa.md.
+
+LEVEL:
+Level 3 (Component System): additive only.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+`useCookieConsent` reads/writes a single module-level value and notifies
+subscribers via `useSyncExternalStore`, rather than each call owning its
+own `useState`.
+
+REASON:
+Caught during manual QA, not anticipated up front: `CookieConsent` (the
+banner) and the Laboratory's reset control both call `useCookieConsent()`.
+With independent `useState`, clearing consent from the Laboratory updated
+`localStorage` but left the banner's own state stale, so it didn't
+reappear until a full reload. Any project embedding a "manage cookies"
+control anywhere other than inside `CookieConsent` itself would hit the
+same bug. `useSyncExternalStore` is the correct tool for "one source of
+truth, multiple independent subscribers in the same render tree," which
+is exactly this shape, rather than reaching for Context (adds a provider
+for a single primitive value) or prop-drilling (there's no shared parent
+between CookieConsent and an arbitrary future consumer).
+
+SCOPE:
+src/hooks/useCookieConsent.js.
+
+LEVEL:
+Level 3, internal implementation detail of an already-decided component:
+doesn't change CookieConsent's or the hook's public contract.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+CookieConsent's preferences dialog can be opened from anywhere (not just
+its own banner button) via a `window` CustomEvent
+(`blueprint:open-cookie-preferences`, exported as `OPEN_PREFERENCES_EVENT`
+from `useCookieConsent.js`) instead of prop-drilling or a Context provider.
+`navigation.js`'s `legalNav` entries gained an optional `action` field as
+an alternative to `href` so a legal-nav item can trigger this instead of
+navigating; `Footer.jsx` renders that one entry as a `<button>` dispatching
+the event instead of an anchor.
+
+REASON:
+This is a rare, one-way signal (open the dialog) from a component
+(Footer) that has no other relationship to CookieConsent's state. A
+Context provider or prop-drilling through App.jsx would introduce a
+dependency between two otherwise-independent components for a single
+trigger. A native CustomEvent is zero-dependency, requires no provider
+tree change, and keeps both components decoupled: Footer doesn't know
+CookieConsent exists, it just dispatches a named event.
+
+SCOPE:
+src/hooks/useCookieConsent.js, src/data/navigation.js (`legalNav` shape),
+src/components/layout/Footer.jsx.
+
+LEVEL:
+Level 3, additive convention (the `action` field is optional; existing
+`href`-only entries are unaffected).
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+Added `BackToTop` (src/components/feedback/BackToTop.jsx) as a new Level 3
+component, reusing the existing `useScrollState(threshold)` hook (the same
+one `Header` uses for its own scroll-position detection) at a larger
+threshold instead of a second, bespoke scroll listener. Coordinates with
+`CookieConsent` and `Footer` through two shared, documented CSS hooks
+(`body.has-cookie-banner`, `body.has-footer-visible`) rather than any
+JS-level coupling between the components.
+
+REASON:
+`useScrollState` already does exactly the "past N px" tracking this needs;
+writing a second scroll listener would duplicate existing, working code
+(reuse before create). The bottom-fixed components (BackToTop,
+CookieConsent's banner, Footer's own bottom-right content) need *some*
+coordination to avoid overlapping, but making one aware of another's
+internal state, or introducing shared state neither otherwise needs,
+would violate the Rule of Permanence. A CSS class toggled by whichever
+component owns the overlapping UI (the banner; the footer, via an
+`IntersectionObserver` on itself) is the smallest coordination surface
+that solves the actual problem. The footer case was caught during manual
+QA, not anticipated up front: a fixed bottom-right control will always
+end up covering part of the footer once the page is scrolled all the way
+down, on any project that has both.
+
+SCOPE:
+src/components/feedback/BackToTop.jsx (new), src/components/feedback/CookieConsent.jsx
+(toggles `has-cookie-banner`), src/components/layout/Footer.jsx (toggles
+`has-footer-visible`), src/styles/components.css (new "BACK TO TOP"
+block), src/App.jsx (renders it globally), docs/design-system.md, docs/qa.md.
+
+LEVEL:
+Level 3 (Component System): additive only.
+
+DATE:
+2026-08-31
+```
+
+---
+
+```
+DECISION:
+Documented a "full-bleed split section" composition pattern in
+docs/design-system.md (media running the full section height on one side,
+copy in a nested Container on the other) instead of building a new
+component for it.
+
+REASON:
+The pattern is genuinely just "put media outside the Container, put copy
+inside one," a two-line deviation from the normal Section > Container
+nesting. A component wrapping that would hide how simple the underlying
+composition is and add an API (media position, aspect ratio, column
+ratio, mobile stacking) for something that varies per project anyway.
+Documenting the pattern with example markup keeps it visible and reusable
+without adding to the component count for something that isn't a real
+abstraction boundary.
+
+SCOPE:
+docs/design-system.md (new section), src/pages/Laboratory.jsx (demo,
+nested inside the page's own Container for QA-page practicality rather
+than breaking out of it).
+
+LEVEL:
+Level 4 (Creative Layer) guidance, not a Level 1/3 change: no component
+API, no token, no required usage.
+
+DATE:
+2026-08-31
+```
+
+---
+
+## v2.0.0: TypeScript and Tailwind migration (2026-08-31)
+
+OVERRIDE:
+The JavaScript-only baseline is replaced with strict TypeScript. Tailwind
+CSS v4 is added through @tailwindcss/vite. Styles now use explicit cascade
+layers: theme, base, components, utilities.
+
+REASON:
+Explicit user request to make TypeScript and Tailwind the default stack
+for future websites. TypeScript protects shared component contracts;
+typescript-eslint checks the migrated source; @types/node types the build
+configuration. Tailwind provides token-backed composition utilities without
+duplicating the design system or adding runtime UI dependencies.
+
+SCOPE:
+All application source extensions/types, Vite config, lint/build scripts,
+dependency lockfile, CSS entry point, theme aliases and Laboratory blocks.
+Component type-contract fixtures are checked with the application. Shared
+responsive rules stay in responsive.css; local Tailwind variants are allowed.
+
+IMPACT:
+Existing component APIs, tokens, visual identity, routes, and interactions
+are preserved. Cookie storage now rejects values outside the declared consent
+union. Tailwind uses tw: to avoid existing class collisions and omits Preflight
+to retain the Blueprint reset. Utilities intentionally outrank components;
+existing styles retain their relative order. This source/cascade contract
+change is a major release. No backend or deployment changes are included.
+
+---
+
+## v2.0.1: static QA audit script (2026-09-03)
+
+DECISION:
+Added `scripts/qa-audit.mjs` (`npm run qa`), a dependency-free Node script
+that statically checks a subset of `docs/qa.md`: em-dash/banned-phrase
+scans, hardcoded colors or `z-index` outside the token system, images
+without `alt`, more than one `<h1>` per page, missing favicon/robots.txt/
+sitemap/`og:image`, and dependencies declared but never imported.
+
+REASON:
+`docs/qa.md`, `docs/content-style.md`, and `docs/anti-ai.md` each define
+rules that were previously only checkable by manually running the grep
+command written into their prose, or by eyeballing the page. That doesn't
+scale across projects built on this foundation and gets skipped under
+deadline pressure. A script makes the checkable subset of those rules a
+five-second command instead of a manual pass, while still deferring to
+`docs/qa.md`'s manual checklist for what genuinely needs a browser
+(responsive breakpoints, keyboard traversal, contrast, the cookie consent
+flow end to end).
+
+SCOPE:
+`scripts/qa-audit.mjs` (new), `package.json` (`qa` script),
+`eslint.config.js` (added a `scripts/**/*.mjs` block with Node globals,
+since the existing config only declared browser globals), `README.md`
+and `docs/qa.md` (pointers to the new script).
+
+LEVEL:
+Additive tooling, not a Level 1 rule change: it enforces existing rules,
+it doesn't add new ones. Extend its checks the same way (map one to an
+existing documented rule) rather than inventing new ad-hoc lint rules
+inside it.
+
+IMPACT:
+No existing script's behavior changed. `Laboratory.tsx` is deliberately
+exempt from the multiple-`<h1>` check (it demonstrates every heading
+level side by side as the token/component QA page); `docs/content-style.md`
+and `docs/qa.md` are exempt from the em-dash check (both quote the
+character as a literal example of what to avoid, which is the rule's own
+definition, not a violation of it).
+
+DATE:
+2026-09-03
+
+---
+
+## v2.1.0: Google Consent Mode v2 and legal page templates (2026-09-03)
+
+DECISION:
+Added Google Consent Mode v2 wiring (`index.html` default-consent script,
+`src/utils/googleConsentMode.ts`) driven by the existing `CookieConsent`/
+`useCookieConsent`, plus a `LegalLayout` component and three routed legal
+page templates (`src/pages/legal/{Privacy,Terms,Cookies}.tsx`, at
+`/privacy`, `/terms`, `/cookies`).
+
+REASON:
+Ported from a separate project (Premium Ride) that had this exact
+Consent Mode v2 wiring and a GDPR-shaped Privacy/Cookies structure
+reviewed and shipped in production. The Blueprint's own `CookieConsent`
+already stored a consent decision but never surfaced it to Google's
+Consent Mode, so a project loading GA4/Ads through this banner would
+under- or over-share data relative to the visitor's actual choice.
+Separately, `navigation.ts`'s `legalNav` already anticipated Privacy and
+Terms entries (`href: "#"` placeholders) with no pages behind them: this
+fills that gap with a real, reusable pattern instead of leaving every new
+project to build legal pages from scratch.
+
+SCOPE:
+`index.html` (consent-default script), `src/utils/googleConsentMode.ts`
+(new), `src/hooks/useCookieConsent.ts` (calls the new module on every
+consent change and on mount), `src/components/feedback/CookieConsent.tsx`
+(added a link to `/cookies` in the preferences dialog, closing the dialog
+before navigating), `src/components/layout/LegalLayout.tsx` (new),
+`src/pages/legal/*.tsx` (new), `src/styles/components.css` (`.legal-*`,
+`.cookie-dialog__policy-link`), `src/App.tsx` (three new routes),
+`src/data/navigation.ts` (`legalNav` hrefs point at the new pages).
+
+LEVEL:
+Level 3 (Component System) for `LegalLayout` and the Consent Mode bridge:
+additive, no existing component API changed. The three legal pages are
+Level 4 (Creative Layer) content skeletons, not Level 1 contracts: their
+prose structure is a starting point, not a rule.
+
+IMPACT:
+"All" consent only ever grants `analytics_storage` /
+`functionality_storage` / `personalization_storage`; `ad_storage`,
+`ad_user_data`, and `ad_personalization` stay denied unconditionally,
+because the banner never asks the visitor for ad consent. A project that
+needs ads consent must add a third category to `CookieConsent` (see
+`docs/design-system.md#cookieconsent`) and extend
+`googleConsentMode.ts`'s mapping accordingly, rather than granting ad
+consent nobody was asked about. The legal page templates contain bracketed
+placeholders (`[COMPANY NAME]`, `[DATE]`, …) and must not ship as-is: see
+`docs/anti-ai.md#content-integrity`.
+
+DATE:
+2026-09-03
+```
+
+---
+
+```
+DECISION:
+Added docs/lessons-learned.md, consolidating generalizable technical
+lessons (deployment/hosting gotchas, WCAG contrast-per-surface,
+i18n key-per-meaning, vm-sandbox testing pitfalls, legal/compliance
+ordering, image pipeline, SEO checklist gaps) pulled from real
+projects built outside this repository.
+
+REASON:
+Explicit project requirement: capture hard-won operational knowledge
+from real launches so it isn't re-learned from scratch on the next
+project. Every entry was reviewed and generalized before inclusion;
+client names, domains, contact details, account IDs, and credentials
+were excluded on principle, not just redacted after the fact. Where a
+lesson already exists as shipped code (Google Consent Mode v2, the
+CookieConsent button hierarchy), the doc references that code instead
+of restating it, to avoid two sources of truth drifting apart.
+
+SCOPE:
+docs/lessons-learned.md (new), a cross-reference added to
+docs/agent-protocol.md's step 2 and README.md's "Start here" list, and
+a "Security headers" subsection added to docs/performance.md
+documenting the CSP `<meta>`-tag limitation this doc's deployment
+section covers in more depth.
+
+LEVEL:
+Documentation only (Level 1 reading list, not a Level 1 rule itself).
+No component, token, or existing doc's guidance was changed to
+contradict what was already there.
+
+DATE:
+2026-09-18
+```

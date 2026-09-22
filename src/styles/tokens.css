@@ -1,0 +1,187 @@
+/**
+ * DESIGN TOKENS: LEVEL 2 (Project Tokens)
+ *
+ * These are the values every new project is expected to override.
+ * The token NAMES are the contract (Level 1, immutable); the VALUES
+ * below are placeholders for an unbranded starting point only.
+ *
+ * See docs/design-system.md for the full token reference and
+ * docs/anti-ai.md for why the palette below is intentionally plain.
+ */
+
+:root {
+  /* ------------------------------------------------------------ */
+  /* COLOR                                                          */
+  /* ------------------------------------------------------------ */
+
+  /* Neutral ramp: cool gray-blue, tuned to sit next to the brand navy
+     below rather than the foundation's default warm gray (see
+     DECISIONS.md, BV Seguros entry). */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  /* Semantic surface/text roles: components consume these, never the ramp above */
+  --color-background: var(--color-neutral-0);
+  --color-surface: var(--color-neutral-0);
+  --color-surface-alt: var(--color-neutral-50);
+  --color-border: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-500);
+  --color-text-on-primary: var(--color-neutral-0);
+  --color-text-on-dark: var(--color-neutral-0);
+
+  /* Brand roles: navy from the BV Seguros logo (the one confirmed brand
+     color). Secondary/accent are systematic derivations from it and the
+     neutral ramp, not invented colors: see DECISIONS.md. */
+  --color-primary: #184070;
+  --color-primary-hover: #123253;
+  --color-primary-active: #0f2c46;
+  --color-secondary: var(--color-neutral-600);
+  --color-accent: #3d6ea5;
+
+  --color-success: #2f6f4e;
+  --color-success-surface: #eaf4ee;
+  --color-warning: #8a5a12;
+  --color-warning-surface: #faf1e2;
+  --color-error: #a3352c;
+  --color-error-surface: #fbeae8;
+
+  --color-focus-ring: var(--color-primary);
+
+  /* ------------------------------------------------------------ */
+  /* TYPOGRAPHY                                                     */
+  /* ------------------------------------------------------------ */
+
+  /* Real typeface, not the system-ui default: matches the fonts already
+     used in the BV Seguros CRM and logo treatment, loaded via Google
+     Fonts with font-display: swap in index.html (see DECISIONS.md). */
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --line-height-tight: 1.1;
+  --line-height-heading: 1.2;
+  --line-height-body: 1.6;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Fluid type scale: clamp(min, preferred, max) */
+  --font-size-display: clamp(2.75rem, 2rem + 3.2vw, 5rem);
+  --font-size-h1: clamp(2.25rem, 1.8rem + 2vw, 3.5rem);
+  --font-size-h2: clamp(1.75rem, 1.5rem + 1.2vw, 2.5rem);
+  --font-size-h3: clamp(1.375rem, 1.2rem + 0.7vw, 1.875rem);
+  --font-size-h4: clamp(1.125rem, 1.05rem + 0.3vw, 1.375rem);
+  --font-size-body-large: clamp(1.0625rem, 1rem + 0.25vw, 1.25rem);
+  --font-size-body: 1rem;
+  --font-size-body-small: 0.875rem;
+  --font-size-caption: 0.8125rem;
+  --font-size-label: 0.8125rem;
+
+  /* ------------------------------------------------------------ */
+  /* SPACING: 4px base scale, fluid at the larger end               */
+  /* ------------------------------------------------------------ */
+
+  --space-3xs: 0.25rem;   /* 4px */
+  --space-2xs: 0.5rem;    /* 8px */
+  --space-xs: 0.75rem;    /* 12px */
+  --space-sm: 1rem;       /* 16px */
+  --space-md: 1.5rem;     /* 24px */
+  --space-lg: 2rem;       /* 32px */
+  --space-xl: clamp(2.5rem, 2rem + 2vw, 4rem);
+  --space-2xl: clamp(3.5rem, 2.75rem + 3vw, 6rem);
+  --space-3xl: clamp(5rem, 3.75rem + 5vw, 9rem);
+
+  /* ------------------------------------------------------------ */
+  /* RADIUS                                                         */
+  /* ------------------------------------------------------------ */
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 22px;
+  --radius-full: 999px;
+
+  /* ------------------------------------------------------------ */
+  /* BORDERS                                                        */
+  /* ------------------------------------------------------------ */
+
+  --border-width-thin: 1px;
+  --border-width-thick: 2px;
+
+  /* ------------------------------------------------------------ */
+  /* SHADOWS: semantic elevation levels                            */
+  /* ------------------------------------------------------------ */
+
+  --shadow-sm: 0 1px 2px rgba(13, 12, 8, 0.06), 0 1px 1px rgba(13, 12, 8, 0.04);
+  --shadow-md: 0 4px 10px rgba(13, 12, 8, 0.08), 0 2px 4px rgba(13, 12, 8, 0.05);
+  --shadow-lg: 0 12px 24px rgba(13, 12, 8, 0.10), 0 4px 8px rgba(13, 12, 8, 0.06);
+  --shadow-xl: 0 24px 48px rgba(13, 12, 8, 0.14), 0 8px 16px rgba(13, 12, 8, 0.08);
+
+  /* ------------------------------------------------------------ */
+  /* Z-INDEX: global scale, never invent ad-hoc values              */
+  /* ------------------------------------------------------------ */
+
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-header: 300;
+  --z-overlay: 400;
+  --z-modal: 500;
+  --z-toast: 600;
+  --z-tooltip: 700;
+
+  /* ------------------------------------------------------------ */
+  /* MOTION                                                         */
+  /* ------------------------------------------------------------ */
+
+  --duration-fast: 120ms;
+  --duration-normal: 220ms;
+  --duration-slow: 400ms;
+
+  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ------------------------------------------------------------ */
+  /* CONTAINERS                                                     */
+  /* ------------------------------------------------------------ */
+
+  --container-narrow: 46rem;   /* 736px, long-form text */
+  --container-standard: 76rem; /* 1216px, default section width */
+  --container-wide: 92rem;     /* 1472px, dashboards, wide media */
+  --container-gutter: clamp(1.25rem, 1rem + 2vw, 3rem);
+
+  /* Measure for centered structural blocks (see layout.css .section-intro).
+     Deliberately narrower than --container-narrow: a centered short
+     lede reads better tighter than left-aligned long-form text does. */
+  --measure-intro: 38rem;
+  --measure-intro-wide: 50rem;
+
+  /* ------------------------------------------------------------ */
+  /* SECTION RHYTHM: vertical padding scale for <Section /> variants */
+  /* ------------------------------------------------------------ */
+
+  --section-padding-compact: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  --section-padding-normal: clamp(3rem, 2.25rem + 3vw, 5.5rem);
+  --section-padding-spacious: clamp(4.5rem, 3.25rem + 5vw, 8rem);
+  --section-padding-immersive: clamp(6rem, 4rem + 8vw, 11rem);
+}
+
+/* Dark-mode ready: components consume semantic tokens above, so a
+   project can opt in by redefining the block below under a
+   [data-theme="dark"] selector without touching any component. */

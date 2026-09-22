@@ -1,0 +1,122 @@
+/**
+ * LAYOUT PRIMITIVES: Level 1. Backing styles for <Container /> and
+ * <Section />. See docs/design-system.md#layout-primitives for the
+ * component contracts. Nothing here should hold project-specific
+ * values: only token references.
+ */
+
+/* ---------------------------------------------------------------- */
+/* CONTAINER                                                          */
+/* ---------------------------------------------------------------- */
+
+.container {
+  width: 100%;
+  max-width: var(--container-standard);
+  margin-inline: auto;
+  padding-inline: var(--container-gutter);
+}
+
+.container--narrow {
+  max-width: var(--container-narrow);
+}
+
+.container--wide {
+  max-width: var(--container-wide);
+}
+
+.container--full {
+  max-width: none;
+}
+
+/* ---------------------------------------------------------------- */
+/* SECTION: vertical rhythm; background can run full-bleed while     */
+/* content stays aligned to the container placed inside it.           */
+/* ---------------------------------------------------------------- */
+
+.section {
+  padding-block: var(--section-padding-normal);
+}
+
+.section--compact {
+  padding-block: var(--section-padding-compact);
+}
+
+.section--spacious {
+  padding-block: var(--section-padding-spacious);
+}
+
+.section--immersive {
+  padding-block: var(--section-padding-immersive);
+}
+
+.section--surface {
+  background-color: var(--color-surface-alt);
+}
+
+/* ---------------------------------------------------------------- */
+/* GRID: a light auto-fit primitive for card/media grids. Layouts    */
+/* that need bespoke composition should use CSS Grid inline instead   */
+/* of forcing this primitive; it exists for the common case only.     */
+/* ---------------------------------------------------------------- */
+
+.grid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.grid-auto {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cluster--center {
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------- */
+/* GLOBAL CENTERING: structural elements center by default; body     */
+/* prose and forms do not. See docs/design-system.md#global-centering */
+/* for the full rule and DECISIONS.md for why this was adopted.       */
+/* ---------------------------------------------------------------- */
+
+/* The canonical way to open a Section: a label, a heading, and an
+   optional short lede, centered and measure-capped so the centered
+   text doesn't sprawl edge to edge. Body copy and forms are never
+   wrapped in this: they stay left-aligned regardless of Section. */
+.section-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: var(--measure-intro);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.section-intro--wide {
+  max-width: var(--measure-intro-wide);
+}
+
+/* Applied to .grid / .grid-auto to center a feature/value-prop grid
+   as a whole and center each item's own internal content. Leave off
+   for content grids where items read left-aligned (long card copy,
+   testimonials, list-style content). */
+.grid--center {
+  justify-items: center;
+  text-align: center;
+}
