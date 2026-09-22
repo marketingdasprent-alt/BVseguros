@@ -11,6 +11,43 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Reverted "O que cobrimos" (RAMOS, 6 cards) from .grid-auto back to
+the 12-col .grid with explicit grid-column: span 4 per card, plus a
+new .grid--services class with a 768-1023px override to span 6
+(2-per-row).
+
+REASON:
+Client screenshot: at a wide-but-not-huge desktop width, the 6 cards
+rendered as 4 in the first row and 2 left-aligned in the second, with
+a visible empty gap on the right. .grid-auto's auto-fit picks however
+many minmax(16rem,1fr) columns fit the container, which for this
+container's width landed on 4, not 3, and 6 doesn't divide evenly by
+4. auto-fit was the right idea for the two earlier 3-item grids
+("Porquê a BV", "Como funciona": there flex-wrap + justify-content:
+center was used instead, and centers ANY leftover row regardless of
+column count) but wrong here: 6 items need a GUARANTEED even split
+(1, 2, or 3 columns), not "whatever count fits."
+
+SCOPE:
+src/pages/Home.tsx (RAMOS grid: className and per-card gridColumn
+style), src/styles/responsive.css (new .grid--services rule in the
+existing 768-1023px range, alongside the tablet overrides added
+earlier today).
+
+IMPACT:
+Confirmed via DOM measurement: exactly 3 unique row positions at
+1500px (3-per-row), 3 at 768px (2-per-row, i.e. 3 rows of 2), 6 at
+375px (1-per-row, i.e. 6 rows of 1). No horizontal overflow at any
+width. npm run check clean.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Removed min-height: 7rem from .hero-floating-card again (added two
 entries below, same day), now that align-items:flex-start makes the
 box's height directly follow padding + content with no centering

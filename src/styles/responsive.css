@@ -73,3 +73,16 @@
     grid-column: auto !important;
   }
 }
+
+/* .grid--services ("O que cobrimos", 6 cards, BV Seguros): 3-per-row
+   is too narrow at tablet width (see DECISIONS.md), but a divides-
+   evenly-by-2 grid is exactly what auto-fit can't guarantee (it picks
+   a column count from available width alone, and at some widths that
+   lands on 4, splitting 6 cards 4+2 with a ragged trailing row). Kept
+   as an explicit 12-col override instead, so it's always 1/2/3
+   columns and 6 always divides evenly. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid--services > * {
+    grid-column: span 6 !important;
+  }
+}

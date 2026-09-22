@@ -380,11 +380,12 @@ export default function Home() {
             <p className="text-label text-muted">O que cobrimos</p>
             <h2>Um seguro para cada fase da vida.</h2>
           </div>
-          <div className="grid-auto" style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}>
+          <div className="grid grid--services" style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}>
             {RAMOS.map((ramo) => (
               <article
                 key={ramo.key}
                 className="media-card media-card--interactive"
+                style={{ gridColumn: "span 4" }}
               >
                 <img
                   src={ramo.imagem}
