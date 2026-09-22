@@ -257,7 +257,7 @@ export default function Home() {
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 7" }}>
               <p className="text-label">Seguros e Soluções</p>
-              <h1>Proteção a sério, explicada em português simples.</h1>
+              <h1>Proteção a sério, de corretora independente.</h1>
               <p
                 className="text-body-large text-secondary"
                 style={{ marginTop: "var(--space-sm)", textAlign: "justify" }}
@@ -304,7 +304,7 @@ export default function Home() {
           ]}
         />
         <Container>
-          <div className="section-intro">
+          <div className="section-intro section-intro--wide">
             <p className="text-label text-muted">Porquê a BV Seguros</p>
             <h2>Três coisas que fazemos sempre.</h2>
           </div>
@@ -339,11 +339,11 @@ export default function Home() {
         />
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
-            <div style={{ gridColumn: "span 5" }}>
+            <div style={{ gridColumn: "span 6" }}>
               <p className="text-label text-muted">Sobre a BV Seguros</p>
               <h2>Corretora independente, ao lado do cliente.</h2>
             </div>
-            <div style={{ gridColumn: "span 7" }}>
+            <div style={{ gridColumn: "span 6" }}>
               <p className="text-secondary">
                 A BV Seguros trabalha com várias seguradoras para encontrar a
                 apólice que faz sentido para si, não a que rende mais

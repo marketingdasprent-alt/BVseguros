@@ -354,11 +354,13 @@
 .footer__columns {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
   gap: var(--space-lg);
 }
 
 .footer__columns > * {
-  flex: 1 1 8rem;
+  flex: 0 1 auto;
+  min-width: 8rem;
 }
 
 .footer__heading {

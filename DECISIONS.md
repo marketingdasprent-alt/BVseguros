@@ -11,6 +11,55 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Four content/layout fixes from direct client feedback (4 annotated
+screenshots): (1) widened "Porquê a BV"'s section-intro to the
+--wide measure (50rem) so "Três coisas que fazemos sempre." sets on
+one line instead of wrapping mid-phrase; (2) reworded the Hero H1's
+second clause from "explicada em português simples" (which just
+repeated the lede's own "sem letras miúdas" promise) to "de corretora
+independente", stating the actual differentiator instead of a second
+plain-language claim; (3) widened Sobre's heading column from a 5/7
+to a 6/6 grid split so "Corretora independente, ao lado do cliente."
+breaks after "independente," instead of wrapping to three lines;
+(4) footer nav columns (.footer__columns) switched from flex-grow
+(stretching each column to fill its grid track, leaving the actual
+short link text stranded in the left part of a wide invisible box)
+to justify-content: space-between with content-hugging columns, so
+"Empresa"'s column now visually reaches the same right edge as the
+rest of the page's content instead of reading as left-clustered.
+
+REASON:
+Client feedback, verbatim: keep headings from breaking mid-phrase
+("preservar... textos sempre inteiros, sem quebra"), a distinct
+second clause for the Hero H1, and the footer "centralizado com
+referência global" instead of looking anchored to the left. h1-h4
+already had text-wrap: balance (see typography.css); balance only
+redistributes an existing line count evenly, it can't reduce 3 lines
+to 1 or 2 on its own; the actual fix in each heading case was giving
+it enough column width to need fewer lines in the first place.
+
+SCOPE:
+src/pages/Home.tsx (Hero h1 text, Porquê a BV section-intro class,
+Sobre grid column spans), src/styles/components.css
+(.footer__columns / .footer__columns > *).
+
+IMPACT:
+Confirmed via npm run check (clean) and DOM measurement (Range
+getBoundingClientRect per character) at 1440px width: "Três coisas
+que fazemos sempre." now 1 line; "Corretora independente, ao lado do
+cliente." now breaks exactly after "independente,"; footer's
+"Empresa" column and the legal links row now share the same right
+edge. Verified no horizontal overflow and no visual regression at
+375px (mobile) width.
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Removed the coloured chip background behind the "O que cobrimos"
 icons (.media-card__icon-chip: dropped background-color and
 border-radius, kept it as a plain 32px icon holder) and redrew the
