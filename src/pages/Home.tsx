@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
@@ -230,6 +230,16 @@ function CheckMark() {
   );
 }
 
+/**
+ * Mancha decorativa desfocada (mesma linguagem do HeroMark), usada para
+ * quebrar o branco/cinza corrido do resto da página. Decorativa só:
+ * aria-hidden, sem interação, sempre atrás do conteúdo (section-decor
+ * dá z-index:1 ao Container).
+ */
+function Blob({ variant, style }: { variant: "primary" | "accent"; style: CSSProperties }) {
+  return <div aria-hidden="true" className={`section-blob section-blob--${variant}`} style={style} />;
+}
+
 export default function Home() {
   return (
     <>
@@ -276,7 +286,9 @@ export default function Home() {
         </Container>
       </Section>
 
-      <Section id="porque">
+      <Section id="porque" className="section-decor">
+        <Blob variant="primary" style={{ width: 420, height: 420, top: -180, right: -140 }} />
+        <Blob variant="accent" style={{ width: 200, height: 200, bottom: -100, left: -60 }} />
         <Container>
           <div className="section-intro">
             <p className="text-label text-muted">Porquê a BV Seguros</p>
@@ -303,7 +315,8 @@ export default function Home() {
         </Container>
       </Section>
 
-      <Section id="sobre" variant="compact">
+      <Section id="sobre" variant="compact" className="section-decor">
+        <Blob variant="accent" style={{ width: 320, height: 320, top: -140, left: "38%" }} />
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 5" }}>
@@ -329,7 +342,8 @@ export default function Home() {
         </Container>
       </Section>
 
-      <Section id="servicos" surface>
+      <Section id="servicos" surface className="section-decor">
+        <Blob variant="primary" style={{ width: 380, height: 380, bottom: -220, right: -120 }} />
         <Container>
           <div className="section-intro section-intro--wide">
             <p className="text-label text-muted">O que cobrimos</p>
@@ -361,7 +375,8 @@ export default function Home() {
         </Container>
       </Section>
 
-      <Section variant="compact">
+      <Section variant="compact" className="section-decor">
+        <Blob variant="primary" style={{ width: 260, height: 260, top: -120, right: "10%" }} />
         <Container>
           <div className="como-funciona-box">
             <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
@@ -396,7 +411,8 @@ export default function Home() {
         </Container>
       </Section>
 
-      <Section id="contacto" surface>
+      <Section id="contacto" surface className="section-decor">
+        <Blob variant="accent" style={{ width: 300, height: 300, top: -120, left: -100 }} />
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
             <div style={{ gridColumn: "span 5" }}>

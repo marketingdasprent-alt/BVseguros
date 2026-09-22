@@ -11,6 +11,38 @@ remain as recorded; application files now use `.ts` / `.tsx`.
 
 ```
 PROJECT DECISION (BV Seguros):
+Added a .section-decor / .section-blob pattern (components.css): a
+soft, low-opacity, oversized circle positioned at a section's corner,
+clipped by the section's own overflow:hidden. Applied to "Porquê a
+BV", "Sobre", "O que cobrimos", "Como funciona" and "Contacto" (Hero
+and Footer already had enough colour of their own).
+
+REASON:
+Direct client feedback: the page still read as too flat white/grey
+outside the Hero and footer. Extends a language the Hero already
+used successfully (HeroMark's own offset background circles) instead
+of inventing a new visual device, so the page reads as one system.
+
+SCOPE:
+src/styles/components.css (new block, additive), src/pages/Home.tsx
+(new local Blob component + one <Blob/> per decorated Section, each
+sized/positioned per section rather than a single repeated preset,
+so it doesn't read as the same stamp copy-pasted five times).
+
+IMPACT:
+Purely decorative: aria-hidden, pointer-events:none, z-index below
+the Container in every case, so no interactive element or text is
+ever at risk of being covered. Confirmed no horizontal overflow at
+mobile width (documentElement.scrollWidth === clientWidth).
+
+DATE:
+2026-09-22
+```
+
+---
+
+```
+PROJECT DECISION (BV Seguros):
 Added public/images/logo-icon-bv-seguros.png: a tight crop of just
 the shield mark, cut from the full "shield + BV Seguros + Seguros e
 Soluções" lockup. Header.tsx and index.html's favicon link now point

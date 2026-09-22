@@ -987,3 +987,39 @@ body.has-footer-visible .back-to-top {
   color: var(--color-accent);
   margin-bottom: var(--space-2xs);
 }
+
+/* ---------------------------------------------------------------- */
+/* SECTION-DECOR / SECTION-BLOB: project-specific, BV Seguros.       */
+/* Soft out-of-focus colour blobs, same language already used in the */
+/* Hero illustration (HeroMark's background circles), extended to    */
+/* the rest of the page per client feedback: too much flat white.    */
+/* Purely decorative (aria-hidden, pointer-events:none); content     */
+/* keeps its own z-index so a blob can never sit over text/controls. */
+/* ---------------------------------------------------------------- */
+
+.section-decor {
+  position: relative;
+  overflow: hidden;
+}
+
+.section-decor > .container {
+  position: relative;
+  z-index: 1;
+}
+
+.section-blob {
+  position: absolute;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.section-blob--primary {
+  background-color: var(--color-primary);
+  opacity: 0.05;
+}
+
+.section-blob--accent {
+  background-color: var(--color-accent);
+  opacity: 0.08;
+}
