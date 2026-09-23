@@ -1,31 +1,22 @@
-import { useDroppable } from '@dnd-kit/core'
-import { LeadCard } from '@/components/crm/LeadCard'
-import type { EstadoLead, Lead } from '@/lib/types'
+import { Fragment } from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { Badge } from '@/components/ui/Badge';
+import { TONE_BAR_CLASS } from '@/lib/tone';
+import type { ReactNode } from 'react';
+import type { Tone } from '@/lib/tone';
 
-interface KanbanColumnProps {
-  estado: EstadoLead
-  rotulo: string
-  leads: Lead[]
+interface KanbanColumnProps<T> {
+  estado: string; rotulo: string; tone: Tone; itens: T[];
+  getId: (item: T) => string; renderCard: (item: T) => ReactNode; vazioTexto: string;
 }
 
-export function KanbanColumn({ estado, rotulo, leads }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: estado })
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={`flex-1 min-w-[220px] rounded-xl p-3 bg-ink/[0.03] ${isOver ? 'ring-2 ring-navy/30' : ''}`}
-    >
-      <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="text-sm font-medium text-ink/70">{rotulo}</h3>
-        <span className="text-xs text-ink/40">{leads.length}</span>
-      </div>
-      <div className="space-y-2">
-        {leads.map((lead) => (
-          <LeadCard key={lead.id} lead={lead} />
-        ))}
-        {leads.length === 0 && <p className="text-xs text-ink/30 px-1">Sem leads</p>}
-      </div>
+export function KanbanColumn<T>({ estado, rotulo, tone, itens, getId, renderCard, vazioTexto }: KanbanColumnProps<T>) {
+  const { setNodeRef, isOver } = useDroppable({ id: estado });
+  return <section ref={setNodeRef} className={`kanban-column${isOver ? ' is-over' : ''}`} aria-label={rotulo}>
+    <div className="kanban-column-heading"><h3><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${TONE_BAR_CLASS[tone]}`} />{rotulo}</h3><Badge tone="neutral">{itens.length}</Badge></div>
+    <div className="space-y-3">
+      {itens.map((item) => <Fragment key={getId(item)}>{renderCard(item)}</Fragment>)}
+      {itens.length === 0 && <p className="kanban-empty">{vazioTexto}</p>}
     </div>
-  )
+  </section>;
 }

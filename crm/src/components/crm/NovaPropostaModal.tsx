@@ -1,0 +1,143 @@
+import { useState, type FormEvent } from 'react'
+import { Modal } from '@/components/ui/Modal'
+import { RAMOS } from '@/lib/types'
+import type { Cliente, Lead, PropostaInsert, Ramo } from '@/lib/types'
+import { Button } from '@/components/ui/Button'
+
+interface NovaPropostaModalProps {
+  leads: Lead[]
+  clientes: Cliente[]
+  aCriar: boolean
+  onFechar: () => void
+  onCriar: (proposta: PropostaInsert) => Promise<void>
+}
+
+export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar }: NovaPropostaModalProps) {
+  const [origem, setOrigem] = useState<'lead' | 'cliente'>(leads.length > 0 ? 'lead' : 'cliente')
+  const [origemId, setOrigemId] = useState(leads[0]?.id ?? clientes[0]?.id ?? '')
+  const [ramo, setRamo] = useState<Ramo>('auto')
+  const [seguradora, setSeguradora] = useState('')
+  const [premio, setPremio] = useState('')
+
+  const listaOrigem = origem === 'lead' ? leads : clientes
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    await onCriar({
+      lead_id: origem === 'lead' ? origemId : null,
+      cliente_id: origem === 'cliente' ? origemId : null,
+      ramo,
+      seguradora,
+      premio_anual_estimado: premio ? Number(premio) : null,
+      coberturas: null,
+      estado: 'rascunho',
+      notas: null,
+    })
+  }
+
+  return (
+    <Modal title="Nova proposta" onClose={onFechar} busy={aCriar}>
+      <form onSubmit={handleSubmit} className="space-y-5">
+
+
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={origem === 'lead' ? 'primary' : 'secondary'}
+            size="sm"
+            className="flex-1"
+            onClick={() => {
+              setOrigem('lead')
+              setOrigemId(leads[0]?.id ?? '')
+            }}
+          >
+            A partir de lead
+          </Button>
+          <Button
+            type="button"
+            variant={origem === 'cliente' ? 'primary' : 'secondary'}
+            size="sm"
+            className="flex-1"
+            onClick={() => {
+              setOrigem('cliente')
+              setOrigemId(clientes[0]?.id ?? '')
+            }}
+          >
+            A partir de cliente
+          </Button>
+        </div>
+
+        {listaOrigem.length === 0 ? (
+          <p className="text-sm text-muted">
+            {origem === 'lead' ? 'Sem leads registados.' : 'Sem clientes registados.'}
+          </p>
+        ) : (
+          <label className="block min-w-0 space-y-2">
+            <span className="block text-xs font-medium text-ink">
+              {origem === 'lead' ? 'Lead' : 'Cliente'}
+              <span className="text-danger"> *</span>
+            </span>
+            <select
+              value={origemId}
+              onChange={(e) => setOrigemId(e.target.value)}
+              className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            >
+              {listaOrigem.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nome}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        <label className="block min-w-0 space-y-2">
+          <span className="block text-xs font-medium text-ink">Ramo</span>
+          <select
+            value={ramo}
+            onChange={(e) => setRamo(e.target.value as Ramo)}
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+          >
+            {RAMOS.map((r) => (
+              <option key={r.valor} value={r.valor}>
+                {r.rotulo}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block min-w-0 space-y-2">
+          <span className="block text-xs font-medium text-ink">
+            Seguradora<span className="text-danger"> *</span>
+          </span>
+          <input
+            required
+            value={seguradora}
+            onChange={(e) => setSeguradora(e.target.value)}
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+          />
+        </label>
+
+        <label className="block min-w-0 space-y-2">
+          <span className="block text-xs font-medium text-ink">Prémio anual estimado (€)</span>
+          <input
+            type="number"
+            step="0.01"
+            value={premio}
+            onChange={(e) => setPremio(e.target.value)}
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+          />
+        </label>
+
+        <div className="flex gap-2 pt-2">
+          <Button type="button" variant="secondary" disabled={aCriar} onClick={onFechar} className="flex-1">
+            Cancelar
+          </Button>
+          <Button type="submit" loading={aCriar} disabled={listaOrigem.length === 0} className="flex-1">
+            Criar proposta
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  )
+}

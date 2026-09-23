@@ -1,32 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSupabaseTable } from '@/hooks/useSupabaseTable'
 import type { EstadoLead, Lead, LeadInsert } from '@/lib/types'
 
 export function useLeads() {
-  const [data, setData] = useState<Lead[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-
-  const recarregar = useCallback(async () => {
-    setIsLoading(true)
-    const { data, error } = await supabase
-      .from('leads')
-      .select('*')
-      .order('criado_em', { ascending: false })
-
-    if (error) setError(error)
-    else {
-      setError(null)
-      setData(data as Lead[])
-    }
-    setIsLoading(false)
-  }, [])
-
-  useEffect(() => {
-    recarregar()
-  }, [recarregar])
-
-  return { data, isLoading, error, recarregar }
+  return useSupabaseTable<Lead>('leads', 'criado_em')
 }
 
 export async function criarLead(lead: LeadInsert) {
@@ -35,10 +12,15 @@ export async function criarLead(lead: LeadInsert) {
   return data as Lead
 }
 
-export async function atualizarEstadoLead(id: string, estado: EstadoLead) {
-  const { error } = await supabase
+export async function atualizarEstadoLead(id: string, estado: EstadoLead, atualizadoEmEsperado: string) {
+  const { data, error } = await supabase
     .from('leads')
     .update({ estado, atualizado_em: new Date().toISOString() })
     .eq('id', id)
+    .eq('atualizado_em', atualizadoEmEsperado)
+    .select()
   if (error) throw error
+  if (!data || data.length === 0) {
+    throw new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+  }
 }
