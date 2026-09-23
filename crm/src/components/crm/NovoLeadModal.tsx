@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
+import { Modal } from '@/components/ui/Modal'
 import { RAMOS } from '@/lib/types'
 import type { LeadInsert, Ramo } from '@/lib/types'
+import { Button } from '@/components/ui/Button'
 
 interface NovoLeadModalProps {
   aCriar: boolean
@@ -27,20 +29,20 @@ export function NovoLeadModal({ aCriar, onFechar, onCriar }: NovoLeadModalProps)
   }
 
   return (
-    <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-40 p-4">
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 w-full max-w-sm space-y-4">
-        <h2 className="font-display font-bold text-navy">Novo lead</h2>
+    <Modal title="Novo lead" onClose={onFechar} busy={aCriar}>
+      <form onSubmit={handleSubmit} className="space-y-5">
+
 
         <Campo label="Nome" value={nome} onChange={setNome} required />
         <Campo label="Telefone" value={telefone} onChange={setTelefone} required />
         <Campo label="Email" value={email} onChange={setEmail} type="email" />
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-ink/70">Ramo de interesse</label>
+        <label className="block min-w-0 space-y-2">
+          <span className="block text-xs font-medium text-ink">Ramo de interesse</span>
           <select
             value={ramo}
             onChange={(e) => setRamo(e.target.value as Ramo)}
-            className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
           >
             {RAMOS.map((r) => (
               <option key={r.valor} value={r.valor}>
@@ -48,26 +50,18 @@ export function NovoLeadModal({ aCriar, onFechar, onCriar }: NovoLeadModalProps)
               </option>
             ))}
           </select>
-        </div>
+        </label>
 
         <div className="flex gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onFechar}
-            className="flex-1 rounded-lg border border-ink/15 py-2 text-sm"
-          >
+          <Button type="button" variant="secondary" disabled={aCriar} onClick={onFechar} className="flex-1">
             Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={aCriar}
-            className="flex-1 rounded-lg bg-navy text-white py-2 text-sm font-medium disabled:opacity-50"
-          >
-            {aCriar ? 'A criar…' : 'Criar lead'}
-          </button>
+          </Button>
+          <Button type="submit" loading={aCriar} className="flex-1">
+            Criar lead
+          </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }
 
@@ -85,15 +79,18 @@ function Campo({
   required?: boolean
 }) {
   return (
-    <div className="space-y-1">
-      <label className="text-sm font-medium text-ink/70">{label}</label>
+    <label className="block min-w-0 space-y-2">
+      <span className="block text-xs font-medium text-ink">
+        {label}
+        {required && <span className="text-danger"> *</span>}
+      </span>
       <input
         type={type}
         required={required}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-ink/15 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+        className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
       />
-    </div>
+    </label>
   )
 }

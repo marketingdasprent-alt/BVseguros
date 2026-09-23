@@ -1,5 +1,8 @@
 import { RAMOS, ESTADOS_APOLICE } from '@/lib/types'
 import type { Apolice, Cliente } from '@/lib/types'
+import { Badge } from '@/components/ui/Badge'
+import { TONE_ESTADO_APOLICE } from '@/lib/tone'
+import { formatarMoeda } from '@/lib/format'
 
 interface ApolicesTableProps {
   apolices: Apolice[]
@@ -13,31 +16,52 @@ export function ApolicesTable({ apolices, clientes }: ApolicesTableProps) {
     ESTADOS_APOLICE.find((e) => e.valor === estado)?.rotulo ?? estado
 
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-ink/[0.03] text-ink/50 text-left">
-          <tr>
-            <th className="px-4 py-3 font-medium">Nº apólice</th>
-            <th className="px-4 py-3 font-medium">Cliente</th>
-            <th className="px-4 py-3 font-medium">Ramo</th>
-            <th className="px-4 py-3 font-medium">Seguradora</th>
-            <th className="px-4 py-3 font-medium">Prémio anual</th>
-            <th className="px-4 py-3 font-medium">Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {apolices.map((a) => (
-            <tr key={a.id} className="border-t border-ink/5">
-              <td className="px-4 py-3">{a.numero_apolice}</td>
-              <td className="px-4 py-3">{nomeCliente(a.cliente_id)}</td>
-              <td className="px-4 py-3">{rotuloRamo(a.ramo)}</td>
-              <td className="px-4 py-3">{a.seguradora}</td>
-              <td className="px-4 py-3">{a.premio_anual != null ? `€${a.premio_anual.toFixed(2)}` : '—'}</td>
-              <td className="px-4 py-3">{rotuloEstado(a.estado)}</td>
+    <div className="table-panel">
+      <div className="data-panel-heading">Carteira de apólices<span>{apolices.length} {apolices.length === 1 ? 'registo' : 'registos'}</span></div>
+      <div role="region" aria-label="Lista de apolices" tabIndex={0} className="overflow-x-auto scroll-thin">
+        <table className="crm-table w-full text-sm">
+          <thead className="text-muted text-left">
+            <tr>
+              <th className="sticky left-0 z-10 font-semibold uppercase whitespace-nowrap">
+                Nº apólice
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                Cliente
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                Ramo
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                Seguradora
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap text-right">
+                Prémio anual
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                Estado
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {apolices.map((a) => (
+              <tr key={a.id} className="border-t border-border hover:bg-ink/[0.02] transition-colors">
+                <td className="sticky left-0 z-10 bg-white whitespace-nowrap">
+                  {a.numero_apolice}
+                </td>
+                <td className="whitespace-nowrap">{nomeCliente(a.cliente_id)}</td>
+                <td className="whitespace-nowrap">{rotuloRamo(a.ramo)}</td>
+                <td className="whitespace-nowrap">{a.seguradora}</td>
+                <td className="text-right tabular-nums whitespace-nowrap">
+                  {a.premio_anual != null ? formatarMoeda(a.premio_anual) : '—'}
+                </td>
+                <td className="whitespace-nowrap">
+                  <Badge tone={TONE_ESTADO_APOLICE[a.estado]}>{rotuloEstado(a.estado)}</Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

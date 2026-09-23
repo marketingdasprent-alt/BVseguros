@@ -1,53 +1,79 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
-
-const LINKS = [
-  { to: '/', rotulo: 'Dashboard', fim: true },
-  { to: '/leads', rotulo: 'Leads' },
-  { to: '/clientes', rotulo: 'Clientes' },
-  { to: '/apolices', rotulo: 'Apólices' },
-]
+import { useEffect, useRef, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
+import { Navigation } from '@/components/crm/Navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
+import { supabase } from '@/lib/supabase';
 
 export default function Layout() {
-  const { profile } = useAuth()
+  const { profile } = useAuth();
+  const { toast } = useToast();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const drawer = useRef<HTMLDialogElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const location = useLocation();
+  const name = profile?.nome || profile?.email || 'Conta';
+  const initials = name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
-  return (
-    <div className="min-h-screen flex bg-sand">
-      <aside className="w-60 shrink-0 bg-navy text-white flex flex-col">
-        <div className="flex items-center gap-2 px-5 py-6">
-          <img src="/brand/logo-bv-seguros.png" alt="BV Seguros" className="h-8 w-8" />
-          <span className="font-display font-bold">BV Seguros</span>
-        </div>
-        <nav className="flex-1 px-3 space-y-1">
-          {LINKS.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.fim}
-              className={({ isActive }) =>
-                `block rounded-lg px-3 py-2 text-sm transition-colors ${
-                  isActive ? 'bg-white/15 font-medium' : 'text-white/70 hover:bg-white/10 hover:text-white'
-                }`
-              }
-            >
-              {link.rotulo}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="px-5 py-4 border-t border-white/10 text-sm">
-          <p className="font-medium truncate">{profile?.nome ?? profile?.email}</p>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="text-white/60 hover:text-white text-xs mt-1"
-          >
-            Terminar sessão
-          </button>
-        </div>
-      </aside>
-      <main className="flex-1 min-w-0 p-8">
-        <Outlet />
-      </main>
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const element = drawer.current;
+    const overflow = document.body.style.overflow;
+    element?.showModal();
+    document.body.style.overflow = 'hidden';
+    const media = window.matchMedia('(min-width: 640px)');
+    const onResize = () => { if (media.matches) setDrawerOpen(false); };
+    media.addEventListener('change', onResize);
+    return () => {
+      element?.close(); document.body.style.overflow = overflow;
+      media.removeEventListener('change', onResize); menuButton.current?.focus();
+    };
+  }, [drawerOpen]);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error: unknown) {
+      toast({ title: 'Não foi possível terminar a sessão', description: error instanceof Error ? error.message : 'Tente novamente.', variant: 'destructive' });
+    } finally { setSigningOut(false); }
+  };
+  const brand = <div className="sidebar-brand"><img src="/brand/logo-bv-seguros.png" alt="" width={38} height={38} /><div className="nav-label"><strong>BV Seguros</strong><span>Gestão de seguros</span></div></div>;
+  const account = (
+    <div className="sidebar-account">
+      <div className="account-identity" title={name}>
+        <span className="account-avatar" aria-hidden="true">{initials}</span>
+        <div className="nav-label min-w-0"><strong>{name}</strong><span>{profile?.email}</span></div>
+      </div>
+      <button type="button" className="sign-out" onClick={handleSignOut} disabled={signingOut} aria-label="Terminar sessão" title="Terminar sessão">
+        <LogOut size={16} /><span className="nav-label">{signingOut ? 'A terminar…' : 'Terminar sessão'}</span>
+      </button>
     </div>
-  )
+  );
+  return (
+    <div className="app-shell">
+      <a className="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+      <div className="mobile-header">
+        <button ref={menuButton} type="button" className="icon-button" aria-label="Abrir menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Menu size={22} /></button>
+        <span>BV Seguros</span><img src="/brand/logo-bv-seguros.png" alt="" width={30} height={30} />
+      </div>
+      <aside className={`app-sidebar${collapsed ? ' is-collapsed' : ''}`}>
+        {brand}<Navigation />
+        <button type="button" className="collapse-toggle" onClick={() => setCollapsed(!collapsed)} aria-label={collapsed ? 'Expandir navegação' : 'Recolher navegação'} title={collapsed ? 'Expandir navegação' : 'Recolher navegação'}>
+          {collapsed ? <PanelLeftOpen size={18} /> : <><PanelLeftClose size={18} /><span>Recolher menu</span></>}
+        </button>
+        {account}
+      </aside>
+      {drawerOpen && <dialog ref={drawer} className="navigation-drawer" aria-label="Menu de navegação" onCancel={() => setDrawerOpen(false)}>
+        <div className="flex items-center justify-between">{brand}<button type="button" className="icon-button mr-3" aria-label="Fechar menu" onClick={() => setDrawerOpen(false)}><X size={20} /></button></div>
+        <Navigation onNavigate={() => setDrawerOpen(false)} />{account}
+      </dialog>}
+      <main id="conteudo" tabIndex={-1} className="app-main"><Outlet /></main>
+    </div>
+  );
 }

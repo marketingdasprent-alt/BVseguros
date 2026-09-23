@@ -7,6 +7,7 @@ interface AuthState {
   session: Session | null
   profile: Profile | null
   loading: boolean
+  profileLoading: boolean
   profileError: string | null
   isAdmin: boolean
   refreshProfile: () => Promise<void>
@@ -18,30 +19,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(true)
   const [profileError, setProfileError] = useState<string | null>(null)
 
   const carregarProfile = useCallback(async (userId: string) => {
+    setProfileLoading(true)
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
     if (error) {
       setProfileError(error.message)
       setProfile(null)
+      setProfileLoading(false)
       return
     }
     setProfileError(null)
     setProfile(data as Profile)
+    setProfileLoading(false)
   }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       if (data.session) carregarProfile(data.session.user.id)
+      else setProfileLoading(false)
       setLoading(false)
     })
 
     const { data: listener } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
       setSession(novaSessao)
       if (novaSessao) carregarProfile(novaSessao.user.id)
-      else setProfile(null)
+      else {
+        setProfile(null)
+        setProfileLoading(false)
+      }
     })
 
     return () => listener.subscription.unsubscribe()
@@ -53,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, profile, loading, profileError, isAdmin: !!profile?.is_admin, refreshProfile }}
+      value={{ session, profile, loading, profileLoading, profileError, isAdmin: !!profile?.is_admin, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import type { ClienteInsert } from '@/lib/types'
+import { Button } from '@/components/ui/Button'
 
 interface NovoClienteFormProps {
   aCriar: boolean
-  onCriar: (cliente: ClienteInsert) => Promise<void>
+  onCriar: (cliente: ClienteInsert) => Promise<boolean>
 }
 
 export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
@@ -14,7 +15,7 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    await onCriar({
+    const success = await onCriar({
       nome,
       telefone,
       email: email || null,
@@ -22,6 +23,7 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
       morada: null,
       lead_origem_id: null,
     })
+    if (!success) return;
     setNome('')
     setTelefone('')
     setEmail('')
@@ -29,21 +31,45 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white rounded-xl p-4 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-3"
-    >
-      <input required placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} className="rounded-lg border border-ink/15 px-3 py-2 text-sm" />
-      <input required placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="rounded-lg border border-ink/15 px-3 py-2 text-sm" />
-      <input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-lg border border-ink/15 px-3 py-2 text-sm" />
-      <input placeholder="NIF" value={nif} onChange={(e) => setNif(e.target.value)} className="rounded-lg border border-ink/15 px-3 py-2 text-sm" />
-      <button
-        type="submit"
-        disabled={aCriar}
-        className="col-span-2 md:col-span-4 rounded-lg bg-navy text-white py-2 text-sm font-medium disabled:opacity-50"
-      >
-        {aCriar ? 'A criar…' : 'Guardar cliente'}
-      </button>
+    <form onSubmit={handleSubmit} className="panel form-panel grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+      <h2 className="form-title">Novo cliente</h2>
+      <Campo label="Nome" value={nome} onChange={setNome} required />
+      <Campo label="Telefone" value={telefone} onChange={setTelefone} required />
+      <Campo label="Email" value={email} onChange={setEmail} type="email" />
+      <Campo label="NIF" value={nif} onChange={setNif} />
+      <Button type="submit" loading={aCriar} className="col-span-full md:col-span-4">
+        Guardar cliente
+      </Button>
     </form>
+  )
+}
+
+function Campo({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  required,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  required?: boolean
+}) {
+  return (
+    <label className="block min-w-0 space-y-2">
+      <span className="block text-xs font-medium text-ink">
+        {label}
+        {required && <span className="text-danger"> *</span>}
+      </span>
+      <input
+        type={type}
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+      />
+    </label>
   )
 }

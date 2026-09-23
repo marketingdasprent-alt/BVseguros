@@ -2,27 +2,40 @@ import type { Cliente } from '@/lib/types'
 
 export function ClientesTable({ clientes }: { clientes: Cliente[] }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-ink/[0.03] text-ink/50 text-left">
-          <tr>
-            <th className="px-4 py-3 font-medium">Nome</th>
-            <th className="px-4 py-3 font-medium">Telefone</th>
-            <th className="px-4 py-3 font-medium">Email</th>
-            <th className="px-4 py-3 font-medium">NIF</th>
-          </tr>
-        </thead>
-        <tbody>
-          {clientes.map((c) => (
-            <tr key={c.id} className="border-t border-ink/5">
-              <td className="px-4 py-3">{c.nome}</td>
-              <td className="px-4 py-3">{c.telefone}</td>
-              <td className="px-4 py-3">{c.email ?? '—'}</td>
-              <td className="px-4 py-3">{c.nif ?? '—'}</td>
+    <div className="table-panel">
+      <div className="data-panel-heading">Carteira de clientes<span>{clientes.length} {clientes.length === 1 ? 'registo' : 'registos'}</span></div>
+      <div role="region" aria-label="Lista de clientes" tabIndex={0} className="overflow-x-auto scroll-thin">
+        <table className="crm-table w-full text-sm">
+          <thead className="text-muted text-left">
+            <tr>
+              <th className="sticky left-0 z-10 font-semibold uppercase whitespace-nowrap">
+                Nome
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                Telefone
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                Email
+              </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                NIF
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {clientes.map((c) => (
+              <tr key={c.id} className="border-t border-border hover:bg-ink/[0.02] transition-colors">
+                <td className="sticky left-0 z-10 bg-white whitespace-nowrap">
+                  {c.nome}
+                </td>
+                <td className="whitespace-nowrap">{c.telefone}</td>
+                <td className="whitespace-nowrap">{c.email ?? '—'}</td>
+                <td className="whitespace-nowrap">{c.nif ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
