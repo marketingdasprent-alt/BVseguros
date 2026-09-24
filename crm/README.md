@@ -43,8 +43,9 @@ Abre em <http://localhost:5183>.
    where email = 'o-teu-email@bvseguros.pt';
    ```
 
-5. A partir daí, essa conta consegue ativar as seguintes (via update directo na tabela
-   `profiles`, ou dá-se um ecrã de gestão de utilizadores mais tarde).
+5. A partir daí, as contas seguintes convidam-se em Authentication → Users → Invite
+   user, e o admin dá-lhes acesso no ecrã **Utilizadores** do CRM (só visível para
+   admins). A base de dados impede que se fique sem nenhum admin ativo.
 
 ## Publicar (Vercel)
 

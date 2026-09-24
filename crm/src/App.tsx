@@ -19,6 +19,7 @@ const Apolices = lazy(() => import('@/pages/Apolices'))
 const Renovacoes = lazy(() => import('@/pages/Renovacoes'))
 const Sinistros = lazy(() => import('@/pages/Sinistros'))
 const Atividades = lazy(() => import('@/pages/Atividades'))
+const Utilizadores = lazy(() => import('@/pages/Utilizadores'))
 
 function AreaPrivada() {
   const { session, loading, profile, profileLoading, profileError, refreshProfile } = useAuth()
@@ -68,6 +69,7 @@ function AreaPrivada() {
           <Route path="/renovacoes" element={<Renovacoes />} />
           <Route path="/sinistros" element={<Sinistros />} />
           <Route path="/atividades" element={<Atividades />} />
+          <Route path="/utilizadores" element={<Utilizadores />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

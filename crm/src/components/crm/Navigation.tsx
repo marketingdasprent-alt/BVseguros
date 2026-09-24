@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, CheckSquare, UserCog } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const groups = [
   { title: 'Visão geral', links: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard }] },
@@ -12,12 +13,15 @@ const groups = [
   { title: 'Organização', links: [{ to: '/atividades', label: 'Atividades', icon: CheckSquare }] },
 ];
 
+const adminGroup = { title: 'Administração', links: [{ to: '/utilizadores', label: 'Utilizadores', icon: UserCog }] };
+
 interface NavigationProps { onNavigate?: () => void; }
 
 export function Navigation({ onNavigate }: NavigationProps) {
+  const { isAdmin } = useAuth();
   return (
     <nav className="sidebar-nav" aria-label="Navegação principal">
-      {groups.map((group) => (
+      {(isAdmin ? [...groups, adminGroup] : groups).map((group) => (
         <div className="nav-group" key={group.title}>
           <p className="nav-group-title nav-label">{group.title}</p>
           {group.links.map(({ to, label, icon: Icon }) => (
