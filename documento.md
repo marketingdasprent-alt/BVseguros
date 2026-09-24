@@ -1,27 +1,19 @@
-# BV Seguros — Documento do Projecto
+# BV Seguros: Documento do Projecto
 
-> **Estado:** scaffold inicial feito. Site institucional (raiz, sobre o Web
-> Blueprint) e CRM (`crm/`) têm ambos um esqueleto funcional, com conteúdo/dados
-> ainda por confirmar com o cliente.
+> **Estado (2026-09-24):** site institucional completo em estrutura, com conteúdo
+> ainda por confirmar com o cliente. CRM funcional com todos os módulos principais,
+> ligado ao Supabase real e publicado na Vercel. O formulário de contacto do site já
+> cria leads no CRM.
 
 ## 1. O que é a BV Seguros
 
-Corretora de seguros — "**BV Seguros · Seguros e Soluções**". Logótipo em
+Corretora de seguros: "**BV Seguros · Seguros e Soluções**". Logótipo original em
 [`brand/logo-bv-seguros.png`](brand/logo-bv-seguros.png): escudo azul-marinho
-(`#184070`) com check e casa, comunicando protecção patrimonial/residencial. Fundo do
-PNG é opaco (cinza-claro `#F7F7F7`, sem transparência): pedir ao cliente uma versão
-com fundo transparente/SVG quando possível.
-
-Ainda por confirmar com o cliente:
-
-- Ramos de seguro que a corretora efectivamente vende (auto, vida, saúde,
-  multirriscos habitação, acidentes de trabalho, ...)
-- Morada, NIF, telefone e email oficiais (o site tem estes campos como placeholder,
-  marcados `PorConfirmar` / `[por confirmar]`)
-- Nome de domínio (o site assume `bvseguros.pt` como exemplo, não confirmado)
-- Texto institucional real (história, missão, diferencial): o que está no site é
-  genérico, escrito para não bloquear o desenvolvimento
-- Seguradoras parceiras (para eventual integração ou apenas registo manual)
+(`#184070`) com check e casa, comunicando protecção patrimonial/residencial. O PNG
+original tem fundo opaco; as versões com fundo transparente em uso estão em
+`public/images/logo-icon-bv-seguros.png` (site) e `crm/public/brand/logo-icon.png` /
+`logo-icon-branco.png` (CRM, esta última para fundos escuros). Continua a valer a pena
+pedir ao cliente o logótipo em SVG.
 
 ## 2. Estrutura do repositório
 
@@ -34,46 +26,45 @@ BVseguros/
 ├── BLUEPRINT.md, MASTER-PROMPT.md,
 │   DECISIONS.md, CHANGELOG.md,   ← governação herdada do Web Blueprint
 │   docs/
-├── src/, public/                  ← site institucional (React/Vite)
-├── package.json, vite.config.ts, ...
-└── crm/                            ← CRM — projecto Vite/React à parte
-    ├── src/, public/, supabase/
-    ├── package.json, vite.config.ts, ...
-    ├── AGENTS.md                   ← regras específicas do CRM
+├── src/, public/, vercel.json    ← site institucional (React/Vite)
+└── crm/                          ← CRM, projecto Vite/React à parte
+    ├── src/, public/, vercel.json
+    ├── supabase/schema.sql       ← schema completo (projecto novo)
+    ├── supabase/migrations/      ← alterações a aplicar a um projecto já existente
+    ├── AGENTS.md                 ← regras específicas do CRM
     └── README.md
 ```
 
-Até 2026-09-21 existiam duas versões do site (uma estática em HTML/CSS/JS puro, e
-esta, sobre o Web Blueprint) lado a lado para comparação. O cliente escolheu ficar só
-com a versão Web Blueprint; a versão estática foi removida (ver
-[`DECISIONS.md`](DECISIONS.md), entrada de 2026-09-21, para o histórico completo).
-
 ### Site institucional (raiz)
 
-React + TypeScript + Vite + Tailwind CSS v4, construído sobre o
-[Web Blueprint](BLUEPRINT.md): design tokens, `Container`/`Section`, componentes com
-contrato de estados (`Button`, `Card`, `Input`, `Header`, `Footer`), CookieConsent +
-Google Consent Mode v2, e páginas legais RGPD (`/privacy`, `/terms`, `/cookies`). Ver
-[`AGENTS.md`](AGENTS.md) para a ordem de leitura da documentação antes de mexer.
-Porta de dev: **5190**.
+React + TypeScript + Vite + Tailwind CSS v4, sobre o [Web Blueprint](BLUEPRINT.md).
+Porta de dev: **5190**. Ver [`AGENTS.md`](AGENTS.md) para a ordem de leitura da
+documentação antes de mexer.
 
-Conteúdo actual é placeholder (ver secção 1): página única com secções Sobre,
-Seguros, Porquê a BV, Contacto (formulário via `mailto:`).
+Já implementado:
+
+- Página única com Hero, Porquê a BV, Sobre, Seguros (ramos), Como funciona e Contacto
+- Páginas legais RGPD (`/privacy`, `/terms`, `/cookies`) e página 404
+- CookieConsent + Google Consent Mode v2, GA4 e Meta Pixel (com IDs placeholder)
+- SEO, imagem de partilha para redes sociais e dados estruturados (JSON-LD)
+- **Formulário de contacto ligado ao CRM**: grava na tabela `leads` do Supabase via a
+  função pública `criar_lead_site` (validação, anti-spam, consentimento RGPD). Precisa
+  de `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` (ver `.env.example`).
 
 ### CRM (`crm/`)
 
-React 18 + TypeScript + Vite + Tailwind + Supabase + React Router. Ver
-[`crm/README.md`](crm/README.md) para correr localmente e configurar o Supabase, e
-[`crm/AGENTS.md`](crm/AGENTS.md) para as convenções de arquitectura. Porta de dev:
-**5183**.
+React 18 + TypeScript + Vite + Tailwind + Supabase + React Router. Porta de dev:
+**5183**. Ver [`crm/README.md`](crm/README.md) e [`crm/AGENTS.md`](crm/AGENTS.md).
 
-Funcionalidades já implementadas (scaffold, sem dados reais):
+Já implementado:
 
-- Auth com Supabase (login, perfil `ativo`/`is_admin`)
-- Leads: pipeline Kanban com drag-and-drop
-- Clientes e Apólices: listagem + criação
-- Dashboard com KPIs básicos
-- `crm/supabase/schema.sql`: tabelas + RLS desde a primeira migration
+- Auth com Supabase (login, definir senha por convite/recuperação, perfil
+  `ativo`/`is_admin`)
+- Dashboard com KPIs, pipeline, prioridades e actividade recente
+- Leads (Kanban com drag-and-drop; leads vindos do site com selo "Site" e mensagem)
+- Propostas, Clientes, Apólices, Renovações, Sinistros e Actividades
+- Utilizadores (só admins): dar/retirar acesso e tornar administrador/mediador
+- RLS em todas as tabelas desde a primeira migration
 
 ## 3. Stack tecnológico
 
@@ -82,28 +73,44 @@ Funcionalidades já implementadas (scaffold, sem dados reais):
 | Site (raiz) | React + TypeScript + Vite + Tailwind CSS v4, sobre o Web Blueprint | Design system com tokens, componentes com estados reais e RGPD (CookieConsent, páginas legais) já resolvidos |
 | CRM (`crm/`) | React 18 + TypeScript + Vite + Tailwind + Supabase + React Router | Mesmo padrão do `razao-dinamica/crm` |
 
-**Não** inclui TanStack Query nem Capacitor no CRM: esses vêm de um exemplo de
-`agents.md` de outro projecto (WeGest), com stack diferente. Ver
+**Não** inclui TanStack Query nem Capacitor no CRM. Ver
 [`crm/AGENTS.md`](crm/AGENTS.md) secção 0.
 
-## 4. Por decidir antes de dar conteúdo final
+## 4. Deploy
 
-- [ ] Ramos de seguro e vocabulário de domínio definitivos (ver `crm/AGENTS.md`
-      secção 3)
-- [ ] Morada, telefone, email, NIF reais da BV Seguros
-- [ ] Nome de domínio definitivo
+| Projecto | Vercel | Estado |
+| --- | --- | --- |
+| CRM | `bvseguros-crm` (Root Directory `crm`) | Publicado em `bvseguros-crm.vercel.app`. **Não está ligado ao GitHub**: cada deploy é manual (`npx vercel --prod` dentro de `crm/`) até se ligar o repositório em Settings → Git. |
+| Site | Ainda sem projecto nesta conta Vercel | Criar com Root Directory `.`, ligar ao GitHub e definir `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. O `vercel.json` da raiz já trata do rewrite das rotas (`/privacy`, `/cookies`, ...). |
+
+Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo corre-se
+`crm/supabase/schema.sql`; num projecto existente, as migrações de
+`crm/supabase/migrations/` por ordem de data.
+
+## 5. Por decidir / por confirmar com o cliente
+
+- [ ] Morada, telefone, NIF, nº de registo na ASF e comarca reais (marcados
+      `PorConfirmar` no site e nas páginas legais)
 - [ ] Texto institucional real (sobre, diferenciais)
-- [ ] Se há integração WhatsApp no CRM desde já ou fica para fase 2
-- [ ] Perfis de utilizador e permissões no CRM (admin, mediador, ...)
-- [ ] Projecto Supabase real a ligar (o CRM só foi testado com credenciais placeholder)
+- [ ] Ramos de seguro definitivos e vocabulário de domínio (ver `crm/AGENTS.md`
+      secção 3)
+- [ ] Nome de domínio definitivo (o site assume `bvseguros.pt`)
+- [ ] IDs reais de GA4 e Meta Pixel (`index.html`)
+- [ ] Política de privacidade: indicar que os pedidos de contacto ficam guardados no CRM
+      (Supabase, subcontratante)
+- [ ] Perfis e permissões no CRM (o mediador vê só a sua carteira ou tudo?)
+- [ ] Integração WhatsApp no CRM agora ou na fase 2
+- [ ] Seguradoras parceiras (integração ou só registo manual)
 
-## 5. Próximos passos
+## 6. Próximos passos
 
-1. Preencher os placeholders do site (contactos, morada, texto institucional).
-2. Criar o projecto Supabase real e correr `crm/supabase/schema.sql`.
-3. Configurar dois projectos Vercel (site: Root Directory `.`; CRM: Root Directory
-   `crm`) e o domínio.
+1. Ligar o projecto `bvseguros-crm` ao GitHub na Vercel e criar o projecto do site.
+2. Correr `crm/supabase/migrations/2026-09-24_gestao_utilizadores.sql` no Supabase
+   (protege o ecrã **Utilizadores** do CRM: nunca ficar sem admin ativo). Convidar
+   contas directamente pelo CRM fica para depois (precisa de função serverless com a
+   service-role key); por agora convida-se no painel do Supabase.
+3. Preencher os placeholders do site assim que o cliente enviar os dados.
 
 ---
 
-_Última actualização: 2026-09-21._
+_Última actualização: 2026-09-24._
