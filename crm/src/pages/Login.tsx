@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Eye, EyeOff, LockKeyhole } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import type { FormEvent } from 'react';
@@ -20,12 +20,13 @@ export default function Login() {
   };
   return <div className="auth-shell">
     <section className="auth-brand-panel" aria-label="BV Seguros">
-      <div className="auth-brand"><img src="/brand/logo-bv-seguros.png" width={48} height={48} alt="" /><span>BV Seguros</span></div>
-      <div><h2>Mais próximo de cada cliente.</h2><p>Contactos, apólices e acompanhamento. O dia a dia da sua carteira, num só lugar.</p></div>
+      <div className="auth-brand"><img src="/brand/logo-icon-branco.png" width={108} height={120} alt="BV Seguros" /></div>
+      <div className="auth-brand-copy"><h2>Mais próximo de cada cliente.</h2><p>Contactos, apólices e acompanhamento. O dia a dia da sua carteira, num só lugar.</p></div>
       <footer>CRM · Gestão de seguros</footer>
     </section>
     <main className="auth-form-area">
       <form onSubmit={handleSubmit} className="auth-form">
+        <span className="auth-badge"><ShieldCheck size={13} />Área reservada</span>
         <h1>Bem-vindo de volta</h1><p>Entre na sua conta para continuar a gerir a sua carteira.</p>
         <label className="auth-field">Email<input autoComplete="username" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="O seu email profissional" /></label>
         <div className="auth-field"><label htmlFor="login-password">Palavra-passe</label><span className="relative block"><input id="login-password" autoComplete="current-password" type={visible ? 'text' : 'password'} required value={senha} onChange={(event) => setSenha(event.target.value)} style={{ paddingRight: 48 }} /><button type="button" className="icon-button absolute right-1 top-3" aria-label={visible ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'} onClick={() => setVisible(!visible)}>{visible ? <EyeOff size={17} /> : <Eye size={17} />}</button></span></div>
@@ -33,6 +34,7 @@ export default function Login() {
         <Button type="submit" loading={aSubmeter} className="w-full mt-7">Entrar <ArrowRight size={16} /></Button>
         <div className="auth-note"><LockKeyhole size={13} />Acesso reservado à equipa BV Seguros</div>
       </form>
+      <p className="auth-copyright">© {new Date().getFullYear()} BV Seguros · CRM interno</p>
     </main>
   </div>;
 }

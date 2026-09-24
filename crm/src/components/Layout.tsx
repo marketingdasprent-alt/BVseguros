@@ -43,7 +43,7 @@ export default function Layout() {
       toast({ title: 'Não foi possível terminar a sessão', description: error instanceof Error ? error.message : 'Tente novamente.', variant: 'destructive' });
     } finally { setSigningOut(false); }
   };
-  const brand = <div className="sidebar-brand"><img src="/brand/logo-bv-seguros.png" alt="" width={38} height={38} /><div className="nav-label"><strong>BV Seguros</strong><span>Gestão de seguros</span></div></div>;
+  const brand = <div className="sidebar-brand"><img src="/brand/logo-icon-branco.png" alt="BV Seguros" width={36} height={40} /></div>;
   const account = (
     <div className="sidebar-account">
       <div className="account-identity" title={name}>
@@ -60,7 +60,7 @@ export default function Layout() {
       <a className="skip-link" href="#conteudo">Saltar para o conteúdo</a>
       <div className="mobile-header">
         <button ref={menuButton} type="button" className="icon-button" aria-label="Abrir menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Menu size={22} /></button>
-        <span>BV Seguros</span><img src="/brand/logo-bv-seguros.png" alt="" width={30} height={30} />
+        <img src="/brand/logo-icon-branco.png" alt="BV Seguros" width={27} height={30} />
       </div>
       <aside className={`app-sidebar${collapsed ? ' is-collapsed' : ''}`}>
         {brand}<Navigation />
@@ -70,7 +70,7 @@ export default function Layout() {
         {account}
       </aside>
       {drawerOpen && <dialog ref={drawer} className="navigation-drawer" aria-label="Menu de navegação" onCancel={() => setDrawerOpen(false)}>
-        <div className="flex items-center justify-between">{brand}<button type="button" className="icon-button mr-3" aria-label="Fechar menu" onClick={() => setDrawerOpen(false)}><X size={20} /></button></div>
+        <div className="relative">{brand}<button type="button" className="icon-button absolute right-3 top-1/2 -translate-y-1/2" aria-label="Fechar menu" onClick={() => setDrawerOpen(false)}><X size={20} /></button></div>
         <Navigation onNavigate={() => setDrawerOpen(false)} />{account}
       </dialog>}
       <main id="conteudo" tabIndex={-1} className="app-main"><Outlet /></main>

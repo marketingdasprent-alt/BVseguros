@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/lib/types'
@@ -21,8 +21,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [profileLoading, setProfileLoading] = useState(true)
   const [profileError, setProfileError] = useState<string | null>(null)
+  // O Supabase volta a emitir SIGNED_IN/TOKEN_REFRESHED ao recuperar o foco do
+  // separador; recarregar o perfil aí trocava a app inteira pelo spinner.
+  const userIdCarregado = useRef<string | null>(null)
 
   const carregarProfile = useCallback(async (userId: string) => {
+    userIdCarregado.current = userId
     setProfileLoading(true)
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
     if (error) {
@@ -46,8 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
       setSession(novaSessao)
-      if (novaSessao) carregarProfile(novaSessao.user.id)
-      else {
+      if (novaSessao) {
+        if (novaSessao.user.id !== userIdCarregado.current) carregarProfile(novaSessao.user.id)
+      } else {
+        userIdCarregado.current = null
         setProfile(null)
         setProfileLoading(false)
       }

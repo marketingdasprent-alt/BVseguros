@@ -51,7 +51,7 @@ export default function DefinirSenha() {
     <div className="min-h-screen flex items-center justify-center bg-sand p-6">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-xl p-8 border border-border space-y-5">
         <div className="flex flex-col items-center gap-2 mb-2">
-          <img src="/brand/logo-bv-seguros.png" alt="BV Seguros" className="h-14 w-14" />
+          <img src="/brand/logo-icon.png" alt="BV Seguros" className="h-14 w-auto" />
           <h1 className="font-display text-lg font-bold text-navy">Definir senha</h1>
           <p className="text-sm text-muted text-center">
             Escolhe a senha para aceder ao CRM da BV Seguros.
