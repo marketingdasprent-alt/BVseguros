@@ -1,7 +1,8 @@
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
-import Input from "../components/forms/Input";
+import ContactoForm from "../sections/ContactoForm";
+import type { RamoCrm } from "../utils/enviarContacto";
 import PorConfirmar from "../components/ui/PorConfirmar";
 
 type RamoKey = "auto" | "vida" | "saude" | "habitacao" | "trabalho" | "outros";
@@ -49,6 +50,18 @@ const RAMOS: { key: RamoKey; nome: string; descricao: string; imagem: string }[]
     imagem: "/images/ramos/outros.jpg",
   },
 ];
+
+// Chaves do site (imagens/ícones) mapeadas para os valores de ramo do CRM.
+const RAMO_CRM: Record<RamoKey, RamoCrm> = {
+  auto: "auto",
+  vida: "vida",
+  saude: "saude",
+  habitacao: "multirriscos",
+  trabalho: "acidentes_trabalho",
+  outros: "outro",
+};
+
+const RAMOS_FORMULARIO = RAMOS.map((ramo) => ({ valor: RAMO_CRM[ramo.key], nome: ramo.nome }));
 
 const DIFERENCIAIS = [
   {
@@ -492,41 +505,7 @@ export default function Home() {
             </div>
 
             <div style={{ gridColumn: "span 7" }}>
-              <form
-                action="mailto:geral@bvseguros.pt"
-                method="post"
-                encType="text/plain"
-                className="stack contact-form-card"
-              >
-                <Input label="Nome" name="nome" type="text" required />
-                <Input label="Email" name="email" type="email" required />
-                <Input label="Telefone" name="telefone" type="tel" />
-
-                <div className="field">
-                  <label className="field__label" htmlFor="ramo">
-                    Em que seguro está interessado?
-                  </label>
-                  <select id="ramo" name="ramo" className="field__control">
-                    {RAMOS.map((ramo) => (
-                      <option key={ramo.key}>{ramo.nome}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="field">
-                  <label className="field__label" htmlFor="mensagem">
-                    Mensagem
-                  </label>
-                  <textarea
-                    id="mensagem"
-                    name="mensagem"
-                    rows={4}
-                    className="field__control"
-                  />
-                </div>
-
-                <Button type="submit">Enviar pedido</Button>
-              </form>
+              <ContactoForm ramos={RAMOS_FORMULARIO} />
             </div>
           </div>
         </Container>

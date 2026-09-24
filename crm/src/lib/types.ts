@@ -19,6 +19,8 @@ export const RAMOS: { valor: Ramo; rotulo: string }[] = [
   { valor: 'outro', rotulo: 'Outro' },
 ]
 
+export type OrigemLead = 'manual' | 'site'
+
 export interface Lead {
   id: string
   nome: string
@@ -27,11 +29,15 @@ export interface Lead {
   ramo_interesse: Ramo
   estado: EstadoLead
   notas: string | null
+  origem: OrigemLead
+  mensagem: string | null
+  consentimento_em: string | null
   criado_em: string
   atualizado_em: string
 }
 
-export type LeadInsert = Omit<Lead, 'id' | 'criado_em' | 'atualizado_em'>
+// origem/mensagem/consentimento só são preenchidos pela função criar_lead_site.
+export type LeadInsert = Omit<Lead, 'id' | 'criado_em' | 'atualizado_em' | 'origem' | 'mensagem' | 'consentimento_em'>
 
 export interface Cliente {
   id: string
