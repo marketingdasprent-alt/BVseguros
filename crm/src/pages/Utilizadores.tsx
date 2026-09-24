@@ -8,9 +8,12 @@ import { Button } from '@/components/ui/Button'
 import { UtilizadoresTable } from '@/components/crm/UtilizadoresTable'
 import { HistoricoAcessos } from '@/components/crm/HistoricoAcessos'
 import { EditarNomeModal } from '@/components/crm/EditarNomeModal'
-import { useUtilizadores, useEventosAcesso, alterarAcesso, alterarNome } from '@/hooks/useUtilizadores'
+import { ConvidarModal } from '@/components/crm/ConvidarModal'
+import { UserPlus } from 'lucide-react'
+import { useUtilizadores, useEventosAcesso, alterarAcesso, alterarNome, convidarUtilizador, excluirUtilizador } from '@/hooks/useUtilizadores'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
+import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { mensagemErro } from '@/lib/erros'
 import type { AlteracaoAcesso, Profile } from '@/lib/types'
 
@@ -35,6 +38,9 @@ export default function Utilizadores() {
   const [idEmAlteracao, setIdEmAlteracao] = useState<string | null>(null)
   const [aEditarNome, setAEditarNome] = useState<Profile | null>(null)
   const [aGuardarNome, setAGuardarNome] = useState(false)
+  const [aConvidar, setAConvidar] = useState(false)
+  const [aEnviarConvite, setAEnviarConvite] = useState(false)
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(async () => { await Promise.all([recarregar(), eventos.recarregar()]) })
 
   // Esconder é só UX: quem garante que só um admin altera contas é a RLS de profiles.
   if (!isAdmin) return <Navigate to="/" replace />
@@ -72,6 +78,28 @@ export default function Utilizadores() {
     }
   }
 
+  const handleConvidar = async (nome: string, email: string) => {
+    setAEnviarConvite(true)
+    try {
+      const mensagem = await convidarUtilizador(nome, email)
+      await Promise.all([recarregar(), eventos.recarregar()])
+      toast({ title: 'Convite enviado', description: mensagem })
+      setAConvidar(false)
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao convidar', description: mensagemErro(err), variant: 'destructive' })
+    } finally {
+      setAEnviarConvite(false)
+    }
+  }
+
+  const handlePedirExcluir = (utilizador: Profile) =>
+    pedirConfirmacao({
+      titulo: 'Utilizador',
+      nome: `a conta de ${utilizador.nome} (${utilizador.email})`,
+      aviso: 'A pessoa deixa de conseguir entrar e a conta não pode ser recuperada. Os leads, clientes e atividades de que era responsável ficam sem responsável; nada é apagado. Para bloquear temporariamente, use antes "Retirar acesso".',
+      apagar: async () => { await excluirUtilizador(utilizador.id) },
+    })
+
   const confirmacao = pedido && descreverAlteracao(pedido)
 
   return (
@@ -79,11 +107,11 @@ export default function Utilizadores() {
       <PageHeader
         title="Utilizadores"
         description={semAcesso > 0 ? `${semAcesso} ${semAcesso === 1 ? 'conta à espera' : 'contas à espera'} de acesso` : 'Quem pode entrar no CRM'}
+        action={<Button icon={<UserPlus />} onClick={() => setAConvidar(true)}>Convidar utilizador</Button>}
       />
 
       <p className="text-sm text-muted max-w-2xl">
-        Para adicionar alguém, convide o email no painel do Supabase (Authentication, Invite user). A conta aparece aqui
-        sem acesso até lhe dar acesso.
+        Quem se registar por outra via (por exemplo, convidado no painel do Supabase) aparece aqui sem acesso até lho dar.
       </p>
 
       {isLoading && <Spinner />}
@@ -102,10 +130,15 @@ export default function Utilizadores() {
           idEmAlteracao={idEmAlteracao}
           onAlterar={(utilizador, alteracao) => setPedido({ utilizador, alteracao })}
           onEditarNome={setAEditarNome}
+          onExcluir={handlePedirExcluir}
         />
       )}
 
       <HistoricoAcessos eventos={eventos.data} isLoading={eventos.isLoading} error={eventos.error} />
+
+      {modalApagar}
+
+      {aConvidar && <ConvidarModal aEnviar={aEnviarConvite} onFechar={() => setAConvidar(false)} onConvidar={handleConvidar} />}
 
       {aEditarNome && (
         <EditarNomeModal utilizador={aEditarNome} aGuardar={aGuardarNome} onFechar={() => setAEditarNome(null)} onGuardar={handleGuardarNome} />

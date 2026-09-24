@@ -43,9 +43,10 @@ Abre em <http://localhost:5183>.
    where email = 'o-teu-email@bvseguros.pt';
    ```
 
-5. A partir daí, as contas seguintes convidam-se em Authentication → Users → Invite
-   user, e o admin dá-lhes acesso no ecrã **Utilizadores** do CRM (só visível para
-   admins). A base de dados impede que se fique sem nenhum admin ativo.
+5. A partir daí, o admin convida as contas seguintes no ecrã **Utilizadores** do CRM
+   (botão "Convidar utilizador"), que passa pela função `api/utilizadores.js`. Precisa de
+   `SUPABASE_SERVICE_ROLE_KEY` no `.env.local` (local) e nas variáveis da Vercel
+   (produção). A base de dados impede que se fique sem nenhum admin ativo.
 
 ## Publicar (Vercel)
 
@@ -56,9 +57,12 @@ Projecto Vercel próprio, separado do site institucional, com **Root Directory =
 vercel
 ```
 
-Define as variáveis de ambiente (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) no
-dashboard do Vercel → Project Settings → Environment Variables. O `vercel.json` já
-define `"framework": "vite"`.
+Define as variáveis de ambiente (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` e,
+para os convites, `SUPABASE_SERVICE_ROLE_KEY`) no dashboard do Vercel → Project
+Settings → Environment Variables. A service-role key **nunca** leva prefixo `VITE_`:
+só a função em `api/` a lê. O `vercel.json` define `"framework": "vite"` e deixa
+`/api/*` fora do rewrite para o `index.html`. Em `npm run dev`, o mesmo handler corre
+através de `server/local-api.js`.
 
 ## Por decidir
 

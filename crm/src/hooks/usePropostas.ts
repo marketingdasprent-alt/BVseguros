@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
-import { useSupabaseTable } from '@/hooks/useSupabaseTable'
-import type { EstadoProposta, Proposta, PropostaInsert } from '@/lib/types'
+import { useSupabaseTable, atualizarComVersao, apagarRegisto } from '@/hooks/useSupabaseTable'
+import type { EstadoProposta, Proposta, PropostaEdicao, PropostaInsert } from '@/lib/types'
 
 export function usePropostas() {
   return useSupabaseTable<Proposta>('propostas', 'criado_em')
@@ -23,4 +23,12 @@ export async function atualizarEstadoProposta(id: string, estado: EstadoProposta
   if (!data || data.length === 0) {
     throw new Error('CONFLITO: esta proposta foi alterada por outra pessoa entretanto. Atualiza a página e tenta novamente.')
   }
+}
+
+export async function atualizarProposta(id: string, dados: PropostaEdicao, atualizadoEmEsperado: string) {
+  await atualizarComVersao('propostas', id, dados, atualizadoEmEsperado)
+}
+
+export async function apagarProposta(id: string) {
+  await apagarRegisto('propostas', id)
 }

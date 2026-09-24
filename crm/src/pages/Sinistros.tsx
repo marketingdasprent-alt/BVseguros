@@ -6,11 +6,13 @@ import { SinistroCard } from '@/components/crm/SinistroCard'
 import { NovoSinistroModal } from '@/components/crm/NovoSinistroModal'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
-import { useSinistros, criarSinistro, atualizarEstadoSinistro } from '@/hooks/useSinistros'
+import { useSinistros, criarSinistro, atualizarEstadoSinistro, atualizarSinistro, apagarSinistro } from '@/hooks/useSinistros'
+import { useAuth } from '@/hooks/useAuth'
+import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { useApolices } from '@/hooks/useApolices'
 import { useToast } from '@/hooks/useToast'
 import { ESTADOS_SINISTRO } from '@/lib/types'
-import type { EstadoSinistro, Sinistro, SinistroInsert } from '@/lib/types'
+import type { EstadoSinistro, Sinistro, SinistroEdicao, SinistroInsert } from '@/lib/types'
 import { TONE_ESTADO_SINISTRO } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
 
@@ -20,6 +22,9 @@ export default function Sinistros() {
   const { toast } = useToast()
   const [modalAberto, setModalAberto] = useState(false)
   const [aCriar, setACriar] = useState(false)
+  const [aEditar, setAEditar] = useState<Sinistro | null>(null)
+  const { isAdmin } = useAuth()
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const numeroApolice = (sinistro: Sinistro) =>
     apolices.find((a) => a.id === sinistro.apolice_id)?.numero_apolice ?? '—'
@@ -48,6 +53,26 @@ export default function Sinistros() {
     }
   }
 
+  const handleEditar = async (sinistro: Sinistro, dados: SinistroEdicao) => {
+    setACriar(true)
+    try {
+      await atualizarSinistro(sinistro.id, dados, sinistro.atualizado_em)
+      await recarregar()
+      setAEditar(null)
+      toast({ title: 'Sinistro atualizado' })
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao guardar sinistro', description: mensagemErro(err), variant: 'destructive' })
+      await recarregar()
+    } finally {
+      setACriar(false)
+    }
+  }
+
+  const handlePedirApagar = (sinistro: Sinistro) => {
+    setAEditar(null)
+    pedirConfirmacao({ titulo: 'Sinistro', nome: `o sinistro da apólice ${numeroApolice(sinistro)}`, apagar: () => apagarSinistro(sinistro.id) })
+  }
+
   const carregando = isLoading || apolicesCarregando
 
   return (
@@ -67,7 +92,7 @@ export default function Sinistros() {
           getAtualizadoEm={(s) => s.atualizado_em}
           getTone={(estado) => TONE_ESTADO_SINISTRO[estado as EstadoSinistro]}
           onMudarEstado={(id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoSinistro, atualizadoEm)}
-          renderCard={(s) => <SinistroCard sinistro={s} numeroApolice={numeroApolice(s)} />}
+          renderCard={(s) => <SinistroCard sinistro={s} numeroApolice={numeroApolice(s)} onEditar={setAEditar} />}
           vazioTexto="Sem sinistros"
         />
       )}
@@ -80,6 +105,20 @@ export default function Sinistros() {
           onCriar={handleCriar}
         />
       )}
+
+      {aEditar && (
+        <NovoSinistroModal
+          apolices={apolices}
+          inicial={aEditar}
+          aCriar={aCriar}
+          onFechar={() => setAEditar(null)}
+          onCriar={handleCriar}
+          onGuardar={(dados) => handleEditar(aEditar, dados)}
+          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+        />
+      )}
+
+      {modalApagar}
     </div>
   )
 }

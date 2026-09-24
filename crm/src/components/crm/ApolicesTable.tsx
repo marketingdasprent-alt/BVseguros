@@ -3,13 +3,15 @@ import type { Apolice, Cliente } from '@/lib/types'
 import { Badge } from '@/components/ui/Badge'
 import { TONE_ESTADO_APOLICE } from '@/lib/tone'
 import { formatarMoeda } from '@/lib/format'
+import { Button } from '@/components/ui/Button'
 
 interface ApolicesTableProps {
   apolices: Apolice[]
   clientes: Cliente[]
+  onEditar: (apolice: Apolice) => void
 }
 
-export function ApolicesTable({ apolices, clientes }: ApolicesTableProps) {
+export function ApolicesTable({ apolices, clientes, onEditar }: ApolicesTableProps) {
   const nomeCliente = (id: string) => clientes.find((c) => c.id === id)?.nome ?? '—'
   const rotuloRamo = (ramo: Apolice['ramo']) => RAMOS.find((r) => r.valor === ramo)?.rotulo ?? ramo
   const rotuloEstado = (estado: Apolice['estado']) =>
@@ -40,6 +42,7 @@ export function ApolicesTable({ apolices, clientes }: ApolicesTableProps) {
               <th className="font-semibold uppercase whitespace-nowrap">
                 Estado
               </th>
+              <th className="font-semibold uppercase whitespace-nowrap"><span className="sr-only">Ações</span></th>
             </tr>
           </thead>
           <tbody>
@@ -56,6 +59,9 @@ export function ApolicesTable({ apolices, clientes }: ApolicesTableProps) {
                 </td>
                 <td className="whitespace-nowrap">
                   <Badge tone={TONE_ESTADO_APOLICE[a.estado]}>{rotuloEstado(a.estado)}</Badge>
+                </td>
+                <td className="whitespace-nowrap text-right">
+                  <Button size="sm" variant="ghost" onClick={() => onEditar(a)} aria-label={`Editar apólice ${a.numero_apolice}`}>Editar</Button>
                 </td>
               </tr>
             ))}

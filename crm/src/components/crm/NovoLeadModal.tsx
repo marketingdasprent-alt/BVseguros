@@ -1,96 +1,79 @@
 import { useState, type FormEvent } from 'react'
+import { UserCheck } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
-import { RAMOS } from '@/lib/types'
-import type { LeadInsert, Ramo } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
+import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
+import { RAMOS } from '@/lib/types'
+import type { Lead, LeadEdicao, Ramo } from '@/lib/types'
 
 interface NovoLeadModalProps {
   aCriar: boolean
   onFechar: () => void
-  onCriar: (lead: LeadInsert) => Promise<void>
+  onCriar: (lead: LeadEdicao) => Promise<void>
+  // Só em edição:
+  inicial?: Lead
+  onApagar?: () => void
+  onConverter?: () => void
 }
 
-export function NovoLeadModal({ aCriar, onFechar, onCriar }: NovoLeadModalProps) {
-  const [nome, setNome] = useState('')
-  const [telefone, setTelefone] = useState('')
-  const [email, setEmail] = useState('')
-  const [ramo, setRamo] = useState<Ramo>('auto')
+export function NovoLeadModal({ aCriar, onFechar, onCriar, inicial, onApagar, onConverter }: NovoLeadModalProps) {
+  const [nome, setNome] = useState(inicial?.nome ?? '')
+  const [telefone, setTelefone] = useState(inicial?.telefone ?? '')
+  const [email, setEmail] = useState(inicial?.email ?? '')
+  const [ramo, setRamo] = useState<Ramo>(inicial?.ramo_interesse ?? 'auto')
+  const [notas, setNotas] = useState(inicial?.notas ?? '')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     await onCriar({
-      nome,
-      telefone,
-      email: email || null,
+      nome: nome.trim(),
+      telefone: telefone.trim(),
+      email: email.trim() || null,
       ramo_interesse: ramo,
-      estado: 'novo',
-      notas: null,
+      notas: notas.trim() || null,
     })
   }
 
   return (
-    <Modal title="Novo lead" onClose={onFechar} busy={aCriar}>
+    <Modal title={inicial ? 'Editar lead' : 'Novo lead'} onClose={onFechar} busy={aCriar}>
       <form onSubmit={handleSubmit} className="space-y-5">
+        {inicial?.mensagem && (
+          <div className="rounded-lg bg-sand p-3 text-sm">
+            <p className="text-xs font-medium text-muted">Mensagem enviada pelo site</p>
+            <p className="mt-1 whitespace-pre-line text-ink">{inicial.mensagem}</p>
+          </div>
+        )}
 
-
-        <Campo label="Nome" value={nome} onChange={setNome} required />
-        <Campo label="Telefone" value={telefone} onChange={setTelefone} required />
-        <Campo label="Email" value={email} onChange={setEmail} type="email" />
-
-        <label className="block min-w-0 space-y-2">
-          <span className="block text-xs font-medium text-ink">Ramo de interesse</span>
-          <select
-            value={ramo}
-            onChange={(e) => setRamo(e.target.value as Ramo)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-          >
+        <Campo label="Nome" required>
+          <input required value={nome} onChange={(e) => setNome(e.target.value)} className={CLASSE_INPUT} />
+        </Campo>
+        <Campo label="Telefone" required>
+          <input required value={telefone} onChange={(e) => setTelefone(e.target.value)} className={CLASSE_INPUT} />
+        </Campo>
+        <Campo label="Email">
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={CLASSE_INPUT} />
+        </Campo>
+        <Campo label="Ramo de interesse">
+          <select value={ramo} onChange={(e) => setRamo(e.target.value as Ramo)} className={CLASSE_INPUT}>
             {RAMOS.map((r) => (
               <option key={r.valor} value={r.valor}>
                 {r.rotulo}
               </option>
             ))}
           </select>
-        </label>
+        </Campo>
+        <Campo label="Notas">
+          <textarea rows={3} value={notas} onChange={(e) => setNotas(e.target.value)} className={CLASSE_INPUT} />
+        </Campo>
 
-        <div className="flex gap-2 pt-2">
-          <Button type="button" variant="secondary" disabled={aCriar} onClick={onFechar} className="flex-1">
-            Cancelar
+        {onConverter && (
+          <Button type="button" variant="secondary" icon={<UserCheck />} disabled={aCriar} onClick={onConverter} className="w-full">
+            Converter em cliente
           </Button>
-          <Button type="submit" loading={aCriar} className="flex-1">
-            Criar lead
-          </Button>
-        </div>
+        )}
+
+        <RodapeFormulario aGuardar={aCriar} textoGuardar={inicial ? 'Guardar alterações' : 'Criar lead'} onCancelar={onFechar} onApagar={onApagar} />
       </form>
     </Modal>
-  )
-}
-
-function Campo({
-  label,
-  value,
-  onChange,
-  type = 'text',
-  required,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  type?: string
-  required?: boolean
-}) {
-  return (
-    <label className="block min-w-0 space-y-2">
-      <span className="block text-xs font-medium text-ink">
-        {label}
-        {required && <span className="text-danger"> *</span>}
-      </span>
-      <input
-        type={type}
-        required={required}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-      />
-    </label>
   )
 }

@@ -1,4 +1,4 @@
-import { KanbanCard } from '@/components/crm/KanbanCard'
+import { KanbanCard, semArrasto, CLASSE_ACAO_CARTAO } from '@/components/crm/KanbanCard'
 import { Badge } from '@/components/ui/Badge'
 import { RAMOS } from '@/lib/types'
 import type { Proposta } from '@/lib/types'
@@ -7,9 +7,10 @@ import { formatarMoeda } from '@/lib/format'
 interface PropostaCardProps {
   proposta: Proposta
   nomeOrigem: string
+  onEditar: (proposta: Proposta) => void
 }
 
-export function PropostaCard({ proposta, nomeOrigem }: PropostaCardProps) {
+export function PropostaCard({ proposta, nomeOrigem, onEditar }: PropostaCardProps) {
   const ramoRotulo = RAMOS.find((r) => r.valor === proposta.ramo)?.rotulo ?? proposta.ramo
 
   return (
@@ -24,6 +25,11 @@ export function PropostaCard({ proposta, nomeOrigem }: PropostaCardProps) {
           Prémio estimado: {formatarMoeda(proposta.premio_anual_estimado)}
         </p>
       )}
+      <div className="flex justify-end border-t border-border pt-2 text-xs">
+        <button type="button" {...semArrasto} onClick={() => onEditar(proposta)} className={CLASSE_ACAO_CARTAO} aria-label={`Editar proposta de ${nomeOrigem}`}>
+          Editar
+        </button>
+      </div>
     </KanbanCard>
   )
 }

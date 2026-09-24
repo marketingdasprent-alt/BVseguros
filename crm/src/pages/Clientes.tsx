@@ -6,14 +6,16 @@ import { NovoClienteForm } from '@/components/crm/NovoClienteForm'
 import { ClientesTable } from '@/components/crm/ClientesTable'
 import { FiltroResponsavel } from '@/components/crm/FiltroResponsavel'
 import { AtribuirResponsavelModal } from '@/components/crm/AtribuirResponsavelModal'
+import { ClienteFormModal } from '@/components/crm/ClienteFormModal'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
-import { useClientes, criarCliente, atribuirCliente } from '@/hooks/useClientes'
+import { useClientes, criarCliente, atribuirCliente, atualizarCliente, apagarCliente } from '@/hooks/useClientes'
+import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { useEquipa } from '@/hooks/useEquipa'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
-import type { Cliente, ClienteInsert } from '@/lib/types'
+import type { Cliente, ClienteEdicao, ClienteInsert } from '@/lib/types'
 import { mensagemErro } from '@/lib/erros'
 import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
 
@@ -28,6 +30,9 @@ export default function Clientes() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [aAtribuir, setAAtribuir] = useState<Cliente | null>(null)
   const [aGuardarResponsavel, setAGuardarResponsavel] = useState(false)
+  const [aEditar, setAEditar] = useState<Cliente | null>(null)
+  const [aGuardarEdicao, setAGuardarEdicao] = useState(false)
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
   const filtro = lerFiltroResponsavel(searchParams.get('responsavel'))
 
   const clientesFiltrados = useMemo(() => {
@@ -42,6 +47,30 @@ export default function Clientes() {
         (c.nif ?? '').toLowerCase().includes(termo),
     )
   }, [clientes, busca, filtro, profile?.id])
+
+  const handleEditar = async (cliente: Cliente, dados: ClienteEdicao) => {
+    setAGuardarEdicao(true)
+    try {
+      await atualizarCliente(cliente.id, dados)
+      await recarregar()
+      setAEditar(null)
+      toast({ title: 'Cliente atualizado' })
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao guardar cliente', description: mensagemErro(err), variant: 'destructive' })
+    } finally {
+      setAGuardarEdicao(false)
+    }
+  }
+
+  const handlePedirApagar = (cliente: Cliente) => {
+    setAEditar(null)
+    pedirConfirmacao({
+      titulo: 'Cliente',
+      nome: cliente.nome,
+      aviso: 'As apólices, renovações, sinistros, propostas e atividades deste cliente também são apagadas.',
+      apagar: () => apagarCliente(cliente.id),
+    })
+  }
 
   const handleAtribuir = async (cliente: Cliente, responsavelId: string | null) => {
     setAGuardarResponsavel(true)
@@ -117,10 +146,25 @@ export default function Clientes() {
               podeAtribuir={isAdmin}
               onAtribuir={setAAtribuir}
               onAssumir={(c) => profile && handleAtribuir(c, profile.id)}
+              onEditar={setAEditar}
             />
           )}
         </>
       )}
+
+      {aEditar && (
+        <ClienteFormModal
+          titulo="Editar cliente"
+          inicial={aEditar}
+          textoGuardar="Guardar alterações"
+          aGuardar={aGuardarEdicao}
+          onFechar={() => setAEditar(null)}
+          onGuardar={(dados) => handleEditar(aEditar, dados)}
+          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+        />
+      )}
+
+      {modalApagar}
 
       {aAtribuir && (
         <AtribuirResponsavelModal

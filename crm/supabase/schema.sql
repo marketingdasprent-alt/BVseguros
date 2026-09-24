@@ -496,7 +496,7 @@ create table if not exists public.eventos_acesso (
   perfil_id uuid references public.profiles(id) on delete set null,
   perfil_nome text not null,
   alteracao text not null constraint eventos_acesso_alteracao_check
-    check (alteracao in ('acesso_dado', 'acesso_retirado', 'tornado_admin', 'tornado_mediador', 'nome_alterado')),
+    check (alteracao in ('acesso_dado', 'acesso_retirado', 'tornado_admin', 'tornado_mediador', 'nome_alterado', 'convidado', 'excluido')),
   realizado_por uuid references public.profiles(id) on delete set null,
   realizado_por_nome text,
   nome_anterior text,
@@ -541,6 +541,94 @@ drop trigger if exists auditar_acesso on public.profiles;
 create trigger auditar_acesso
   after update on public.profiles
   for each row execute function public.auditar_acesso();
+
+-- ============================================================
+-- converter_lead: cria o cliente, passa-lhe propostas e atividades do lead
+-- e marca o lead como convertido, tudo na mesma transação. security invoker:
+-- a RLS e o trigger de responsável aplicam-se a quem chama.
+-- ============================================================
+create or replace function public.converter_lead(
+  p_lead_id uuid,
+  p_atualizado_em timestamptz,
+  p_nome text,
+  p_telefone text,
+  p_email text,
+  p_nif text,
+  p_morada text
+)
+returns public.clientes
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_lead public.leads;
+  v_cliente public.clientes;
+begin
+  if not public.is_active_user() then
+    raise exception 'Sem permissão.';
+  end if;
+
+  select * into v_lead from public.leads where id = p_lead_id for update;
+  if not found then
+    raise exception 'CONFLITO: Este lead já não existe. Atualiza a página.';
+  end if;
+  if v_lead.atualizado_em is distinct from p_atualizado_em then
+    raise exception 'CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.';
+  end if;
+  if exists (select 1 from public.clientes where lead_origem_id = p_lead_id) then
+    raise exception 'CONFLITO: Este lead já foi convertido em cliente.';
+  end if;
+
+  insert into public.clientes (nome, telefone, email, nif, morada, lead_origem_id)
+  values (
+    btrim(p_nome),
+    btrim(p_telefone),
+    nullif(btrim(coalesce(p_email, '')), ''),
+    nullif(btrim(coalesce(p_nif, '')), ''),
+    nullif(btrim(coalesce(p_morada, '')), ''),
+    p_lead_id
+  )
+  returning * into v_cliente;
+
+  -- Sem isto, apagar o lead mais tarde levava as propostas em cascata.
+  update public.propostas set cliente_id = v_cliente.id, lead_id = null where lead_id = p_lead_id;
+  update public.atividades set cliente_id = v_cliente.id where lead_id = p_lead_id and cliente_id is null;
+  update public.leads set estado = 'convertido', atualizado_em = now() where id = p_lead_id;
+
+  return v_cliente;
+end;
+$$;
+
+revoke all on function public.converter_lead(uuid, timestamptz, text, text, text, text, text) from public;
+grant execute on function public.converter_lead(uuid, timestamptz, text, text, text, text, text) to authenticated;
+
+-- ============================================================
+-- Excluir contas (api/utilizadores.js): nunca o último admin ativo.
+-- ============================================================
+-- A API apaga a conta em auth.users e o perfil vai em cascata; este trigger corre
+-- nessa cascata e cancela tudo se fosse o último admin ativo.
+create or replace function public.proteger_ultimo_admin()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if old.is_admin and old.ativo then
+    perform pg_advisory_xact_lock(hashtext('bv_profiles_admins'));
+    if not exists (select 1 from public.profiles where is_admin and ativo and id <> old.id) then
+      raise exception 'CONFLITO: Tem de existir pelo menos um administrador ativo.';
+    end if;
+  end if;
+  return old;
+end;
+$$;
+
+drop trigger if exists proteger_ultimo_admin on public.profiles;
+create trigger proteger_ultimo_admin
+  before delete on public.profiles
+  for each row execute function public.proteger_ultimo_admin();
 
 -- Supabase serve a API a partir de uma cache do desenho da base.
 -- Sem isto, colunas/tabelas novas podem devolver "column not found" até a cache recarregar.

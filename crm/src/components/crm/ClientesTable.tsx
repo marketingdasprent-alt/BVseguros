@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import type { Cliente } from '@/lib/types'
 
 interface ClientesTableProps {
@@ -6,9 +7,10 @@ interface ClientesTableProps {
   podeAtribuir: boolean
   onAtribuir: (cliente: Cliente) => void
   onAssumir: (cliente: Cliente) => void
+  onEditar: (cliente: Cliente) => void
 }
 
-export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, onAssumir }: ClientesTableProps) {
+export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, onAssumir, onEditar }: ClientesTableProps) {
   return (
     <div className="table-panel">
       <div className="data-panel-heading">Carteira de clientes<span>{clientes.length} {clientes.length === 1 ? 'registo' : 'registos'}</span></div>
@@ -31,6 +33,7 @@ export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, o
               <th className="font-semibold uppercase whitespace-nowrap">
                 Responsável
               </th>
+              <th className="font-semibold uppercase whitespace-nowrap"><span className="sr-only">Ações</span></th>
             </tr>
           </thead>
           <tbody>
@@ -52,6 +55,9 @@ export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, o
                       {podeAtribuir ? 'Atribuir' : 'Assumir'}
                     </button>
                   )}
+                </td>
+                <td className="whitespace-nowrap text-right">
+                  <Button size="sm" variant="ghost" onClick={() => onEditar(c)} aria-label={`Editar ${c.nome}`}>Editar</Button>
                 </td>
               </tr>
             ))}

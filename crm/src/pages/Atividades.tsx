@@ -6,21 +6,25 @@ import { NovaAtividadeForm } from '@/components/crm/NovaAtividadeForm'
 import { AtividadesTable } from '@/components/crm/AtividadesTable'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { useAtividades, criarAtividade, marcarConcluida } from '@/hooks/useAtividades'
+import { useAtividades, criarAtividade, marcarConcluida, atualizarAtividade, apagarAtividade } from '@/hooks/useAtividades'
+import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
+import { mensagemErro } from '@/lib/erros'
 import { useLeads } from '@/hooks/useLeads'
 import { useClientes } from '@/hooks/useClientes'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
-import type { Atividade, AtividadeInsert } from '@/lib/types'
+import type { Atividade, AtividadeEdicao, AtividadeInsert } from '@/lib/types'
 
 export default function Atividades() {
   const { data: atividades, isLoading, error, recarregar } = useAtividades()
   const { data: leads, isLoading: leadsCarregando } = useLeads()
   const { data: clientes, isLoading: clientesCarregando } = useClientes()
-  const { profile } = useAuth()
+  const { profile, isAdmin } = useAuth()
   const { toast } = useToast()
   const [aCriar, setACriar] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [aEditar, setAEditar] = useState<Atividade | null>(null)
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const handleCriar = async (atividade: AtividadeInsert) => {
     setACriar(true)
@@ -46,6 +50,27 @@ export default function Atividades() {
       const mensagem = err instanceof Error ? err.message : 'Erro inesperado'
       toast({ title: 'Erro ao atualizar atividade', description: mensagem, variant: 'destructive' })
     }
+  }
+
+  const handleEditar = async (atividade: Atividade, dados: AtividadeEdicao) => {
+    setACriar(true)
+    try {
+      await atualizarAtividade(atividade.id, dados)
+      await recarregar()
+      setAEditar(null)
+      toast({ title: 'Atividade atualizada' })
+      return true
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao guardar atividade', description: mensagemErro(err), variant: 'destructive' })
+      return false
+    } finally {
+      setACriar(false)
+    }
+  }
+
+  const handlePedirApagar = (atividade: Atividade) => {
+    setAEditar(null)
+    pedirConfirmacao({ titulo: 'Atividade', nome: atividade.titulo, apagar: () => apagarAtividade(atividade.id) })
   }
 
   const carregando = isLoading || leadsCarregando || clientesCarregando
@@ -77,8 +102,25 @@ export default function Atividades() {
           leads={leads}
           clientes={clientes}
           onAlternarConcluida={handleAlternarConcluida}
+          onEditar={setAEditar}
         />
       )}
+
+      {aEditar && (
+        <NovaAtividadeForm
+          inicial={aEditar}
+          leads={leads}
+          clientes={clientes}
+          responsavelId={aEditar.responsavel_id}
+          aCriar={aCriar}
+          onCriar={handleCriar}
+          onGuardar={(dados) => handleEditar(aEditar, dados)}
+          onCancelar={() => setAEditar(null)}
+          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+        />
+      )}
+
+      {modalApagar}
     </div>
   )
 }

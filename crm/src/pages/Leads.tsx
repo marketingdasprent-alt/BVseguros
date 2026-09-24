@@ -5,16 +5,18 @@ import { Plus } from 'lucide-react'
 import { KanbanBoard } from '@/components/crm/KanbanBoard'
 import { LeadCard } from '@/components/crm/LeadCard'
 import { NovoLeadModal } from '@/components/crm/NovoLeadModal'
+import { ConverterLeadModal } from '@/components/crm/ConverterLeadModal'
 import { FiltroResponsavel } from '@/components/crm/FiltroResponsavel'
 import { AtribuirResponsavelModal } from '@/components/crm/AtribuirResponsavelModal'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
-import { useLeads, criarLead, atualizarEstadoLead, atribuirLead } from '@/hooks/useLeads'
+import { useLeads, criarLead, atualizarEstadoLead, atribuirLead, atualizarLead, apagarLead, converterLead } from '@/hooks/useLeads'
 import { useEquipa } from '@/hooks/useEquipa'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
+import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { ESTADOS_LEAD } from '@/lib/types'
-import type { EstadoLead, Lead, LeadInsert } from '@/lib/types'
+import type { ClienteEdicao, EstadoLead, Lead, LeadEdicao } from '@/lib/types'
 import { TONE_ESTADO_LEAD } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
 import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
@@ -24,16 +26,39 @@ export default function Leads() {
   const { ativos, nomePorId } = useEquipa()
   const { profile, isAdmin } = useAuth()
   const { toast } = useToast()
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
   const [searchParams, setSearchParams] = useSearchParams()
   const [modalAberto, setModalAberto] = useState(false)
-  const [aCriar, setACriar] = useState(false)
+  const [aEditar, setAEditar] = useState<Lead | null>(null)
+  const [aConverter, setAConverter] = useState<Lead | null>(null)
   const [aAtribuir, setAAtribuir] = useState<Lead | null>(null)
-  const [aGuardarResponsavel, setAGuardarResponsavel] = useState(false)
+  const [aGuardar, setAGuardar] = useState(false)
 
   const filtro = lerFiltroResponsavel(searchParams.get('responsavel'))
   const leadsFiltrados = useMemo(() => filtrarPorResponsavel(leads, filtro, profile?.id ?? null), [leads, filtro, profile?.id])
 
+  // Corre a gravação com o estado de "a guardar" e o toast de erro comuns a todos os modais.
+  const guardar = async (acao: () => Promise<unknown>, sucesso: string, tituloErro: string, fechar: () => void) => {
+    setAGuardar(true)
+    try {
+      await acao()
+      await recarregar()
+      fechar()
+      toast({ title: sucesso })
+    } catch (err: unknown) {
+      toast({ title: tituloErro, description: mensagemErro(err), variant: 'destructive' })
+      await recarregar()
+    } finally {
+      setAGuardar(false)
+    }
+  }
+
   const handleMudarEstado = async (id: string, estado: EstadoLead, atualizadoEm: string) => {
+    // Converter liga o lead a um cliente; por isso abre o formulário em vez de só mover.
+    if (estado === 'convertido') {
+      setAConverter(leads.find((l) => l.id === id) ?? null)
+      return
+    }
     try {
       await atualizarEstadoLead(id, estado, atualizadoEm)
       await recarregar()
@@ -43,33 +68,30 @@ export default function Leads() {
     }
   }
 
-  const handleCriar = async (lead: LeadInsert) => {
-    setACriar(true)
-    try {
-      await criarLead(lead)
-      await recarregar()
-      setModalAberto(false)
-      toast({ title: 'Lead criado com sucesso' })
-    } catch (err: unknown) {
-      toast({ title: 'Erro ao criar lead', description: mensagemErro(err), variant: 'destructive' })
-    } finally {
-      setACriar(false)
-    }
-  }
+  const handleCriar = (dados: LeadEdicao) =>
+    guardar(() => criarLead({ ...dados, estado: 'novo' }), 'Lead criado com sucesso', 'Erro ao criar lead', () => setModalAberto(false))
 
-  const handleAtribuir = async (lead: Lead, responsavelId: string | null) => {
-    setAGuardarResponsavel(true)
-    try {
-      await atribuirLead(lead.id, responsavelId, lead.atualizado_em)
-      await recarregar()
-      setAAtribuir(null)
-      toast({ title: responsavelId === profile?.id ? 'Lead assumido' : 'Responsável atualizado' })
-    } catch (err: unknown) {
-      toast({ title: 'Erro ao atribuir lead', description: mensagemErro(err), variant: 'destructive' })
-      await recarregar()
-    } finally {
-      setAGuardarResponsavel(false)
-    }
+  const handleEditar = (lead: Lead, dados: LeadEdicao) =>
+    guardar(() => atualizarLead(lead.id, dados, lead.atualizado_em), 'Lead atualizado', 'Erro ao guardar lead', () => setAEditar(null))
+
+  const handleConverter = (lead: Lead, dados: ClienteEdicao) =>
+    guardar(() => converterLead(lead, dados), 'Lead convertido em cliente', 'Erro ao converter lead', () => setAConverter(null))
+
+  const handleSoMarcarConvertido = (lead: Lead) =>
+    guardar(() => atualizarEstadoLead(lead.id, 'convertido', lead.atualizado_em), 'Lead marcado como convertido', 'Erro ao mover lead', () => setAConverter(null))
+
+  const handleAtribuir = (lead: Lead, responsavelId: string | null) =>
+    guardar(() => atribuirLead(lead.id, responsavelId, lead.atualizado_em),
+      responsavelId === profile?.id ? 'Lead assumido' : 'Responsável atualizado', 'Erro ao atribuir lead', () => setAAtribuir(null))
+
+  const handlePedirApagar = (lead: Lead) => {
+    setAEditar(null)
+    pedirConfirmacao({
+      titulo: 'Lead',
+      nome: lead.nome,
+      aviso: 'As propostas e atividades deste lead também são apagadas. Se já foi convertido, o cliente mantém-se.',
+      apagar: () => apagarLead(lead.id),
+    })
   }
 
   return (
@@ -98,6 +120,7 @@ export default function Leads() {
                 podeAtribuir={isAdmin}
                 onAssumir={(l) => profile && handleAtribuir(l, profile.id)}
                 onAtribuir={setAAtribuir}
+                onEditar={setAEditar}
               />
             )}
             vazioTexto="Sem leads"
@@ -105,8 +128,27 @@ export default function Leads() {
         </>
       )}
 
-      {modalAberto && (
-        <NovoLeadModal aCriar={aCriar} onFechar={() => setModalAberto(false)} onCriar={handleCriar} />
+      {modalAberto && <NovoLeadModal aCriar={aGuardar} onFechar={() => setModalAberto(false)} onCriar={handleCriar} />}
+
+      {aEditar && (
+        <NovoLeadModal
+          inicial={aEditar}
+          aCriar={aGuardar}
+          onFechar={() => setAEditar(null)}
+          onCriar={(dados) => handleEditar(aEditar, dados)}
+          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+          onConverter={aEditar.estado !== 'convertido' ? () => { setAConverter(aEditar); setAEditar(null) } : undefined}
+        />
+      )}
+
+      {aConverter && (
+        <ConverterLeadModal
+          lead={aConverter}
+          aGuardar={aGuardar}
+          onFechar={() => setAConverter(null)}
+          onConverter={(dados) => handleConverter(aConverter, dados)}
+          onSoMarcarConvertido={() => handleSoMarcarConvertido(aConverter)}
+        />
       )}
 
       {aAtribuir && (
@@ -114,11 +156,13 @@ export default function Leads() {
           nomeRegisto={aAtribuir.nome}
           responsavelAtual={aAtribuir.responsavel_id}
           membros={ativos}
-          aGuardar={aGuardarResponsavel}
+          aGuardar={aGuardar}
           onFechar={() => setAAtribuir(null)}
           onConfirmar={(responsavelId) => handleAtribuir(aAtribuir, responsavelId)}
         />
       )}
+
+      {modalApagar}
     </div>
   )
 }

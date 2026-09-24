@@ -2,15 +2,17 @@ import { TIPOS_ATIVIDADE } from '@/lib/types'
 import type { Atividade, Cliente, Lead } from '@/lib/types'
 import { Badge } from '@/components/ui/Badge'
 import { formatarData } from '@/lib/format'
+import { Button } from '@/components/ui/Button'
 
 interface AtividadesTableProps {
   atividades: Atividade[]
   leads: Lead[]
   clientes: Cliente[]
   onAlternarConcluida: (atividade: Atividade) => void
+  onEditar: (atividade: Atividade) => void
 }
 
-export function AtividadesTable({ atividades, leads, clientes, onAlternarConcluida }: AtividadesTableProps) {
+export function AtividadesTable({ atividades, leads, clientes, onAlternarConcluida, onEditar }: AtividadesTableProps) {
   const nomeLigacao = (a: Atividade) => {
     if (a.lead_id) return leads.find((l) => l.id === a.lead_id)?.nome ?? '—'
     if (a.cliente_id) return clientes.find((c) => c.id === a.cliente_id)?.nome ?? '—'
@@ -31,6 +33,7 @@ export function AtividadesTable({ atividades, leads, clientes, onAlternarConclui
               <th className="font-semibold uppercase whitespace-nowrap">Associado a</th>
               <th className="font-semibold uppercase whitespace-nowrap">Prazo</th>
               <th className="font-semibold uppercase whitespace-nowrap">Estado</th>
+              <th className="font-semibold uppercase whitespace-nowrap"><span className="sr-only">Ações</span></th>
             </tr>
           </thead>
           <tbody>
@@ -54,6 +57,9 @@ export function AtividadesTable({ atividades, leads, clientes, onAlternarConclui
                     ) : (
                       '—'
                     )}
+                  </td>
+                  <td className="whitespace-nowrap text-right">
+                    <Button size="sm" variant="ghost" onClick={() => onEditar(a)} aria-label={`Editar ${a.titulo}`}>Editar</Button>
                   </td>
                 </tr>
               )

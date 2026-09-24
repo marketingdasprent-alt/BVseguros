@@ -12,6 +12,7 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
   const [telefone, setTelefone] = useState('')
   const [email, setEmail] = useState('')
   const [nif, setNif] = useState('')
+  const [morada, setMorada] = useState('')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -20,7 +21,7 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
       telefone,
       email: email || null,
       nif: nif || null,
-      morada: null,
+      morada: morada.trim() || null,
       lead_origem_id: null,
     })
     if (!success) return;
@@ -28,6 +29,7 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
     setTelefone('')
     setEmail('')
     setNif('')
+    setMorada('')
   }
 
   return (
@@ -37,6 +39,7 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
       <Campo label="Telefone" value={telefone} onChange={setTelefone} required />
       <Campo label="Email" value={email} onChange={setEmail} type="email" />
       <Campo label="NIF" value={nif} onChange={setNif} />
+      <div className="col-span-full"><Campo label="Morada" value={morada} onChange={setMorada} /></div>
       <Button type="submit" loading={aCriar} className="col-span-full md:col-span-4">
         Guardar cliente
       </Button>

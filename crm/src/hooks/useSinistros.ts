@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
-import { useSupabaseTable } from '@/hooks/useSupabaseTable'
-import type { EstadoSinistro, Sinistro, SinistroInsert } from '@/lib/types'
+import { useSupabaseTable, atualizarComVersao, apagarRegisto } from '@/hooks/useSupabaseTable'
+import type { EstadoSinistro, Sinistro, SinistroEdicao, SinistroInsert } from '@/lib/types'
 
 export function useSinistros() {
   return useSupabaseTable<Sinistro>('sinistros', 'criado_em')
@@ -23,4 +23,12 @@ export async function atualizarEstadoSinistro(id: string, estado: EstadoSinistro
   if (!data || data.length === 0) {
     throw new Error('CONFLITO: este sinistro foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
   }
+}
+
+export async function atualizarSinistro(id: string, dados: SinistroEdicao, atualizadoEmEsperado: string) {
+  await atualizarComVersao('sinistros', id, dados, atualizadoEmEsperado)
+}
+
+export async function apagarSinistro(id: string) {
+  await apagarRegisto('sinistros', id)
 }

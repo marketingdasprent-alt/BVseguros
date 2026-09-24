@@ -9,9 +9,10 @@ interface UtilizadoresTableProps {
   idEmAlteracao: string | null
   onAlterar: (utilizador: Profile, alteracao: AlteracaoAcesso) => void
   onEditarNome: (utilizador: Profile) => void
+  onExcluir: (utilizador: Profile) => void
 }
 
-export function UtilizadoresTable({ utilizadores, idAtual, idEmAlteracao, onAlterar, onEditarNome }: UtilizadoresTableProps) {
+export function UtilizadoresTable({ utilizadores, idAtual, idEmAlteracao, onAlterar, onEditarNome, onExcluir }: UtilizadoresTableProps) {
   return (
     <div className="table-panel">
       <div className="data-panel-heading">Contas do CRM<span>{utilizadores.length} {utilizadores.length === 1 ? 'conta' : 'contas'}</span></div>
@@ -60,6 +61,10 @@ export function UtilizadoresTable({ utilizadores, idAtual, idEmAlteracao, onAlte
                         <Button size="sm" variant="secondary" disabled={idEmAlteracao !== null}
                           onClick={() => onAlterar(u, { is_admin: !u.is_admin })}>
                           {u.is_admin ? 'Tornar mediador' : 'Tornar administrador'}
+                        </Button>
+                        <Button size="sm" variant="ghost" disabled={idEmAlteracao !== null} onClick={() => onExcluir(u)}
+                          className="text-danger-text" aria-label={`Excluir a conta de ${u.nome}`}>
+                          Excluir
                         </Button>
                       </>
                       )}

@@ -41,6 +41,8 @@ export interface Lead {
 // o responsável é definido pela base de dados (quem cria).
 export type LeadInsert = Omit<Lead, 'id' | 'criado_em' | 'atualizado_em' | 'origem' | 'mensagem' | 'consentimento_em' | 'responsavel_id'>
 
+export type LeadEdicao = Pick<Lead, 'nome' | 'telefone' | 'email' | 'ramo_interesse' | 'notas'>
+
 export interface Cliente {
   id: string
   nome: string
@@ -54,6 +56,9 @@ export interface Cliente {
 }
 
 export type ClienteInsert = Omit<Cliente, 'id' | 'criado_em' | 'responsavel_id'>
+
+// Também são os dados pedidos ao converter um lead em cliente.
+export type ClienteEdicao = Pick<Cliente, 'nome' | 'telefone' | 'email' | 'nif' | 'morada'>
 
 export type EstadoApolice = 'ativa' | 'pendente' | 'cancelada' | 'expirada'
 
@@ -93,7 +98,7 @@ export type AlteracaoAcesso = Partial<Pick<Profile, 'ativo' | 'is_admin'>>
 // Vista da equipa sem emails, disponível a todas as contas ativas (listar_equipa).
 export type MembroEquipa = Pick<Profile, 'id' | 'nome' | 'ativo'>
 
-export type AlteracaoRegistada = 'acesso_dado' | 'acesso_retirado' | 'tornado_admin' | 'tornado_mediador' | 'nome_alterado'
+export type AlteracaoRegistada = 'acesso_dado' | 'acesso_retirado' | 'tornado_admin' | 'tornado_mediador' | 'nome_alterado' | 'convidado' | 'excluido'
 
 export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
   acesso_dado: 'deu acesso a',
@@ -101,6 +106,8 @@ export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
   tornado_admin: 'tornou administrador',
   tornado_mediador: 'tornou mediador',
   nome_alterado: 'mudou o nome para',
+  convidado: 'convidou',
+  excluido: 'excluiu a conta de',
 }
 
 export interface EventoAcesso {
@@ -138,6 +145,9 @@ export interface Proposta {
 }
 
 export type PropostaInsert = Omit<Proposta, 'id' | 'criado_em' | 'atualizado_em'>
+
+// A origem (lead ou cliente) não muda depois de criada.
+export type PropostaEdicao = Pick<Proposta, 'ramo' | 'seguradora' | 'premio_anual_estimado' | 'coberturas' | 'notas'>
 
 export type EstadoRenovacao = 'pendente' | 'contactado' | 'renovada' | 'nao_renovada'
 
@@ -186,6 +196,8 @@ export interface Sinistro {
 
 export type SinistroInsert = Omit<Sinistro, 'id' | 'criado_em' | 'atualizado_em'>
 
+export type SinistroEdicao = Omit<SinistroInsert, 'apolice_id' | 'estado'>
+
 export type TipoAtividade = 'chamada' | 'email' | 'reuniao' | 'tarefa' | 'nota'
 
 export const TIPOS_ATIVIDADE: { valor: TipoAtividade; rotulo: string }[] = [
@@ -211,3 +223,5 @@ export interface Atividade {
 }
 
 export type AtividadeInsert = Omit<Atividade, 'id' | 'criado_em'>
+
+export type AtividadeEdicao = Pick<Atividade, 'tipo' | 'titulo' | 'notas' | 'lead_id' | 'cliente_id' | 'data_prevista'>

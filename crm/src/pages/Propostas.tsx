@@ -6,12 +6,14 @@ import { PropostaCard } from '@/components/crm/PropostaCard'
 import { NovaPropostaModal } from '@/components/crm/NovaPropostaModal'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
-import { usePropostas, criarProposta, atualizarEstadoProposta } from '@/hooks/usePropostas'
+import { usePropostas, criarProposta, atualizarEstadoProposta, atualizarProposta, apagarProposta } from '@/hooks/usePropostas'
+import { useAuth } from '@/hooks/useAuth'
+import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { useLeads } from '@/hooks/useLeads'
 import { useClientes } from '@/hooks/useClientes'
 import { useToast } from '@/hooks/useToast'
 import { ESTADOS_PROPOSTA } from '@/lib/types'
-import type { EstadoProposta, Proposta, PropostaInsert } from '@/lib/types'
+import type { EstadoProposta, Proposta, PropostaEdicao, PropostaInsert } from '@/lib/types'
 import { TONE_ESTADO_PROPOSTA } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
 
@@ -22,6 +24,9 @@ export default function Propostas() {
   const { toast } = useToast()
   const [modalAberto, setModalAberto] = useState(false)
   const [aCriar, setACriar] = useState(false)
+  const [aEditar, setAEditar] = useState<Proposta | null>(null)
+  const { isAdmin } = useAuth()
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const nomeOrigem = (proposta: Proposta) => {
     if (proposta.lead_id) return leads.find((l) => l.id === proposta.lead_id)?.nome ?? '—'
@@ -56,6 +61,26 @@ export default function Propostas() {
     }
   }
 
+  const handleEditar = async (proposta: Proposta, dados: PropostaEdicao) => {
+    setACriar(true)
+    try {
+      await atualizarProposta(proposta.id, dados, proposta.atualizado_em)
+      await recarregar()
+      setAEditar(null)
+      toast({ title: 'Proposta atualizada' })
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao guardar proposta', description: mensagemErro(err), variant: 'destructive' })
+      await recarregar()
+    } finally {
+      setACriar(false)
+    }
+  }
+
+  const handlePedirApagar = (proposta: Proposta) => {
+    setAEditar(null)
+    pedirConfirmacao({ titulo: 'Proposta', nome: `a proposta de ${nomeOrigem(proposta)} (${proposta.seguradora})`, apagar: () => apagarProposta(proposta.id) })
+  }
+
   const carregando = isLoading || leadsCarregando || clientesCarregando
 
   return (
@@ -75,7 +100,7 @@ export default function Propostas() {
           getAtualizadoEm={(p) => p.atualizado_em}
           getTone={(estado) => TONE_ESTADO_PROPOSTA[estado as EstadoProposta]}
           onMudarEstado={(id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoProposta, atualizadoEm)}
-          renderCard={(p) => <PropostaCard proposta={p} nomeOrigem={nomeOrigem(p)} />}
+          renderCard={(p) => <PropostaCard proposta={p} nomeOrigem={nomeOrigem(p)} onEditar={setAEditar} />}
           vazioTexto="Sem propostas"
         />
       )}
@@ -89,6 +114,22 @@ export default function Propostas() {
           onCriar={handleCriar}
         />
       )}
+
+      {aEditar && (
+        <NovaPropostaModal
+          leads={leads}
+          clientes={clientes}
+          inicial={aEditar}
+          nomeOrigem={nomeOrigem(aEditar)}
+          aCriar={aCriar}
+          onFechar={() => setAEditar(null)}
+          onCriar={handleCriar}
+          onGuardar={(dados) => handleEditar(aEditar, dados)}
+          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+        />
+      )}
+
+      {modalApagar}
     </div>
   )
 }

@@ -62,9 +62,13 @@ Já implementado:
   `ativo`/`is_admin`)
 - Dashboard com KPIs, pipeline, prioridades e actividade recente
 - Leads (Kanban com drag-and-drop; leads vindos do site com selo "Site" e mensagem)
-- Propostas, Clientes, Apólices, Renovações, Sinistros e Actividades
-- Utilizadores (só admins): editar nome, dar/retirar acesso, tornar
-  administrador/mediador e histórico de quem alterou o quê
+- Propostas, Clientes, Apólices, Renovações, Sinistros e Actividades, todos com
+  criar, editar e (só admin) apagar com confirmação
+- Conversão de lead em cliente (uma transação: cria o cliente ligado ao lead, passa-lhe
+  propostas e actividades, marca o lead como convertido)
+- Utilizadores (só admins): convidar e excluir contas pelo CRM (`crm/api/utilizadores.js`),
+  editar nome, dar/retirar acesso, tornar administrador/mediador e histórico de quem
+  alterou o quê. Excluir não apaga dados: o que era da pessoa fica sem responsável.
 - Responsável por lead e por cliente, com filtro "Os meus" / "Sem responsável"
 - RLS em todas as tabelas desde a primeira migration
 
@@ -73,7 +77,9 @@ Permissões actuais (modelo da Razão Dinâmica, sem o isolamento por carteira):
 | Acção | Mediador | Admin |
 | --- | --- | --- |
 | Ver e editar leads, clientes, apólices, etc. | Tudo (carteira partilhada) | Tudo |
-| Apagar registos | Não | Sim (ainda sem botão no ecrã) |
+| Apagar registos | Não | Sim |
+| Converter lead em cliente | Sim | Sim |
+| Convidar e excluir contas | Não | Sim |
 | Assumir um lead/cliente sem responsável | Sim | Sim |
 | Atribuir ou passar a outro responsável | Não | Sim |
 | Gerir contas e ver o histórico de acessos | Não | Sim |
@@ -124,10 +130,9 @@ Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo
 ## 6. Próximos passos
 
 1. Ligar o projecto `bvseguros-crm` ao GitHub na Vercel e criar o projecto do site.
-2. Correr `crm/supabase/migrations/2026-09-24_nome_utilizador.sql` no Supabase
-   (as anteriores, `gestao_utilizadores` e `permissoes`, já foram aplicadas). Convidar contas
-   directamente pelo CRM fica para depois (precisa de função serverless com a
-   service-role key); por agora convida-se no painel do Supabase.
+2. Correr `crm/supabase/migrations/2026-09-24_excluir_utilizador.sql` no Supabase (as
+   anteriores já foram aplicadas) e pôr `SUPABASE_SERVICE_ROLE_KEY` nas variáveis do
+   projecto `bvseguros-crm` na Vercel, para convidar e excluir contas funcionarem.
 3. Preencher os placeholders do site assim que o cliente enviar os dados.
 
 ---

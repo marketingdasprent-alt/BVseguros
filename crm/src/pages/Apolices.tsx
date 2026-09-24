@@ -6,10 +6,12 @@ import { ApolicesTable } from '@/components/crm/ApolicesTable'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
-import { useApolices, criarApolice } from '@/hooks/useApolices'
+import { useApolices, criarApolice, atualizarApolice, apagarApolice } from '@/hooks/useApolices'
+import { useAuth } from '@/hooks/useAuth'
+import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { useClientes } from '@/hooks/useClientes'
 import { useToast } from '@/hooks/useToast'
-import type { ApoliceInsert } from '@/lib/types'
+import type { Apolice, ApoliceInsert } from '@/lib/types'
 import { mensagemErro } from '@/lib/erros'
 
 export default function Apolices() {
@@ -18,6 +20,9 @@ export default function Apolices() {
   const { toast } = useToast()
   const [aMostrarForm, setAMostrarForm] = useState(false)
   const [aCriar, setACriar] = useState(false)
+  const [aEditar, setAEditar] = useState<Apolice | null>(null)
+  const { isAdmin } = useAuth()
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const handleCriar = async (apolice: ApoliceInsert) => {
     setACriar(true)
@@ -33,6 +38,32 @@ export default function Apolices() {
     } finally {
       setACriar(false)
     }
+  }
+
+  const handleEditar = async (apolice: Apolice, dados: ApoliceInsert) => {
+    setACriar(true)
+    try {
+      await atualizarApolice(apolice.id, dados)
+      await recarregar()
+      setAEditar(null)
+      toast({ title: 'Apólice atualizada' })
+      return true
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao guardar apólice', description: mensagemErro(err), variant: 'destructive' })
+      return false
+    } finally {
+      setACriar(false)
+    }
+  }
+
+  const handlePedirApagar = (apolice: Apolice) => {
+    setAEditar(null)
+    pedirConfirmacao({
+      titulo: 'Apólice',
+      nome: `a apólice ${apolice.numero_apolice}`,
+      aviso: 'As renovações e os sinistros desta apólice também são apagados.',
+      apagar: () => apagarApolice(apolice.id),
+    })
   }
 
   return (
@@ -53,8 +84,21 @@ export default function Apolices() {
         </div>
       )}
       {!isLoading && !error && apolices.length > 0 && (
-        <ApolicesTable apolices={apolices} clientes={clientes} />
+        <ApolicesTable apolices={apolices} clientes={clientes} onEditar={setAEditar} />
       )}
+
+      {aEditar && (
+        <NovoApoliceForm
+          inicial={aEditar}
+          clientes={clientes}
+          aCriar={aCriar}
+          onCriar={(dados) => handleEditar(aEditar, dados)}
+          onCancelar={() => setAEditar(null)}
+          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+        />
+      )}
+
+      {modalApagar}
     </div>
   )
 }

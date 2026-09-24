@@ -1,23 +1,43 @@
 import { useState, type FormEvent } from 'react'
 import { Modal } from '@/components/ui/Modal'
-import type { Apolice, SinistroInsert } from '@/lib/types'
+import type { Apolice, Sinistro, SinistroEdicao, SinistroInsert } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
+import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
 
 interface NovoSinistroModalProps {
   apolices: Apolice[]
   aCriar: boolean
   onFechar: () => void
   onCriar: (sinistro: SinistroInsert) => Promise<void>
+  // Só em edição (a apólice não muda):
+  inicial?: Sinistro
+  onGuardar?: (dados: SinistroEdicao) => Promise<void>
+  onApagar?: () => void
 }
 
-export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar }: NovoSinistroModalProps) {
+export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial, onGuardar, onApagar }: NovoSinistroModalProps) {
   const [apoliceId, setApoliceId] = useState(apolices[0]?.id ?? '')
-  const [dataOcorrencia, setDataOcorrencia] = useState('')
-  const [descricao, setDescricao] = useState('')
-  const [valorEstimado, setValorEstimado] = useState('')
+  const [dataOcorrencia, setDataOcorrencia] = useState(inicial?.data_ocorrencia ?? '')
+  const [descricao, setDescricao] = useState(inicial?.descricao ?? '')
+  const [valorEstimado, setValorEstimado] = useState(inicial?.valor_estimado != null ? String(inicial.valor_estimado) : '')
+  const [numero, setNumero] = useState(inicial?.numero_sinistro ?? '')
+  const [valorPago, setValorPago] = useState(inicial?.valor_pago != null ? String(inicial.valor_pago) : '')
+  const [notas, setNotas] = useState(inicial?.notas ?? '')
+  const hoje = new Date().toISOString().slice(0, 10)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (inicial && onGuardar) {
+      await onGuardar({
+        numero_sinistro: numero.trim() || null,
+        data_ocorrencia: dataOcorrencia,
+        descricao: descricao.trim(),
+        valor_estimado: valorEstimado ? Number(valorEstimado) : null,
+        valor_pago: valorPago ? Number(valorPago) : null,
+        notas: notas.trim() || null,
+      })
+      return
+    }
     await onCriar({
       apolice_id: apoliceId,
       numero_sinistro: null,
@@ -30,7 +50,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar }: NovoS
     })
   }
 
-  if (apolices.length === 0) {
+  if (apolices.length === 0 && !inicial) {
     return (
       <Modal title="Novo sinistro" onClose={onFechar} busy={aCriar}>
         <div className="space-y-5">
@@ -45,10 +65,11 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar }: NovoS
   }
 
   return (
-    <Modal title="Novo sinistro" onClose={onFechar} busy={aCriar}>
+    <Modal title={inicial ? 'Editar sinistro' : 'Novo sinistro'} onClose={onFechar} busy={aCriar}>
       <form onSubmit={handleSubmit} className="space-y-5">
-
-
+        {inicial ? (
+          <p className="text-sm text-muted">Apólice <span className="text-ink">{apolices.find((a) => a.id === inicial.apolice_id)?.numero_apolice ?? '—'}</span></p>
+        ) : (
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">Apólice</span>
           <select
@@ -63,6 +84,13 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar }: NovoS
             ))}
           </select>
         </label>
+        )}
+
+        {inicial && (
+          <Campo label="Nº do sinistro na seguradora">
+            <input value={numero} onChange={(e) => setNumero(e.target.value)} className={CLASSE_INPUT} />
+          </Campo>
+        )}
 
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">
@@ -71,6 +99,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar }: NovoS
           <input
             required
             type="date"
+            max={hoje}
             value={dataOcorrencia}
             onChange={(e) => setDataOcorrencia(e.target.value)}
             className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
@@ -100,14 +129,18 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar }: NovoS
           />
         </label>
 
-        <div className="flex gap-2 pt-2">
-          <Button type="button" variant="secondary" disabled={aCriar} onClick={onFechar} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" loading={aCriar} className="flex-1">
-            Criar sinistro
-          </Button>
-        </div>
+        {inicial && (
+          <>
+            <Campo label="Valor pago (€)">
+              <input type="number" step="0.01" min="0" value={valorPago} onChange={(e) => setValorPago(e.target.value)} className={CLASSE_INPUT} />
+            </Campo>
+            <Campo label="Notas">
+              <textarea rows={3} value={notas} onChange={(e) => setNotas(e.target.value)} className={CLASSE_INPUT} />
+            </Campo>
+          </>
+        )}
+
+        <RodapeFormulario aGuardar={aCriar} textoGuardar={inicial ? 'Guardar alterações' : 'Criar sinistro'} onCancelar={onFechar} onApagar={onApagar} />
       </form>
     </Modal>
   )
