@@ -82,7 +82,10 @@ export interface Profile {
   email: string
   is_admin: boolean
   ativo: boolean
+  criado_em: string
 }
+
+export type AlteracaoAcesso = Partial<Pick<Profile, 'ativo' | 'is_admin'>>
 
 export type EstadoProposta = 'rascunho' | 'enviada' | 'aceite' | 'rejeitada'
 
