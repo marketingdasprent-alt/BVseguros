@@ -8,9 +8,10 @@ interface UtilizadoresTableProps {
   idAtual: string | null
   idEmAlteracao: string | null
   onAlterar: (utilizador: Profile, alteracao: AlteracaoAcesso) => void
+  onEditarNome: (utilizador: Profile) => void
 }
 
-export function UtilizadoresTable({ utilizadores, idAtual, idEmAlteracao, onAlterar }: UtilizadoresTableProps) {
+export function UtilizadoresTable({ utilizadores, idAtual, idEmAlteracao, onAlterar, onEditarNome }: UtilizadoresTableProps) {
   return (
     <div className="table-panel">
       <div className="data-panel-heading">Contas do CRM<span>{utilizadores.length} {utilizadores.length === 1 ? 'conta' : 'contas'}</span></div>
@@ -45,9 +46,13 @@ export function UtilizadoresTable({ utilizadores, idAtual, idEmAlteracao, onAlte
                   </td>
                   <td className="whitespace-nowrap">{formatarData(u.criado_em.slice(0, 10))}</td>
                   <td className="whitespace-nowrap">
-                    {/* Tirar o próprio acesso deixava o admin fora do CRM a meio da sessão. */}
-                    {!isProprio && (
-                      <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="ghost" disabled={idEmAlteracao !== null} onClick={() => onEditarNome(u)}>
+                        Editar nome
+                      </Button>
+                      {/* Tirar o próprio acesso deixava o admin fora do CRM a meio da sessão. */}
+                      {!isProprio && (
+                      <>
                         <Button size="sm" variant={u.ativo ? 'destructive' : 'primary'} disabled={idEmAlteracao !== null} loading={isAAlterar}
                           onClick={() => onAlterar(u, { ativo: !u.ativo })}>
                           {u.ativo ? 'Retirar acesso' : 'Dar acesso'}
@@ -56,8 +61,9 @@ export function UtilizadoresTable({ utilizadores, idAtual, idEmAlteracao, onAlte
                           onClick={() => onAlterar(u, { is_admin: !u.is_admin })}>
                           {u.is_admin ? 'Tornar mediador' : 'Tornar administrador'}
                         </Button>
-                      </div>
-                    )}
+                      </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )

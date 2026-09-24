@@ -63,8 +63,25 @@ Já implementado:
 - Dashboard com KPIs, pipeline, prioridades e actividade recente
 - Leads (Kanban com drag-and-drop; leads vindos do site com selo "Site" e mensagem)
 - Propostas, Clientes, Apólices, Renovações, Sinistros e Actividades
-- Utilizadores (só admins): dar/retirar acesso e tornar administrador/mediador
+- Utilizadores (só admins): editar nome, dar/retirar acesso, tornar
+  administrador/mediador e histórico de quem alterou o quê
+- Responsável por lead e por cliente, com filtro "Os meus" / "Sem responsável"
 - RLS em todas as tabelas desde a primeira migration
+
+Permissões actuais (modelo da Razão Dinâmica, sem o isolamento por carteira):
+
+| Acção | Mediador | Admin |
+| --- | --- | --- |
+| Ver e editar leads, clientes, apólices, etc. | Tudo (carteira partilhada) | Tudo |
+| Apagar registos | Não | Sim (ainda sem botão no ecrã) |
+| Assumir um lead/cliente sem responsável | Sim | Sim |
+| Atribuir ou passar a outro responsável | Não | Sim |
+| Gerir contas e ver o histórico de acessos | Não | Sim |
+
+Quem cria um lead ou cliente fica responsável; o cliente herda o responsável do lead
+de origem; os leads do site entram sem responsável. Se o cliente escolher carteiras
+separadas, basta trocar as políticas `_ler`/`_editar` para filtrar por
+`responsavel_id`: a coluna e as regras de atribuição já existem.
 
 ## 3. Stack tecnológico
 
@@ -98,16 +115,18 @@ Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo
 - [ ] IDs reais de GA4 e Meta Pixel (`index.html`)
 - [ ] Política de privacidade: indicar que os pedidos de contacto ficam guardados no CRM
       (Supabase, subcontratante)
-- [ ] Perfis e permissões no CRM (o mediador vê só a sua carteira ou tudo?)
+- [ ] Carteira partilhada ou própria (o mediador vê só os seus clientes ou tudo?),
+      ações só para admin (apagar, cancelar, mexer em valores) e quem trata os
+      pedidos do site. Ver a tabela de permissões na secção 2.
 - [ ] Integração WhatsApp no CRM agora ou na fase 2
 - [ ] Seguradoras parceiras (integração ou só registo manual)
 
 ## 6. Próximos passos
 
 1. Ligar o projecto `bvseguros-crm` ao GitHub na Vercel e criar o projecto do site.
-2. Correr `crm/supabase/migrations/2026-09-24_gestao_utilizadores.sql` no Supabase
-   (protege o ecrã **Utilizadores** do CRM: nunca ficar sem admin ativo). Convidar
-   contas directamente pelo CRM fica para depois (precisa de função serverless com a
+2. Correr `crm/supabase/migrations/2026-09-24_nome_utilizador.sql` no Supabase
+   (as anteriores, `gestao_utilizadores` e `permissoes`, já foram aplicadas). Convidar contas
+   directamente pelo CRM fica para depois (precisa de função serverless com a
    service-role key); por agora convida-se no painel do Supabase.
 3. Preencher os placeholders do site assim que o cliente enviar os dados.
 

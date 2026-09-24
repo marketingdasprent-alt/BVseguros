@@ -6,7 +6,9 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { UtilizadoresTable } from '@/components/crm/UtilizadoresTable'
-import { useUtilizadores, alterarAcesso } from '@/hooks/useUtilizadores'
+import { HistoricoAcessos } from '@/components/crm/HistoricoAcessos'
+import { EditarNomeModal } from '@/components/crm/EditarNomeModal'
+import { useUtilizadores, useEventosAcesso, alterarAcesso, alterarNome } from '@/hooks/useUtilizadores'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { mensagemErro } from '@/lib/erros'
@@ -25,11 +27,14 @@ function descreverAlteracao({ utilizador, alteracao }: PedidoAlteracao) {
 }
 
 export default function Utilizadores() {
-  const { isAdmin, profile } = useAuth()
+  const { isAdmin, profile, refreshProfile } = useAuth()
   const { data: utilizadores, isLoading, error, recarregar } = useUtilizadores()
+  const eventos = useEventosAcesso()
   const { toast } = useToast()
   const [pedido, setPedido] = useState<PedidoAlteracao | null>(null)
   const [idEmAlteracao, setIdEmAlteracao] = useState<string | null>(null)
+  const [aEditarNome, setAEditarNome] = useState<Profile | null>(null)
+  const [aGuardarNome, setAGuardarNome] = useState(false)
 
   // Esconder é só UX: quem garante que só um admin altera contas é a RLS de profiles.
   if (!isAdmin) return <Navigate to="/" replace />
@@ -41,13 +46,29 @@ export default function Utilizadores() {
     setIdEmAlteracao(pedido.utilizador.id)
     try {
       await alterarAcesso(pedido.utilizador.id, pedido.alteracao)
-      await recarregar()
+      await Promise.all([recarregar(), eventos.recarregar()])
       toast({ title: `${descreverAlteracao(pedido).titulo}: ${pedido.utilizador.nome}` })
       setPedido(null)
     } catch (err: unknown) {
       toast({ title: 'Erro ao alterar a conta', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setIdEmAlteracao(null)
+    }
+  }
+
+  const handleGuardarNome = async (nome: string) => {
+    if (!aEditarNome) return
+    setAGuardarNome(true)
+    try {
+      await alterarNome(aEditarNome.id, nome)
+      // O próprio nome também aparece na barra lateral, que lê o perfil do useAuth.
+      await Promise.all([recarregar(), eventos.recarregar(), aEditarNome.id === profile?.id ? refreshProfile() : null])
+      toast({ title: 'Nome atualizado' })
+      setAEditarNome(null)
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao guardar o nome', description: mensagemErro(err), variant: 'destructive' })
+    } finally {
+      setAGuardarNome(false)
     }
   }
 
@@ -80,7 +101,14 @@ export default function Utilizadores() {
           idAtual={profile?.id ?? null}
           idEmAlteracao={idEmAlteracao}
           onAlterar={(utilizador, alteracao) => setPedido({ utilizador, alteracao })}
+          onEditarNome={setAEditarNome}
         />
+      )}
+
+      <HistoricoAcessos eventos={eventos.data} isLoading={eventos.isLoading} error={eventos.error} />
+
+      {aEditarNome && (
+        <EditarNomeModal utilizador={aEditarNome} aGuardar={aGuardarNome} onFechar={() => setAEditarNome(null)} onGuardar={handleGuardarNome} />
       )}
 
       {pedido && confirmacao && (

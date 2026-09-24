@@ -12,6 +12,20 @@ export async function criarLead(lead: LeadInsert) {
   return data as Lead
 }
 
+// Quem não é admin só consegue assumir um lead livre (garantido pelo trigger proteger_responsavel).
+export async function atribuirLead(id: string, responsavelId: string | null, atualizadoEmEsperado: string) {
+  const { data, error } = await supabase
+    .from('leads')
+    .update({ responsavel_id: responsavelId, atualizado_em: new Date().toISOString() })
+    .eq('id', id)
+    .eq('atualizado_em', atualizadoEmEsperado)
+    .select()
+  if (error) throw error
+  if (!data || data.length === 0) {
+    throw new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+  }
+}
+
 export async function atualizarEstadoLead(id: string, estado: EstadoLead, atualizadoEmEsperado: string) {
   const { data, error } = await supabase
     .from('leads')

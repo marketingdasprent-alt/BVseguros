@@ -11,3 +11,8 @@ export async function criarCliente(cliente: ClienteInsert) {
   if (error) throw error
   return data as Cliente
 }
+
+export async function atribuirCliente(id: string, responsavelId: string | null) {
+  const { error } = await supabase.from('clientes').update({ responsavel_id: responsavelId }).eq('id', id)
+  if (error) throw error
+}

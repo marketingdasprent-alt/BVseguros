@@ -32,12 +32,14 @@ export interface Lead {
   origem: OrigemLead
   mensagem: string | null
   consentimento_em: string | null
+  responsavel_id: string | null
   criado_em: string
   atualizado_em: string
 }
 
-// origem/mensagem/consentimento só são preenchidos pela função criar_lead_site.
-export type LeadInsert = Omit<Lead, 'id' | 'criado_em' | 'atualizado_em' | 'origem' | 'mensagem' | 'consentimento_em'>
+// origem/mensagem/consentimento só são preenchidos pela função criar_lead_site;
+// o responsável é definido pela base de dados (quem cria).
+export type LeadInsert = Omit<Lead, 'id' | 'criado_em' | 'atualizado_em' | 'origem' | 'mensagem' | 'consentimento_em' | 'responsavel_id'>
 
 export interface Cliente {
   id: string
@@ -47,10 +49,11 @@ export interface Cliente {
   email: string | null
   morada: string | null
   lead_origem_id: string | null
+  responsavel_id: string | null
   criado_em: string
 }
 
-export type ClienteInsert = Omit<Cliente, 'id' | 'criado_em'>
+export type ClienteInsert = Omit<Cliente, 'id' | 'criado_em' | 'responsavel_id'>
 
 export type EstadoApolice = 'ativa' | 'pendente' | 'cancelada' | 'expirada'
 
@@ -86,6 +89,30 @@ export interface Profile {
 }
 
 export type AlteracaoAcesso = Partial<Pick<Profile, 'ativo' | 'is_admin'>>
+
+// Vista da equipa sem emails, disponível a todas as contas ativas (listar_equipa).
+export type MembroEquipa = Pick<Profile, 'id' | 'nome' | 'ativo'>
+
+export type AlteracaoRegistada = 'acesso_dado' | 'acesso_retirado' | 'tornado_admin' | 'tornado_mediador' | 'nome_alterado'
+
+export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
+  acesso_dado: 'deu acesso a',
+  acesso_retirado: 'retirou o acesso a',
+  tornado_admin: 'tornou administrador',
+  tornado_mediador: 'tornou mediador',
+  nome_alterado: 'mudou o nome para',
+}
+
+export interface EventoAcesso {
+  id: string
+  perfil_id: string | null
+  perfil_nome: string
+  alteracao: AlteracaoRegistada
+  realizado_por: string | null
+  realizado_por_nome: string | null
+  nome_anterior: string | null
+  criado_em: string
+}
 
 export type EstadoProposta = 'rascunho' | 'enviada' | 'aceite' | 'rejeitada'
 

@@ -1,6 +1,14 @@
 import type { Cliente } from '@/lib/types'
 
-export function ClientesTable({ clientes }: { clientes: Cliente[] }) {
+interface ClientesTableProps {
+  clientes: Cliente[]
+  nomePorId: Map<string, string>
+  podeAtribuir: boolean
+  onAtribuir: (cliente: Cliente) => void
+  onAssumir: (cliente: Cliente) => void
+}
+
+export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, onAssumir }: ClientesTableProps) {
   return (
     <div className="table-panel">
       <div className="data-panel-heading">Carteira de clientes<span>{clientes.length} {clientes.length === 1 ? 'registo' : 'registos'}</span></div>
@@ -20,6 +28,9 @@ export function ClientesTable({ clientes }: { clientes: Cliente[] }) {
               <th className="font-semibold uppercase whitespace-nowrap">
                 NIF
               </th>
+              <th className="font-semibold uppercase whitespace-nowrap">
+                Responsável
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -31,6 +42,17 @@ export function ClientesTable({ clientes }: { clientes: Cliente[] }) {
                 <td className="whitespace-nowrap">{c.telefone}</td>
                 <td className="whitespace-nowrap">{c.email ?? '—'}</td>
                 <td className="whitespace-nowrap">{c.nif ?? '—'}</td>
+                <td className="whitespace-nowrap">
+                  <span className={c.responsavel_id ? '' : 'text-muted'}>
+                    {c.responsavel_id ? nomePorId.get(c.responsavel_id) ?? 'Atribuído' : 'Sem responsável'}
+                  </span>
+                  {(podeAtribuir || !c.responsavel_id) && (
+                    <button type="button" onClick={() => (podeAtribuir ? onAtribuir(c) : onAssumir(c))}
+                      className="ml-3 text-xs font-medium text-navy underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy rounded">
+                      {podeAtribuir ? 'Atribuir' : 'Assumir'}
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
