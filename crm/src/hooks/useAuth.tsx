@@ -80,3 +80,20 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth deve ser usado dentro de AuthProvider')
   return ctx
 }
+
+// A resposta é igual exista ou não a conta: não se revela quem tem acesso ao CRM.
+// O link volta ao CRM com type=recovery, que o DefinirSenha já trata.
+export async function pedirRecuperacaoSenha(email: string): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: window.location.origin,
+  })
+  if (!error) return
+  const msg = error.message || ''
+  if (/security purposes|after \d+ seconds/i.test(msg)) {
+    throw new Error('CONFLITO: Já foi pedido um link há instantes. Espere um minuto antes de pedir outro.')
+  }
+  if (error.status === 429 || /rate limit/i.test(msg)) {
+    throw new Error('CONFLITO: Foram pedidos demasiados emails. Tente novamente daqui a algum tempo.')
+  }
+  throw error
+}

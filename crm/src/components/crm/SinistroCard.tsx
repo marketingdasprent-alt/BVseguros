@@ -1,4 +1,4 @@
-import { KanbanCard, semArrasto, CLASSE_ACAO_CARTAO } from '@/components/crm/KanbanCard'
+import { KanbanCard, semArrasto } from '@/components/crm/KanbanCard'
 import type { Sinistro } from '@/lib/types'
 import { formatarMoeda } from '@/lib/format'
 
@@ -16,10 +16,12 @@ export function SinistroCard({ sinistro, numeroApolice, onEditar }: SinistroCard
       {sinistro.valor_estimado != null && (
         <p className="text-xs text-muted tabular-nums">Valor estimado: {formatarMoeda(sinistro.valor_estimado)}</p>
       )}
-      <div className="flex justify-end border-t border-border pt-2 text-xs">
-        <button type="button" {...semArrasto} onClick={() => onEditar(sinistro)} className={CLASSE_ACAO_CARTAO} aria-label={`Editar sinistro da apólice ${numeroApolice}`}>
-          Editar
-        </button>
+      <div className="card-actions justify-end">
+        <span className="card-actions-links">
+          <button type="button" {...semArrasto} onClick={() => onEditar(sinistro)} aria-label={`Editar sinistro da apólice ${numeroApolice}`}>
+            Editar
+          </button>
+        </span>
       </div>
     </KanbanCard>
   )

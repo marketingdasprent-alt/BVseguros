@@ -16,16 +16,18 @@ interface NovaAtividadeFormProps {
   onGuardar?: (dados: AtividadeEdicao) => Promise<boolean>
   onCancelar?: () => void
   onApagar?: () => void
+  // Na ficha do cliente: a nova atividade começa já associada a ele.
+  clienteFixoId?: string
 }
 
-export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCriar, inicial, onGuardar, onCancelar, onApagar }: NovaAtividadeFormProps) {
+export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCriar, inicial, onGuardar, onCancelar, onApagar, clienteFixoId }: NovaAtividadeFormProps) {
   const [tipo, setTipo] = useState<TipoAtividade>(inicial?.tipo ?? 'chamada')
   const [titulo, setTitulo] = useState(inicial?.titulo ?? '')
   // Depois de converter, a atividade tem lead e cliente; o cliente é o que conta.
   const [ligadoA, setLigadoA] = useState<'nenhum' | 'lead' | 'cliente'>(
-    inicial?.cliente_id ? 'cliente' : inicial?.lead_id ? 'lead' : 'nenhum',
+    inicial?.cliente_id || clienteFixoId ? 'cliente' : inicial?.lead_id ? 'lead' : 'nenhum',
   )
-  const [ligadoId, setLigadoId] = useState(inicial?.cliente_id ?? inicial?.lead_id ?? '')
+  const [ligadoId, setLigadoId] = useState(inicial?.cliente_id ?? inicial?.lead_id ?? clienteFixoId ?? '')
   const [dataPrevista, setDataPrevista] = useState(inicial?.data_prevista ?? '')
   const [notas, setNotas] = useState(inicial?.notas ?? '')
 
@@ -58,8 +60,8 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
     if (!success) return;
     setTitulo('')
     setDataPrevista('')
-    setLigadoA('nenhum')
-    setLigadoId('')
+    setLigadoA(clienteFixoId ? 'cliente' : 'nenhum')
+    setLigadoId(clienteFixoId ?? '')
     setNotas('')
   }
 
@@ -139,7 +141,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
 
   if (inicial) {
     return (
-      <Modal title="Editar atividade" onClose={onCancelar ?? (() => {})} busy={aCriar}>
+      <Modal title="Editar atividade" subtitle={inicial.titulo} largo onClose={onCancelar ?? (() => {})} busy={aCriar}>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">{campos}</div>
           <RodapeFormulario aGuardar={aCriar} textoGuardar="Guardar alterações" onCancelar={onCancelar ?? (() => {})} onApagar={onApagar} />

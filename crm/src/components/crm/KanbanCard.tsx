@@ -10,8 +10,6 @@ export const semArrasto = {
   onKeyDown: (e: KeyboardEvent) => e.stopPropagation(),
 };
 
-export const CLASSE_ACAO_CARTAO = 'font-medium text-navy underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy rounded';
-
 export function KanbanCard({ id, children }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
   return <div ref={setNodeRef} {...listeners} {...attributes}

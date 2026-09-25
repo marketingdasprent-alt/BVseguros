@@ -84,6 +84,13 @@ export interface Apolice {
 
 export type ApoliceInsert = Omit<Apolice, 'id' | 'criado_em'>
 
+export interface Seguradora {
+  id: string
+  nome: string
+  ativa: boolean
+  criado_em: string
+}
+
 export interface Profile {
   id: string
   nome: string
@@ -94,6 +101,12 @@ export interface Profile {
 }
 
 export type AlteracaoAcesso = Partial<Pick<Profile, 'ativo' | 'is_admin'>>
+
+// Vem do Auth do Supabase (api/utilizadores.js, GET), não de profiles.
+export interface EstadoConta {
+  convitePendente: boolean
+  ultimoAcesso: string | null
+}
 
 // Vista da equipa sem emails, disponível a todas as contas ativas (listar_equipa).
 export type MembroEquipa = Pick<Profile, 'id' | 'nome' | 'ativo'>

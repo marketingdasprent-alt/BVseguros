@@ -12,6 +12,7 @@ function falso({
   alvo = { nome: 'Nuno', is_admin: false, ativo: true },
   outrosAdmins = 1,
   erroConvite = null,
+  authUser = { email: 'nuno@bv.pt', invited_at: '2026-09-24', email_confirmed_at: null },
 } = {}) {
   const chamadas = { convites: [], updates: [], inserts: [], apagados: [] }
   const client = (_url, _key, opcoes) => {
@@ -47,6 +48,16 @@ function falso({
             chamadas.convites.push({ email, ...o })
             return erroConvite ? { data: {}, error: erroConvite } : { data: { user: { id: 'novo-id' } }, error: null }
           },
+          listUsers: async () => ({
+            data: {
+              users: [
+                { id: 'p', invited_at: '2026-09-24', email_confirmed_at: null, last_sign_in_at: null },
+                { id: 'a', invited_at: '2026-09-20', email_confirmed_at: '2026-09-20', last_sign_in_at: '2026-09-25T10:00:00Z' },
+              ],
+            },
+            error: null,
+          }),
+          getUserById: async () => (authUser ? { data: { user: authUser }, error: null } : { data: {}, error: new Error('x') }),
           deleteUser: async (id) => {
             chamadas.apagados.push(id)
             return { error: null }
@@ -69,8 +80,8 @@ async function pedir(handler, { method = 'POST', token = 'bom', body = { nome: '
 }
 
 describe('api/utilizadores', () => {
-  it('só aceita POST e DELETE', async () => {
-    expect((await pedir(createHandler({ env: ENV, client: falso().client }), { method: 'GET' })).statusCode).toBe(405)
+  it('só aceita GET, POST e DELETE', async () => {
+    expect((await pedir(createHandler({ env: ENV, client: falso().client }), { method: 'PUT' })).statusCode).toBe(405)
   })
 
   it('sem service-role key responde 503 em vez de falhar', async () => {
@@ -150,5 +161,48 @@ describe('api/utilizadores: excluir (DELETE)', () => {
     expect(res.statusCode).toBe(200)
     expect(chamadas.apagados).toEqual([ALVO_ID])
     expect(chamadas.inserts[0].dados).toMatchObject({ alteracao: 'excluido', perfil_nome: 'Nuno', realizado_por: ADMIN.id })
+  })
+})
+
+describe('api/utilizadores: estado das contas (GET)', () => {
+  it('diz quem tem convite pendente e o último acesso', async () => {
+    const res = await pedir(createHandler({ env: ENV, client: falso().client }), { method: 'GET', body: undefined })
+    expect(res.statusCode).toBe(200)
+    expect(res.corpo.estados.p).toEqual({ convitePendente: true, ultimoAcesso: null })
+    expect(res.corpo.estados.a).toEqual({ convitePendente: false, ultimoAcesso: '2026-09-25T10:00:00Z' })
+  })
+
+  it('quem não é admin não vê', async () => {
+    const { client } = falso({ autor: { nome: 'M', is_admin: false, ativo: true } })
+    expect((await pedir(createHandler({ env: ENV, client }), { method: 'GET', body: undefined })).statusCode).toBe(403)
+  })
+})
+
+describe('api/utilizadores: reenviar convite (POST acao=reenviar)', () => {
+  const reenviar = { acao: 'reenviar', id: ALVO_ID }
+
+  it('reenvia a quem ainda não aceitou e regista no histórico', async () => {
+    const { client, chamadas } = falso()
+    const res = await pedir(createHandler({ env: ENV, client }), { body: reenviar })
+    expect(res.statusCode).toBe(200)
+    expect(chamadas.convites[0]).toMatchObject({ email: 'nuno@bv.pt', data: { nome: 'Nuno' } })
+    expect(chamadas.inserts[0].dados).toMatchObject({ alteracao: 'convidado', perfil_id: ALVO_ID })
+  })
+
+  it('não reenvia a quem já aceitou', async () => {
+    const { client, chamadas } = falso({ authUser: { email: 'nuno@bv.pt', invited_at: 'x', email_confirmed_at: 'y' } })
+    expect((await pedir(createHandler({ env: ENV, client }), { body: reenviar })).statusCode).toBe(409)
+    expect(chamadas.convites).toHaveLength(0)
+  })
+
+  it('explica a espera de um minuto entre envios', async () => {
+    const { client } = falso({ erroConvite: { status: 429, message: 'For security purposes, you can only request this after 42 seconds.' } })
+    const res = await pedir(createHandler({ env: ENV, client }), { body: reenviar })
+    expect(res.statusCode).toBe(429)
+    expect(res.corpo.error).toMatch(/minuto/)
+  })
+
+  it('recusa id inválido', async () => {
+    expect((await pedir(createHandler({ env: ENV, client: falso().client }), { body: { acao: 'reenviar', id: 'x' } })).statusCode).toBe(400)
   })
 })

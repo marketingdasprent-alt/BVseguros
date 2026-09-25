@@ -15,11 +15,14 @@ const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Leads = lazy(() => import('@/pages/Leads'))
 const Propostas = lazy(() => import('@/pages/Propostas'))
 const Clientes = lazy(() => import('@/pages/Clientes'))
+const ClienteFicha = lazy(() => import('@/pages/ClienteFicha'))
 const Apolices = lazy(() => import('@/pages/Apolices'))
 const Renovacoes = lazy(() => import('@/pages/Renovacoes'))
 const Sinistros = lazy(() => import('@/pages/Sinistros'))
 const Atividades = lazy(() => import('@/pages/Atividades'))
 const Utilizadores = lazy(() => import('@/pages/Utilizadores'))
+const Importar = lazy(() => import('@/pages/Importar'))
+const Seguradoras = lazy(() => import('@/pages/Seguradoras'))
 
 function AreaPrivada() {
   const { session, loading, profile, profileLoading, profileError, refreshProfile } = useAuth()
@@ -65,11 +68,14 @@ function AreaPrivada() {
           <Route path="/leads" element={<Leads />} />
           <Route path="/propostas" element={<Propostas />} />
           <Route path="/clientes" element={<Clientes />} />
+          <Route path="/clientes/:id" element={<ClienteFicha />} />
           <Route path="/apolices" element={<Apolices />} />
           <Route path="/renovacoes" element={<Renovacoes />} />
           <Route path="/sinistros" element={<Sinistros />} />
           <Route path="/atividades" element={<Atividades />} />
           <Route path="/utilizadores" element={<Utilizadores />} />
+          <Route path="/importar" element={<Importar />} />
+          <Route path="/seguradoras" element={<Seguradoras />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

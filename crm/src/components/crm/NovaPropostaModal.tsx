@@ -3,7 +3,8 @@ import { Modal } from '@/components/ui/Modal'
 import { RAMOS } from '@/lib/types'
 import type { Cliente, Lead, Proposta, PropostaEdicao, PropostaInsert, Ramo } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
-import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
+import { Campo, CLASSE_INPUT, ContextoFormulario, RodapeFormulario } from '@/components/ui/Campo'
+import { CampoSeguradora } from '@/components/crm/CampoSeguradora'
 
 interface NovaPropostaModalProps {
   leads: Lead[]
@@ -16,9 +17,10 @@ interface NovaPropostaModalProps {
   nomeOrigem?: string
   onGuardar?: (dados: PropostaEdicao) => Promise<void>
   onApagar?: () => void
+  seguradoras?: string[]
 }
 
-export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, inicial, nomeOrigem, onGuardar, onApagar }: NovaPropostaModalProps) {
+export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, inicial, nomeOrigem, onGuardar, onApagar, seguradoras }: NovaPropostaModalProps) {
   const [origem, setOrigem] = useState<'lead' | 'cliente'>(leads.length > 0 ? 'lead' : 'cliente')
   const [origemId, setOrigemId] = useState(leads[0]?.id ?? clientes[0]?.id ?? '')
   const [ramo, setRamo] = useState<Ramo>(inicial?.ramo ?? 'auto')
@@ -57,7 +59,7 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, 
     <Modal title={inicial ? 'Editar proposta' : 'Nova proposta'} onClose={onFechar} busy={aCriar}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {inicial ? (
-          <p className="text-sm text-muted">{inicial.lead_id ? 'Lead' : 'Cliente'}: <span className="text-ink">{nomeOrigem}</span></p>
+          <ContextoFormulario itens={[{ rotulo: inicial.lead_id ? 'Lead' : 'Cliente', valor: nomeOrigem }]} />
         ) : (<>
         <div className="flex gap-2">
           <Button
@@ -126,17 +128,9 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, 
           </select>
         </label>
 
-        <label className="block min-w-0 space-y-2">
-          <span className="block text-xs font-medium text-ink">
-            Seguradora<span className="text-danger"> *</span>
-          </span>
-          <input
-            required
-            value={seguradora}
-            onChange={(e) => setSeguradora(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-          />
-        </label>
+        <Campo label="Seguradora" required>
+          <CampoSeguradora valor={seguradora} onChange={setSeguradora} opcoes={seguradoras} />
+        </Campo>
 
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">Prémio anual estimado (€)</span>

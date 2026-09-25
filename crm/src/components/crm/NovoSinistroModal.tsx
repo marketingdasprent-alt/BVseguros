@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Modal } from '@/components/ui/Modal'
+import { dataLocalIso } from '@/lib/format'
+import { ESTADOS_SINISTRO } from '@/lib/types'
 import type { Apolice, Sinistro, SinistroEdicao, SinistroInsert } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
-import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
+import { Campo, CLASSE_INPUT, ContextoFormulario, RodapeFormulario } from '@/components/ui/Campo'
 
 interface NovoSinistroModalProps {
   apolices: Apolice[]
@@ -23,7 +25,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
   const [numero, setNumero] = useState(inicial?.numero_sinistro ?? '')
   const [valorPago, setValorPago] = useState(inicial?.valor_pago != null ? String(inicial.valor_pago) : '')
   const [notas, setNotas] = useState(inicial?.notas ?? '')
-  const hoje = new Date().toISOString().slice(0, 10)
+  const hoje = dataLocalIso()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -55,7 +57,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
       <Modal title="Novo sinistro" onClose={onFechar} busy={aCriar}>
         <div className="space-y-5">
           
-          <p className="text-sm text-muted pr-6">Cria primeiro uma apólice para poderes participar um sinistro.</p>
+          <p className="text-sm text-muted pr-6">Crie primeiro uma apólice para poder participar um sinistro.</p>
           <Button variant="secondary" disabled={aCriar} onClick={onFechar} className="w-full">
             Fechar
           </Button>
@@ -68,7 +70,10 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
     <Modal title={inicial ? 'Editar sinistro' : 'Novo sinistro'} onClose={onFechar} busy={aCriar}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {inicial ? (
-          <p className="text-sm text-muted">Apólice <span className="text-ink">{apolices.find((a) => a.id === inicial.apolice_id)?.numero_apolice ?? '—'}</span></p>
+          <ContextoFormulario itens={[
+            { rotulo: 'Apólice', valor: apolices.find((a) => a.id === inicial.apolice_id)?.numero_apolice ?? '—' },
+            { rotulo: 'Estado', valor: ESTADOS_SINISTRO.find((e) => e.valor === inicial.estado)?.rotulo ?? inicial.estado },
+          ]} />
         ) : (
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">Apólice</span>

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export const CLASSE_INPUT =
@@ -8,18 +9,40 @@ interface CampoProps {
   label: string
   required?: boolean
   className?: string
+  extra?: ReactNode
   children: ReactNode
 }
 
-export function Campo({ label, required, className = '', children }: CampoProps) {
+export function Campo({ label, required, className = '', extra, children }: CampoProps) {
   return (
     <label className={`block min-w-0 space-y-2 ${className}`}>
-      <span className="block text-xs font-medium text-ink">
-        {label}
-        {required && <span className="text-danger"> *</span>}
+      <span className="flex items-baseline justify-between gap-2 text-xs font-medium text-ink">
+        <span>
+          {label}
+          {required && <span className="ml-0.5 text-danger" aria-hidden="true">*</span>}
+        </span>
+        {extra}
       </span>
       {children}
     </label>
+  )
+}
+
+interface ContextoFormularioProps {
+  itens: { rotulo: string; valor: ReactNode }[]
+}
+
+// O registo que está a ser editado, igual no topo de todos os modais.
+export function ContextoFormulario({ itens }: ContextoFormularioProps) {
+  return (
+    <dl className="form-context grid gap-4 sm:grid-cols-2">
+      {itens.map(({ rotulo, valor }) => (
+        <div key={rotulo} className="min-w-0">
+          <dt>{rotulo}</dt>
+          <dd>{valor}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }
 
@@ -29,23 +52,33 @@ interface RodapeFormularioProps {
   onCancelar: () => void
   onApagar?: () => void
   desativarGuardar?: boolean
+  // Ação secundária à esquerda (ex.: "Marcar só como convertido").
+  inicio?: ReactNode
 }
 
-// Rodapé comum dos formulários em modal; "Apagar" só aparece quando a página o passa (admin).
-export function RodapeFormulario({ aGuardar, textoGuardar, onCancelar, onApagar, desativarGuardar }: RodapeFormularioProps) {
+// "Apagar" só aparece quando a página o passa (admin).
+export function RodapeFormulario({ aGuardar, textoGuardar, onCancelar, onApagar, desativarGuardar, inicio }: RodapeFormularioProps) {
   return (
-    <div className="flex flex-wrap gap-2 pt-2">
-      {onApagar && (
-        <Button type="button" variant="destructive" disabled={aGuardar} onClick={onApagar} className="sm:mr-auto">
-          Apagar
-        </Button>
+    <div className="form-footer">
+      {(onApagar || inicio) && (
+        <div className="form-footer-start">
+          {onApagar && (
+            <Button type="button" variant="ghost-danger" icon={<Trash2 />} disabled={aGuardar} onClick={onApagar}>
+              Apagar
+            </Button>
+          )}
+          {inicio}
+        </div>
       )}
-      <Button type="button" variant="secondary" disabled={aGuardar} onClick={onCancelar} className="flex-1 sm:flex-none">
-        Cancelar
-      </Button>
-      <Button type="submit" loading={aGuardar} disabled={desativarGuardar} className="flex-1 sm:flex-none">
-        {textoGuardar}
-      </Button>
+      {/* Cancelar + guardar mudam de linha juntos quando não cabem. */}
+      <div className="form-footer-end">
+        <Button type="button" variant="secondary" disabled={aGuardar} onClick={onCancelar}>
+          Cancelar
+        </Button>
+        <Button type="submit" loading={aGuardar} disabled={desativarGuardar}>
+          {textoGuardar}
+        </Button>
+      </div>
     </div>
   )
 }

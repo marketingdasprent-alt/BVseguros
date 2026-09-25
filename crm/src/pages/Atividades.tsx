@@ -1,9 +1,16 @@
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { NovaAtividadeForm } from '@/components/crm/NovaAtividadeForm'
 import { AtividadesTable } from '@/components/crm/AtividadesTable'
+import { FiltroSelect } from '@/components/crm/FiltroSelect'
+import { AvisoTruncado } from '@/components/crm/AvisoTruncado'
+import { dataLocalIso } from '@/lib/format'
+import { BarraPesquisa } from '@/components/crm/BarraPesquisa'
+import { SemResultados } from '@/components/crm/SemResultados'
+import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
+import { corresponde } from '@/lib/pesquisa'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useAtividades, criarAtividade, marcarConcluida, atualizarAtividade, apagarAtividade } from '@/hooks/useAtividades'
@@ -16,7 +23,7 @@ import { useToast } from '@/hooks/useToast'
 import type { Atividade, AtividadeEdicao, AtividadeInsert } from '@/lib/types'
 
 export default function Atividades() {
-  const { data: atividades, isLoading, error, recarregar } = useAtividades()
+  const { data: atividades, isLoading, error, recarregar, truncado } = useAtividades()
   const { data: leads, isLoading: leadsCarregando } = useLeads()
   const { data: clientes, isLoading: clientesCarregando } = useClientes()
   const { profile, isAdmin } = useAuth()
@@ -70,8 +77,24 @@ export default function Atividades() {
 
   const handlePedirApagar = (atividade: Atividade) => {
     setAEditar(null)
-    pedirConfirmacao({ titulo: 'Atividade', nome: atividade.titulo, apagar: () => apagarAtividade(atividade.id) })
+    pedirConfirmacao({ acao: 'Apagar atividade', nome: atividade.titulo, apagar: () => apagarAtividade(atividade.id) })
   }
+
+  const filtros = useFiltrosUrl()
+  const termo = filtros.ler('q')
+  const situacao = filtros.ler('situacao')
+
+  const atividadesFiltradas = useMemo(() => {
+    const hoje = dataLocalIso()
+    const nomeLead = new Map(leads.map((l) => [l.id, l.nome]))
+    const nomeCliente = new Map(clientes.map((c) => [c.id, c.nome]))
+    return atividades.filter((a) => {
+      const pendente = a.tipo === 'tarefa' && !a.concluida
+      if (situacao === 'pendentes' && !pendente) return false
+      if (situacao === 'atrasadas' && !(pendente && !!a.data_prevista && a.data_prevista < hoje)) return false
+      return corresponde([a.titulo, a.notas, a.lead_id && nomeLead.get(a.lead_id), a.cliente_id && nomeCliente.get(a.cliente_id)], termo)
+    })
+  }, [atividades, leads, clientes, termo, situacao])
 
   const carregando = isLoading || leadsCarregando || clientesCarregando
 
@@ -97,13 +120,24 @@ export default function Atividades() {
         </div>
       )}
       {!carregando && !error && atividades.length > 0 && (
+        <>
+        <AvisoTruncado truncado={truncado} />
+        <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar atividades" placeholder="Título, notas ou pessoa associada"
+          filtros={<FiltroSelect rotulo="Filtrar por situação" todos="Todas as atividades" valor={situacao}
+            opcoes={[{ valor: 'pendentes', rotulo: 'Tarefas por concluir' }, { valor: 'atrasadas', rotulo: 'Tarefas em atraso' }]}
+            onChange={(v) => filtros.definir('situacao', v)} />} />
+        {atividadesFiltradas.length === 0 ? (
+          <SemResultados termo={termo} onLimpar={filtros.limpar} />
+        ) : (
         <AtividadesTable
-          atividades={atividades}
+          atividades={atividadesFiltradas}
           leads={leads}
           clientes={clientes}
           onAlternarConcluida={handleAlternarConcluida}
           onEditar={setAEditar}
         />
+        )}
+        </>
       )}
 
       {aEditar && (

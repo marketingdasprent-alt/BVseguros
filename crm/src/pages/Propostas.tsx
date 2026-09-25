@@ -1,7 +1,12 @@
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { KanbanBoard } from '@/components/crm/KanbanBoard'
+import { BarraPesquisa } from '@/components/crm/BarraPesquisa'
+import { SemResultados } from '@/components/crm/SemResultados'
+import { AvisoTruncado } from '@/components/crm/AvisoTruncado'
+import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
+import { corresponde } from '@/lib/pesquisa'
 import { PropostaCard } from '@/components/crm/PropostaCard'
 import { NovaPropostaModal } from '@/components/crm/NovaPropostaModal'
 import { Spinner } from '@/components/ui/Spinner'
@@ -12,13 +17,16 @@ import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { useLeads } from '@/hooks/useLeads'
 import { useClientes } from '@/hooks/useClientes'
 import { useToast } from '@/hooks/useToast'
+import { useSeguradoras } from '@/hooks/useSeguradoras'
 import { ESTADOS_PROPOSTA } from '@/lib/types'
 import type { EstadoProposta, Proposta, PropostaEdicao, PropostaInsert } from '@/lib/types'
 import { TONE_ESTADO_PROPOSTA } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
 
 export default function Propostas() {
-  const { data: propostas, isLoading, error, recarregar } = usePropostas()
+  const { data: propostas, isLoading, error, recarregar, truncado } = usePropostas()
+  const filtros = useFiltrosUrl()
+  const termo = filtros.ler('q')
   const { data: leads, isLoading: leadsCarregando } = useLeads()
   const { data: clientes, isLoading: clientesCarregando } = useClientes()
   const { toast } = useToast()
@@ -26,6 +34,7 @@ export default function Propostas() {
   const [aCriar, setACriar] = useState(false)
   const [aEditar, setAEditar] = useState<Proposta | null>(null)
   const { isAdmin } = useAuth()
+  const { nomesAtivos: seguradoras } = useSeguradoras()
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const nomeOrigem = (proposta: Proposta) => {
@@ -34,12 +43,15 @@ export default function Propostas() {
     return '—'
   }
 
+  const propostasFiltradas = useMemo(() => propostas.filter((p) => corresponde([nomeOrigem(p), p.seguradora, p.coberturas, p.notas], termo)),
+    [propostas, termo, leads, clientes])
+
   const handleMudarEstado = async (id: string, estado: EstadoProposta, atualizadoEm: string) => {
     try {
       await atualizarEstadoProposta(id, estado, atualizadoEm)
       await recarregar()
       if (estado === 'aceite') {
-        toast({ title: 'Proposta aceite', description: 'Regista a apólice correspondente em Apólices.' })
+        toast({ title: 'Proposta aceite', description: 'Registe a apólice correspondente em Apólices.' })
       }
     } catch (err: unknown) {
       toast({ title: 'Erro ao mover proposta', description: mensagemErro(err), variant: 'destructive' })
@@ -78,7 +90,7 @@ export default function Propostas() {
 
   const handlePedirApagar = (proposta: Proposta) => {
     setAEditar(null)
-    pedirConfirmacao({ titulo: 'Proposta', nome: `a proposta de ${nomeOrigem(proposta)} (${proposta.seguradora})`, apagar: () => apagarProposta(proposta.id) })
+    pedirConfirmacao({ acao: 'Apagar proposta', nome: `a proposta de ${nomeOrigem(proposta)} (${proposta.seguradora})`, apagar: () => apagarProposta(proposta.id) })
   }
 
   const carregando = isLoading || leadsCarregando || clientesCarregando
@@ -92,8 +104,14 @@ export default function Propostas() {
       {carregando && <Spinner />}
       {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar propostas: {error.message}</p>}
       {!carregando && !error && (
+        <>
+        <AvisoTruncado truncado={truncado} />
+        <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar propostas" placeholder="Lead, cliente, seguradora ou notas" />
+        {propostas.length > 0 && propostasFiltradas.length === 0 ? (
+          <SemResultados termo={termo} onLimpar={filtros.limpar} />
+        ) : (
         <KanbanBoard
-          itens={propostas}
+          itens={propostasFiltradas}
           colunas={ESTADOS_PROPOSTA}
           getId={(p) => p.id}
           getEstado={(p) => p.estado}
@@ -103,10 +121,12 @@ export default function Propostas() {
           renderCard={(p) => <PropostaCard proposta={p} nomeOrigem={nomeOrigem(p)} onEditar={setAEditar} />}
           vazioTexto="Sem propostas"
         />
+        )}
+        </>
       )}
 
       {modalAberto && (
-        <NovaPropostaModal
+        <NovaPropostaModal seguradoras={seguradoras}
           leads={leads}
           clientes={clientes}
           aCriar={aCriar}
@@ -116,7 +136,7 @@ export default function Propostas() {
       )}
 
       {aEditar && (
-        <NovaPropostaModal
+        <NovaPropostaModal seguradoras={seguradoras}
           leads={leads}
           clientes={clientes}
           inicial={aEditar}

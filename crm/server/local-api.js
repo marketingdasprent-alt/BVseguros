@@ -1,11 +1,16 @@
-import { createHandler } from '../api/utilizadores.js'
+import { createHandler as utilizadores } from '../api/utilizadores.js'
+import { createHandler as avisoLead } from '../api/aviso-lead.js'
 
-// Em desenvolvimento, o Vite não corre as funções de /api: este adaptador executa o
-// mesmo handler da Vercel. Só é importado pelo vite.config.ts, nunca pelo frontend.
+// Em desenvolvimento, o Vite não corre as funções de /api: este adaptador executa os
+// mesmos handlers da Vercel. Só é importado pelo vite.config.ts, nunca pelo frontend.
 export function localApi(env) {
-  const handler = createHandler({ env })
+  const rotas = {
+    '/api/utilizadores': utilizadores({ env }),
+    '/api/aviso-lead': avisoLead({ env }),
+  }
   return async (req, res, next) => {
-    if (req.url?.split('?')[0] !== '/api/utilizadores') return next()
+    const handler = rotas[req.url?.split('?')[0]]
+    if (!handler) return next()
     const reply = (code, data) => {
       res.statusCode = code
       res.setHeader('Content-Type', 'application/json; charset=utf-8')

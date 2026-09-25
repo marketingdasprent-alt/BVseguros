@@ -1,5 +1,7 @@
-import { KanbanCard, semArrasto, CLASSE_ACAO_CARTAO } from '@/components/crm/KanbanCard'
+import { StickyNote } from 'lucide-react'
+import { KanbanCard, semArrasto } from '@/components/crm/KanbanCard'
 import { Badge } from '@/components/ui/Badge'
+import { Pessoa } from '@/components/ui/Pessoa'
 import { RAMOS } from '@/lib/types'
 import type { Lead } from '@/lib/types'
 
@@ -18,7 +20,7 @@ export function LeadCard({ lead, nomeResponsavel, podeAtribuir, onAssumir, onAtr
   return (
     <KanbanCard id={lead.id}>
       <p className="font-medium text-sm text-ink">{lead.nome}</p>
-      <p className="text-xs text-muted">{lead.telefone}</p>
+      <p className="text-xs text-muted tabular-nums">{lead.telefone}</p>
       <div className="flex flex-wrap gap-1.5">
         <Badge tone="info">{ramoRotulo}</Badge>
         {lead.origem === 'site' && <Badge tone="success">Site</Badge>}
@@ -28,23 +30,25 @@ export function LeadCard({ lead, nomeResponsavel, podeAtribuir, onAssumir, onAtr
           “{lead.mensagem}”
         </p>
       )}
-      {lead.notas && <p className="text-xs text-ink line-clamp-2" title={lead.notas}>{lead.notas}</p>}
-      <div className="flex items-center justify-between gap-2 border-t border-border pt-2 text-xs">
-        <span className={lead.responsavel_id ? 'text-ink' : 'text-muted'}>
-          {lead.responsavel_id ? nomeResponsavel ?? 'Atribuído' : 'Sem responsável'}
-        </span>
-        <span className="flex gap-3">
-          <button type="button" {...semArrasto} onClick={() => onEditar(lead)} className={CLASSE_ACAO_CARTAO}
-            aria-label={`Editar ${lead.nome}`}>
+      {lead.notas && (
+        <p className="flex gap-1.5 text-xs text-ink" title={lead.notas}>
+          <StickyNote size={12} className="mt-0.5 shrink-0 text-muted" aria-hidden="true" />
+          <span className="line-clamp-2">{lead.notas}</span>
+        </p>
+      )}
+      <div className="card-actions">
+        <Pessoa nome={lead.responsavel_id ? nomeResponsavel ?? 'Atribuído' : null} />
+        <span className="card-actions-links">
+          <button type="button" {...semArrasto} onClick={() => onEditar(lead)} aria-label={`Editar ${lead.nome}`}>
             Editar
           </button>
           {podeAtribuir ? (
-            <button type="button" {...semArrasto} onClick={() => onAtribuir(lead)} className={CLASSE_ACAO_CARTAO}>
+            <button type="button" {...semArrasto} onClick={() => onAtribuir(lead)} aria-label={`Atribuir ${lead.nome}`}>
               Atribuir
             </button>
           ) : (
             !lead.responsavel_id && (
-              <button type="button" {...semArrasto} onClick={() => onAssumir(lead)} className={CLASSE_ACAO_CARTAO}>
+              <button type="button" {...semArrasto} onClick={() => onAssumir(lead)} aria-label={`Assumir ${lead.nome}`}>
                 Assumir
               </button>
             )

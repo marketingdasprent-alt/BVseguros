@@ -2,11 +2,14 @@
 // compreensíveis em PT-PT. O erro técnico original fica sempre no console para
 // diagnóstico — nunca é só engolido.
 export function mensagemErro(erro: unknown): string {
-  if (!(erro instanceof Error)) return 'Erro inesperado.'
+  // Os erros do Supabase (PostgrestError) chegam como objetos simples com message/code,
+  // não como instâncias de Error; sem isto todos apareciam como "Erro inesperado".
+  const campos = (typeof erro === 'object' && erro !== null ? erro : {}) as { message?: unknown; code?: unknown }
+  const msg = erro instanceof Error ? erro.message : typeof campos.message === 'string' ? campos.message : null
+  if (msg === null) return 'Erro inesperado.'
 
   console.error(erro)
-  const msg = erro.message
-  const codigo = (erro as { code?: string }).code
+  const codigo = typeof campos.code === 'string' ? campos.code : undefined
 
   if (codigo === '23505' || msg.includes('duplicate key')) {
     if (msg.includes('nif')) return 'Já existe um cliente registado com este NIF.'
@@ -24,5 +27,5 @@ export function mensagemErro(erro: unknown): string {
 
   if (msg.includes('CONFLITO')) return msg.replace('CONFLITO: ', '')
 
-  return 'Não foi possível concluir. Tenta novamente ou contacta o suporte se persistir.'
+  return 'Não foi possível concluir. Tente novamente ou contacte o suporte se persistir.'
 }

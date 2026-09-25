@@ -5,17 +5,21 @@ import type { ClienteEdicao } from '@/lib/types'
 
 interface ClienteFormModalProps {
   titulo: string
+  subtitulo?: string
   inicial: ClienteEdicao
   textoGuardar: string
   aGuardar: boolean
   aviso?: ReactNode
+  inicioRodape?: ReactNode
   onFechar: () => void
   onGuardar: (dados: ClienteEdicao) => Promise<void>
   onApagar?: () => void
 }
 
 // Serve para editar um cliente e para converter um lead (dados pré-preenchidos do lead).
-export function ClienteFormModal({ titulo, inicial, textoGuardar, aGuardar, aviso, onFechar, onGuardar, onApagar }: ClienteFormModalProps) {
+export function ClienteFormModal({
+  titulo, subtitulo, inicial, textoGuardar, aGuardar, aviso, inicioRodape, onFechar, onGuardar, onApagar,
+}: ClienteFormModalProps) {
   const [nome, setNome] = useState(inicial.nome)
   const [telefone, setTelefone] = useState(inicial.telefone)
   const [email, setEmail] = useState(inicial.email ?? '')
@@ -34,7 +38,7 @@ export function ClienteFormModal({ titulo, inicial, textoGuardar, aGuardar, avis
   }
 
   return (
-    <Modal title={titulo} onClose={onFechar} busy={aGuardar}>
+    <Modal title={titulo} subtitle={subtitulo} onClose={onFechar} busy={aGuardar}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {aviso}
         <Campo label="Nome" required>
@@ -42,11 +46,11 @@ export function ClienteFormModal({ titulo, inicial, textoGuardar, aGuardar, avis
         </Campo>
         <div className="grid gap-5 sm:grid-cols-2">
           <Campo label="Telefone" required>
-            <input required value={telefone} onChange={(e) => setTelefone(e.target.value)} className={CLASSE_INPUT} />
+            <input required type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className={CLASSE_INPUT} />
           </Campo>
           <Campo label="NIF">
             <input value={nif} onChange={(e) => setNif(e.target.value)} inputMode="numeric" maxLength={9}
-              pattern="[0-9]{9}" title="9 dígitos" className={CLASSE_INPUT} />
+              pattern="[0-9]{9}" title="9 dígitos" className={`${CLASSE_INPUT} tabular-nums`} />
           </Campo>
         </div>
         <Campo label="Email">
@@ -55,7 +59,7 @@ export function ClienteFormModal({ titulo, inicial, textoGuardar, aGuardar, avis
         <Campo label="Morada">
           <input value={morada} onChange={(e) => setMorada(e.target.value)} className={CLASSE_INPUT} />
         </Campo>
-        <RodapeFormulario aGuardar={aGuardar} textoGuardar={textoGuardar} onCancelar={onFechar} onApagar={onApagar} />
+        <RodapeFormulario aGuardar={aGuardar} textoGuardar={textoGuardar} onCancelar={onFechar} onApagar={onApagar} inicio={inicioRodape} />
       </form>
     </Modal>
   )

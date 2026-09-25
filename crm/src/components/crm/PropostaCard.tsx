@@ -1,4 +1,4 @@
-import { KanbanCard, semArrasto, CLASSE_ACAO_CARTAO } from '@/components/crm/KanbanCard'
+import { KanbanCard, semArrasto } from '@/components/crm/KanbanCard'
 import { Badge } from '@/components/ui/Badge'
 import { RAMOS } from '@/lib/types'
 import type { Proposta } from '@/lib/types'
@@ -25,10 +25,12 @@ export function PropostaCard({ proposta, nomeOrigem, onEditar }: PropostaCardPro
           Prémio estimado: {formatarMoeda(proposta.premio_anual_estimado)}
         </p>
       )}
-      <div className="flex justify-end border-t border-border pt-2 text-xs">
-        <button type="button" {...semArrasto} onClick={() => onEditar(proposta)} className={CLASSE_ACAO_CARTAO} aria-label={`Editar proposta de ${nomeOrigem}`}>
-          Editar
-        </button>
+      <div className="card-actions justify-end">
+        <span className="card-actions-links">
+          <button type="button" {...semArrasto} onClick={() => onEditar(proposta)} aria-label={`Editar proposta de ${nomeOrigem}`}>
+            Editar
+          </button>
+        </span>
       </div>
     </KanbanCard>
   )

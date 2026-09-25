@@ -1,10 +1,14 @@
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Plus, Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { NovoClienteForm } from '@/components/crm/NovoClienteForm'
 import { ClientesTable } from '@/components/crm/ClientesTable'
 import { FiltroResponsavel } from '@/components/crm/FiltroResponsavel'
+import { BarraPesquisa } from '@/components/crm/BarraPesquisa'
+import { SemResultados } from '@/components/crm/SemResultados'
+import { AvisoTruncado } from '@/components/crm/AvisoTruncado'
+import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
+import { corresponde } from '@/lib/pesquisa'
 import { AtribuirResponsavelModal } from '@/components/crm/AtribuirResponsavelModal'
 import { ClienteFormModal } from '@/components/crm/ClienteFormModal'
 import { Spinner } from '@/components/ui/Spinner'
@@ -20,32 +24,24 @@ import { mensagemErro } from '@/lib/erros'
 import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
 
 export default function Clientes() {
-  const { data: clientes, isLoading, error, recarregar } = useClientes()
+  const { data: clientes, isLoading, error, recarregar, truncado } = useClientes()
   const { toast } = useToast()
   const [aMostrarForm, setAMostrarForm] = useState(false)
   const [aCriar, setACriar] = useState(false)
-  const [busca, setBusca] = useState('')
   const { ativos, nomePorId } = useEquipa()
   const { profile, isAdmin } = useAuth()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const filtros = useFiltrosUrl()
+  const busca = filtros.ler('q')
   const [aAtribuir, setAAtribuir] = useState<Cliente | null>(null)
   const [aGuardarResponsavel, setAGuardarResponsavel] = useState(false)
   const [aEditar, setAEditar] = useState<Cliente | null>(null)
   const [aGuardarEdicao, setAGuardarEdicao] = useState(false)
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
-  const filtro = lerFiltroResponsavel(searchParams.get('responsavel'))
+  const filtro = lerFiltroResponsavel(filtros.ler('responsavel'))
 
   const clientesFiltrados = useMemo(() => {
-    const termo = busca.trim().toLowerCase()
-    const porResponsavel = filtrarPorResponsavel(clientes, filtro, profile?.id ?? null)
-    if (!termo) return porResponsavel
-    return porResponsavel.filter(
-      (c) =>
-        c.nome.toLowerCase().includes(termo) ||
-        c.telefone.toLowerCase().includes(termo) ||
-        (c.email ?? '').toLowerCase().includes(termo) ||
-        (c.nif ?? '').toLowerCase().includes(termo),
-    )
+    return filtrarPorResponsavel(clientes, filtro, profile?.id ?? null)
+      .filter((c) => corresponde([c.nome, c.telefone, c.email, c.nif, c.morada], busca))
   }, [clientes, busca, filtro, profile?.id])
 
   const handleEditar = async (cliente: Cliente, dados: ClienteEdicao) => {
@@ -65,7 +61,7 @@ export default function Clientes() {
   const handlePedirApagar = (cliente: Cliente) => {
     setAEditar(null)
     pedirConfirmacao({
-      titulo: 'Cliente',
+      acao: 'Apagar cliente',
       nome: cliente.nome,
       aviso: 'As apólices, renovações, sinistros, propostas e atividades deste cliente também são apagadas.',
       apagar: () => apagarCliente(cliente.id),
@@ -121,24 +117,13 @@ export default function Clientes() {
 
       {!isLoading && !error && clientes.length > 0 && (
         <>
-          <div className="flex flex-wrap items-center gap-3">
-          <FiltroResponsavel valor={filtro} onChange={(valor) => setSearchParams(valor === 'todos' ? {} : { responsavel: valor }, { replace: true })} />
-          <div className="relative w-full sm:max-w-md">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              aria-label="Pesquisar clientes por nome, telefone, email ou NIF"
-              placeholder="Nome, telefone, email ou NIF"
-              className="w-full rounded-lg border border-border pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-            />
-          </div>
-          </div>
+          <AvisoTruncado truncado={truncado} />
+          <BarraPesquisa valor={busca} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar clientes por nome, telefone, email ou NIF"
+            placeholder="Nome, telefone, email ou NIF"
+            filtros={<FiltroResponsavel valor={filtro} onChange={(valor) => filtros.definir('responsavel', valor, 'todos')} />} />
 
           {clientesFiltrados.length === 0 ? (
-            <div className="panel">
-              <EmptyState titulo="Sem resultados" descricao={busca ? `Nenhum cliente corresponde a "${busca}".` : 'Nenhum cliente com este filtro.'} />
-            </div>
+            <SemResultados termo={busca} onLimpar={filtros.limpar} />
           ) : (
             <ClientesTable
               clientes={clientesFiltrados}

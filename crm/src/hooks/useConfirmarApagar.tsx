@@ -1,13 +1,17 @@
 import { useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Notice } from '@/components/ui/Notice'
 import { useToast } from '@/hooks/useToast'
 import { mensagemErro } from '@/lib/erros'
 
 interface PedidoApagar {
-  titulo: string
+  // Ex.: "Apagar cliente", "Excluir conta": é o título do modal e o texto do botão.
+  acao: string
   nome: string
   aviso?: string
+  mensagemSucesso?: string
   apagar: () => Promise<void>
 }
 
@@ -23,30 +27,32 @@ export function useConfirmarApagar(onApagado: () => Promise<void> | void) {
     try {
       await pedido.apagar()
       await onApagado()
-      toast({ title: 'Registo apagado' })
+      toast({ title: pedido.mensagemSucesso ?? 'Registo apagado' })
       setPedido(null)
     } catch (err: unknown) {
-      toast({ title: 'Erro ao apagar', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível concluir', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setAApagar(false)
     }
   }
 
   const modal = pedido && (
-    <Modal title={`Apagar ${pedido.titulo.toLowerCase()}`} onClose={() => setPedido(null)} busy={aApagar}>
+    <Modal title={pedido.acao} onClose={() => setPedido(null)} busy={aApagar}>
       <div className="space-y-5">
-        <p className="text-sm text-ink">
-          Vai apagar <strong className="font-medium">{pedido.nome}</strong>. Esta ação não pode ser desfeita.
+        <p className="text-sm leading-relaxed text-ink">
+          Vai {pedido.acao.toLowerCase().startsWith('excluir') ? 'excluir' : 'apagar'}{' '}
+          <strong className="font-semibold">{pedido.nome}</strong>. Esta ação não pode ser desfeita.
         </p>
-        {pedido.aviso && <p className="rounded-lg bg-danger-bg p-3 text-sm text-danger-text">{pedido.aviso}</p>}
-        <div className="flex gap-2 pt-2">
-          <Button variant="secondary" disabled={aApagar} onClick={() => setPedido(null)} className="flex-1">
+        {pedido.aviso && <Notice tone="danger" icon={AlertTriangle}>{pedido.aviso}</Notice>}
+        <div className="form-footer"><div className="form-footer-end">
+          {/* Foco no Cancelar: um Enter por engano não apaga nada. */}
+          <Button variant="secondary" disabled={aApagar} onClick={() => setPedido(null)} data-autofocus>
             Cancelar
           </Button>
-          <Button variant="destructive" loading={aApagar} onClick={handleConfirmar} className="flex-1">
-            Apagar
+          <Button variant="danger" loading={aApagar} onClick={handleConfirmar}>
+            {pedido.acao}
           </Button>
-        </div>
+        </div></div>
       </div>
     </Modal>
   )

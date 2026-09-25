@@ -22,7 +22,7 @@ export async function atribuirLead(id: string, responsavelId: string | null, atu
     .select()
   if (error) throw error
   if (!data || data.length === 0) {
-    throw new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+    throw new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
   }
 }
 
@@ -35,7 +35,7 @@ export async function atualizarEstadoLead(id: string, estado: EstadoLead, atuali
     .select()
   if (error) throw error
   if (!data || data.length === 0) {
-    throw new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+    throw new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
   }
 }
 

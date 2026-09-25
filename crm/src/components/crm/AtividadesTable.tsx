@@ -1,7 +1,7 @@
 import { TIPOS_ATIVIDADE } from '@/lib/types'
 import type { Atividade, Cliente, Lead } from '@/lib/types'
 import { Badge } from '@/components/ui/Badge'
-import { formatarData } from '@/lib/format'
+import { dataLocalIso, formatarData } from '@/lib/format'
 import { Button } from '@/components/ui/Button'
 
 interface AtividadesTableProps {
@@ -19,7 +19,7 @@ export function AtividadesTable({ atividades, leads, clientes, onAlternarConclui
     return '—'
   }
   const rotuloTipo = (tipo: Atividade['tipo']) => TIPOS_ATIVIDADE.find((t) => t.valor === tipo)?.rotulo ?? tipo
-  const hoje = new Date().toISOString().slice(0, 10)
+  const hoje = dataLocalIso()
 
   return (
     <div className="table-panel">

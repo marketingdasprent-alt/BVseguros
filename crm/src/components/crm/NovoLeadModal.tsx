@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react'
-import { UserCheck } from 'lucide-react'
+import { MessageSquare, UserCheck } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
+import { Notice } from '@/components/ui/Notice'
 import { RAMOS } from '@/lib/types'
 import type { Lead, LeadEdicao, Ramo } from '@/lib/types'
 
@@ -35,13 +36,13 @@ export function NovoLeadModal({ aCriar, onFechar, onCriar, inicial, onApagar, on
   }
 
   return (
-    <Modal title={inicial ? 'Editar lead' : 'Novo lead'} onClose={onFechar} busy={aCriar}>
+    <Modal title={inicial ? 'Editar lead' : 'Novo lead'} subtitle={inicial?.nome} onClose={onFechar} busy={aCriar}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {inicial?.mensagem && (
-          <div className="rounded-lg bg-sand p-3 text-sm">
+          <Notice icon={MessageSquare}>
             <p className="text-xs font-medium text-muted">Mensagem enviada pelo site</p>
-            <p className="mt-1 whitespace-pre-line text-ink">{inicial.mensagem}</p>
-          </div>
+            <p className="mt-1 whitespace-pre-line">{inicial.mensagem}</p>
+          </Notice>
         )}
 
         <Campo label="Nome" required>
@@ -67,9 +68,10 @@ export function NovoLeadModal({ aCriar, onFechar, onCriar, inicial, onApagar, on
         </Campo>
 
         {onConverter && (
-          <Button type="button" variant="secondary" icon={<UserCheck />} disabled={aCriar} onClick={onConverter} className="w-full">
-            Converter em cliente
-          </Button>
+          <Notice tone="info" icon={UserCheck}
+            action={<Button type="button" variant="secondary" size="sm" disabled={aCriar} onClick={onConverter}>Converter</Button>}>
+            Este lead está pronto a passar a cliente?
+          </Notice>
         )}
 
         <RodapeFormulario aGuardar={aCriar} textoGuardar={inicial ? 'Guardar alterações' : 'Criar lead'} onCancelar={onFechar} onApagar={onApagar} />

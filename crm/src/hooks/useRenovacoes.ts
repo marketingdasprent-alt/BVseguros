@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { Apolice, Renovacao } from '@/lib/types'
+import { dataLocalIso, somarDias } from '@/lib/format'
+import type { Apolice, EstadoRenovacao, Renovacao } from '@/lib/types'
 
 export interface RenovacaoItem {
   apolice: Apolice
@@ -16,10 +17,8 @@ export function useRenovacoes(diasLimite = 60) {
     setIsLoading(true)
 
     const hoje = new Date()
-    const limite = new Date()
-    limite.setDate(hoje.getDate() + diasLimite)
-    const hojeIso = hoje.toISOString().slice(0, 10)
-    const limiteIso = limite.toISOString().slice(0, 10)
+    const hojeIso = dataLocalIso(hoje)
+    const limiteIso = dataLocalIso(somarDias(hoje, diasLimite))
 
     const { data: apolices, error: erroApolices } = await supabase
       .from('apolices')
@@ -103,6 +102,31 @@ export async function marcarRenovada(
     p_data_fim_anterior: apolice.data_fim,
     p_nova_data_fim: novaDataFim,
     p_novo_premio: novoPremio,
+  })
+  if (error) throw error
+}
+
+// Edita notas/estado; cria a linha se a renovação ainda só existia como apólice a vencer.
+// "Renovada" fica de fora: só marcar_renovada a pode pôr, porque também muda a apólice.
+export async function guardarRenovacao(
+  apolice: Apolice,
+  renovacaoIdExistente: string | null,
+  // Sem estado = só notas (renovação já concluída).
+  dados: { estado?: Exclude<EstadoRenovacao, 'renovada'>; notas: string | null },
+) {
+  if (renovacaoIdExistente) {
+    const { error } = await supabase
+      .from('renovacoes')
+      .update({ ...dados, atualizado_em: new Date().toISOString() })
+      .eq('id', renovacaoIdExistente)
+    if (error) throw error
+    return
+  }
+
+  const { error } = await supabase.from('renovacoes').insert({
+    apolice_id: apolice.id,
+    data_fim_anterior: apolice.data_fim,
+    ...dados,
   })
   if (error) throw error
 }

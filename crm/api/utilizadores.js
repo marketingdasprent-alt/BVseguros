@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Convidar (POST) e excluir (DELETE) contas exigem a service-role key, que nunca pode ir para o
-// browser: por isso vivem numa função da Vercel. Padrão copiado de razao-dinamica/crm/api/utilizadores.js.
+// Ver o estado dos convites (GET), convidar/reenviar (POST) e excluir (DELETE) contas exigem a
+// service-role key, que nunca pode ir para o browser: por isso vivem numa função da Vercel.
+// Padrão copiado de razao-dinamica/crm/api/utilizadores.js.
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const UUID_VALIDO = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
@@ -9,8 +10,8 @@ const UUID_VALIDO = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
 export function createHandler({ env = process.env, client = createClient } = {}) {
   return async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store')
-    if (req.method !== 'POST' && req.method !== 'DELETE') {
-      res.setHeader('Allow', 'POST, DELETE')
+    if (!['GET', 'POST', 'DELETE'].includes(req.method)) {
+      res.setHeader('Allow', 'GET, POST, DELETE')
       return res.status(405).json({ error: 'Método não permitido.' })
     }
 
@@ -36,7 +37,49 @@ export function createHandler({ env = process.env, client = createClient } = {})
         return res.status(403).json({ error: 'Só o administrador pode gerir contas.' })
       }
 
+      if (req.method === 'GET') {
+        // Convite pendente e último acesso só existem no Auth do Supabase, não em profiles.
+        const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
+        if (error) return res.status(503).json({ error: 'Não foi possível obter o estado das contas.' })
+        const estados = Object.fromEntries(data.users.map((u) => [u.id, {
+          convitePendente: !!u.invited_at && !u.email_confirmed_at,
+          ultimoAcesso: u.last_sign_in_at ?? null,
+        }]))
+        return res.status(200).json({ estados })
+      }
+
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+      const redirectTo = env.CRM_SITE_URL || undefined
+
+      if (req.method === 'POST' && body?.acao === 'reenviar') {
+        const id = typeof body.id === 'string' ? body.id : ''
+        if (!UUID_VALIDO.test(id)) return res.status(400).json({ error: 'Utilizador inválido.' })
+        const { data: alvo, error: alvoError } = await admin.auth.admin.getUserById(id)
+        if (alvoError || !alvo?.user?.email) return res.status(404).json({ error: 'Esta conta já não existe. Atualize a página.' })
+        if (alvo.user.email_confirmed_at) return res.status(409).json({ error: 'Esta pessoa já aceitou o convite. Se não se lembra da senha, pode usar "Esqueci a senha" no login.' })
+
+        const { data: perfil } = await admin.from('profiles').select('nome').eq('id', id).maybeSingle()
+        const nome = perfil?.nome ?? alvo.user.email
+        // O Auth volta a enviar o convite enquanto a conta não estiver confirmada.
+        const { error: conviteError } = await admin.auth.admin.inviteUserByEmail(alvo.user.email, { data: { nome }, redirectTo })
+        if (conviteError) {
+          const msg = conviteError.message || ''
+          if (/security purposes|after \d+ seconds/i.test(msg)) {
+            return res.status(429).json({ error: 'Acabou de ser enviado um convite a esta pessoa. Espere um minuto antes de reenviar.' })
+          }
+          const limite = conviteError.status === 429 || /rate limit/i.test(msg)
+          return res.status(limite ? 429 : 409).json({
+            error: limite
+              ? 'O Supabase atingiu o limite de emails por hora. Tente mais tarde ou configure um SMTP próprio.'
+              : 'Não foi possível reenviar o convite. Tente novamente.',
+          })
+        }
+        await admin.from('eventos_acesso').insert({
+          perfil_id: id, perfil_nome: nome, alteracao: 'convidado',
+          realizado_por: auth.user.id, realizado_por_nome: autor.nome,
+        })
+        return res.status(200).json({ message: `Convite reenviado para ${alvo.user.email}.` })
+      }
 
       if (req.method === 'DELETE') {
         const id = typeof body?.id === 'string' ? body.id : ''
@@ -79,10 +122,9 @@ export function createHandler({ env = process.env, client = createClient } = {})
       const { data: existente, error: existenteError } = await admin
         .from('profiles').select('id').eq('email', email).maybeSingle()
       if (existenteError) return res.status(503).json({ error: 'Não foi possível verificar as contas existentes.' })
-      if (existente) return res.status(409).json({ error: 'Já existe uma conta com este email. Veja-a na lista.' })
+      if (existente) return res.status(409).json({ error: 'Já existe uma conta com este email. Se ainda não aceitou o convite, use Reenviar convite na lista.' })
 
       // O nome vai nos metadados: o trigger handle_new_user usa-o para criar o perfil.
-      const redirectTo = env.CRM_SITE_URL || undefined
       const { data: convite, error: conviteError } = await admin.auth.admin.inviteUserByEmail(email, { data: { nome }, redirectTo })
       if (conviteError || !convite?.user) {
         const limite = conviteError?.status === 429 || /rate limit/i.test(conviteError?.message || '')

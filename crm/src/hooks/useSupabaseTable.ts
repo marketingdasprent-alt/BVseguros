@@ -1,22 +1,34 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { lerTodasAsPaginas } from '@/lib/paginacao'
 
 export function useSupabaseTable<T>(tabela: string, ordenarPor: string, ascendente = false) {
   const [data, setData] = useState<T[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  // Preenchido só quando o tecto de linhas foi atingido; a página mostra um aviso.
+  const [truncado, setTruncado] = useState<{ mostrados: number; total: number } | null>(null)
 
   const recarregar = useCallback(async () => {
     setIsLoading(true)
-    const { data, error } = await supabase
-      .from(tabela)
-      .select('*')
-      .order(ordenarPor, { ascending: ascendente })
-
-    if (error) setError(error)
-    else {
+    try {
+      const resultado = await lerTodasAsPaginas<T>(async (de, ate) => {
+        // id como desempate: sem ordem estável, linhas com a mesma data saltavam entre páginas.
+        const { data, count, error } = await supabase
+          .from(tabela)
+          .select('*', de === 0 ? { count: 'exact' } : undefined)
+          .order(ordenarPor, { ascending: ascendente })
+          .order('id', { ascending: true })
+          .range(de, ate)
+        return { data: data as T[] | null, count, error }
+      })
       setError(null)
-      setData(data as T[])
+      setData(resultado.linhas)
+      setTruncado(resultado.truncado && resultado.total !== null ? { mostrados: resultado.linhas.length, total: resultado.total } : null)
+    } catch (err: unknown) {
+      // Os erros do Supabase são objetos com `message`, não instâncias de Error: guardar a mensagem real.
+      const mensagem = (err as { message?: unknown })?.message
+      setError(err instanceof Error ? err : new Error(typeof mensagem === 'string' ? mensagem : 'Erro inesperado'))
     }
     setIsLoading(false)
   }, [tabela, ordenarPor, ascendente])
@@ -25,7 +37,7 @@ export function useSupabaseTable<T>(tabela: string, ordenarPor: string, ascenden
     recarregar()
   }, [recarregar])
 
-  return { data, isLoading, error, recarregar }
+  return { data, isLoading, error, recarregar, truncado }
 }
 
 // Grava só se o registo não mudou desde que foi lido (tabelas com atualizado_em).
@@ -38,7 +50,7 @@ export async function atualizarComVersao(tabela: string, id: string, dados: obje
     .select('id')
   if (error) throw error
   if (!data || data.length === 0) {
-    throw new Error('CONFLITO: este registo foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+    throw new Error('CONFLITO: este registo foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
   }
 }
 

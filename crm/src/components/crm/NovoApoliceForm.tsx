@@ -4,6 +4,7 @@ import type { Apolice, ApoliceInsert, Cliente, EstadoApolice, Ramo } from '@/lib
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
+import { CampoSeguradora } from '@/components/crm/CampoSeguradora'
 
 interface NovoApoliceFormProps {
   clientes: Cliente[]
@@ -13,9 +14,10 @@ interface NovoApoliceFormProps {
   inicial?: Apolice
   onCancelar?: () => void
   onApagar?: () => void
+  seguradoras?: string[]
 }
 
-export function NovoApoliceForm({ clientes, aCriar, onCriar, inicial, onCancelar, onApagar }: NovoApoliceFormProps) {
+export function NovoApoliceForm({ clientes, aCriar, onCriar, inicial, onCancelar, onApagar, seguradoras }: NovoApoliceFormProps) {
   const [clienteId, setClienteId] = useState(inicial?.cliente_id ?? clientes[0]?.id ?? '')
   const [numero, setNumero] = useState(inicial?.numero_apolice ?? '')
   const [ramo, setRamo] = useState<Ramo>(inicial?.ramo ?? 'auto')
@@ -48,7 +50,7 @@ export function NovoApoliceForm({ clientes, aCriar, onCriar, inicial, onCancelar
   if (clientes.length === 0) {
     return (
       <div className="panel p-5">
-        <p className="text-sm text-muted">Cria primeiro um cliente para poderes associar uma apólice.</p>
+        <p className="text-sm text-muted">Crie primeiro um cliente para poder associar uma apólice.</p>
       </div>
     )
   }
@@ -77,7 +79,7 @@ export function NovoApoliceForm({ clientes, aCriar, onCriar, inicial, onCancelar
         </select>
       </Campo>
       <Campo label="Seguradora" required>
-        <input required value={seguradora} onChange={(e) => setSeguradora(e.target.value)} className={CLASSE_INPUT} />
+        <CampoSeguradora valor={seguradora} onChange={setSeguradora} opcoes={seguradoras} />
       </Campo>
       <Campo label="Prémio anual (€)">
         <input type="number" step="0.01" min="0" value={premio} onChange={(e) => setPremio(e.target.value)} className={`${CLASSE_INPUT} tabular-nums`} />
@@ -104,7 +106,7 @@ export function NovoApoliceForm({ clientes, aCriar, onCriar, inicial, onCancelar
 
   if (inicial) {
     return (
-      <Modal title="Editar apólice" onClose={onCancelar ?? (() => {})} busy={aCriar}>
+      <Modal title="Editar apólice" subtitle={inicial.numero_apolice} largo onClose={onCancelar ?? (() => {})} busy={aCriar}>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">{campos}</div>
           <RodapeFormulario aGuardar={aCriar} textoGuardar="Guardar alterações" onCancelar={onCancelar ?? (() => {})} onApagar={onApagar} />

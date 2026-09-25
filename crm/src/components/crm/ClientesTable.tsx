@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { Pessoa } from '@/components/ui/Pessoa'
 import type { Cliente } from '@/lib/types'
 
 interface ClientesTableProps {
@@ -40,21 +42,22 @@ export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, o
             {clientes.map((c) => (
               <tr key={c.id} className="border-t border-border hover:bg-ink/[0.02] transition-colors">
                 <td className="sticky left-0 z-10 bg-white whitespace-nowrap">
-                  {c.nome}
+                  <Link to={`/clientes/${c.id}`} className="hover:underline underline-offset-2">{c.nome}</Link>
                 </td>
                 <td className="whitespace-nowrap">{c.telefone}</td>
                 <td className="whitespace-nowrap">{c.email ?? '—'}</td>
                 <td className="whitespace-nowrap">{c.nif ?? '—'}</td>
                 <td className="whitespace-nowrap">
-                  <span className={c.responsavel_id ? '' : 'text-muted'}>
-                    {c.responsavel_id ? nomePorId.get(c.responsavel_id) ?? 'Atribuído' : 'Sem responsável'}
+                  <span className="flex items-center gap-3">
+                    <Pessoa nome={c.responsavel_id ? nomePorId.get(c.responsavel_id) ?? 'Atribuído' : null} />
+                    {(podeAtribuir || !c.responsavel_id) && (
+                      <button type="button" className="inline-action row-hover-action"
+                        onClick={() => (podeAtribuir ? onAtribuir(c) : onAssumir(c))}
+                        aria-label={`${podeAtribuir ? 'Atribuir' : 'Assumir'} ${c.nome}`}>
+                        {podeAtribuir ? 'Atribuir' : 'Assumir'}
+                      </button>
+                    )}
                   </span>
-                  {(podeAtribuir || !c.responsavel_id) && (
-                    <button type="button" onClick={() => (podeAtribuir ? onAtribuir(c) : onAssumir(c))}
-                      className="ml-3 text-xs font-medium text-navy underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy rounded">
-                      {podeAtribuir ? 'Atribuir' : 'Assumir'}
-                    </button>
-                  )}
                 </td>
                 <td className="whitespace-nowrap text-right">
                   <Button size="sm" variant="ghost" onClick={() => onEditar(c)} aria-label={`Editar ${c.nome}`}>Editar</Button>

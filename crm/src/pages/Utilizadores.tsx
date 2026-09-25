@@ -9,8 +9,9 @@ import { UtilizadoresTable } from '@/components/crm/UtilizadoresTable'
 import { HistoricoAcessos } from '@/components/crm/HistoricoAcessos'
 import { EditarNomeModal } from '@/components/crm/EditarNomeModal'
 import { ConvidarModal } from '@/components/crm/ConvidarModal'
-import { UserPlus } from 'lucide-react'
-import { useUtilizadores, useEventosAcesso, alterarAcesso, alterarNome, convidarUtilizador, excluirUtilizador } from '@/hooks/useUtilizadores'
+import { AlertTriangle, Info, UserPlus } from 'lucide-react'
+import { Notice } from '@/components/ui/Notice'
+import { useUtilizadores, useEventosAcesso, useEstadosContas, alterarAcesso, alterarNome, convidarUtilizador, excluirUtilizador, reenviarConvite } from '@/hooks/useUtilizadores'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
@@ -33,6 +34,7 @@ export default function Utilizadores() {
   const { isAdmin, profile, refreshProfile } = useAuth()
   const { data: utilizadores, isLoading, error, recarregar } = useUtilizadores()
   const eventos = useEventosAcesso()
+  const estadosContas = useEstadosContas()
   const { toast } = useToast()
   const [pedido, setPedido] = useState<PedidoAlteracao | null>(null)
   const [idEmAlteracao, setIdEmAlteracao] = useState<string | null>(null)
@@ -40,7 +42,7 @@ export default function Utilizadores() {
   const [aGuardarNome, setAGuardarNome] = useState(false)
   const [aConvidar, setAConvidar] = useState(false)
   const [aEnviarConvite, setAEnviarConvite] = useState(false)
-  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(async () => { await Promise.all([recarregar(), eventos.recarregar()]) })
+  const { pedirConfirmacao, modalApagar } = useConfirmarApagar(async () => { await Promise.all([recarregar(), eventos.recarregar(), estadosContas.recarregar()]) })
 
   // Esconder é só UX: quem garante que só um admin altera contas é a RLS de profiles.
   if (!isAdmin) return <Navigate to="/" replace />
@@ -82,19 +84,33 @@ export default function Utilizadores() {
     setAEnviarConvite(true)
     try {
       const mensagem = await convidarUtilizador(nome, email)
-      await Promise.all([recarregar(), eventos.recarregar()])
+      await Promise.all([recarregar(), eventos.recarregar(), estadosContas.recarregar()])
       toast({ title: 'Convite enviado', description: mensagem })
-      setAConvidar(false)
+      return true
     } catch (err: unknown) {
       toast({ title: 'Erro ao convidar', description: mensagemErro(err), variant: 'destructive' })
+      return false
     } finally {
       setAEnviarConvite(false)
     }
   }
 
+  const handleReenviar = async (utilizador: Profile) => {
+    setIdEmAlteracao(utilizador.id)
+    try {
+      const mensagem = await reenviarConvite(utilizador.id)
+      await eventos.recarregar()
+      toast({ title: 'Convite reenviado', description: mensagem })
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao reenviar convite', description: mensagemErro(err), variant: 'destructive' })
+    } finally {
+      setIdEmAlteracao(null)
+    }
+  }
+
   const handlePedirExcluir = (utilizador: Profile) =>
     pedirConfirmacao({
-      titulo: 'Utilizador',
+      acao: 'Excluir conta', mensagemSucesso: 'Conta excluída',
       nome: `a conta de ${utilizador.nome} (${utilizador.email})`,
       aviso: 'A pessoa deixa de conseguir entrar e a conta não pode ser recuperada. Os leads, clientes e atividades de que era responsável ficam sem responsável; nada é apagado. Para bloquear temporariamente, use antes "Retirar acesso".',
       apagar: async () => { await excluirUtilizador(utilizador.id) },
@@ -106,16 +122,26 @@ export default function Utilizadores() {
     <div className="space-y-6">
       <PageHeader
         title="Utilizadores"
-        description={semAcesso > 0 ? `${semAcesso} ${semAcesso === 1 ? 'conta à espera' : 'contas à espera'} de acesso` : 'Quem pode entrar no CRM'}
+        description={<>
+          {semAcesso > 0 && <strong className="font-medium text-ink">{semAcesso} {semAcesso === 1 ? 'conta à espera' : 'contas à espera'} de acesso. </strong>}
+          Quem pode entrar no CRM. Contas criadas por outra via (por exemplo, no painel do Supabase) aparecem aqui sem acesso até lho dar.
+        </>}
         action={<Button icon={<UserPlus />} onClick={() => setAConvidar(true)}>Convidar utilizador</Button>}
       />
 
-      <p className="text-sm text-muted max-w-2xl">
-        Quem se registar por outra via (por exemplo, convidado no painel do Supabase) aparece aqui sem acesso até lho dar.
-      </p>
-
       {isLoading && <Spinner />}
-      {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar utilizadores: {error.message}</p>}
+      {error && (
+        <Notice tone="danger" icon={AlertTriangle} alerta
+          action={<Button variant="secondary" size="sm" onClick={() => recarregar()}>Tentar novamente</Button>}>
+          Não foi possível carregar os utilizadores: {error.message}
+        </Notice>
+      )}
+
+      {estadosContas.error && !isLoading && !error && (
+        <Notice icon={Info}>
+          Convites pendentes e último acesso indisponíveis: falta configurar a chave do servidor (SUPABASE_SERVICE_ROLE_KEY).
+        </Notice>
+      )}
 
       {!isLoading && !error && utilizadores.length === 0 && (
         <div className="panel">
@@ -126,15 +152,17 @@ export default function Utilizadores() {
       {!isLoading && !error && utilizadores.length > 0 && (
         <UtilizadoresTable
           utilizadores={utilizadores}
+          estados={estadosContas.data}
           idAtual={profile?.id ?? null}
           idEmAlteracao={idEmAlteracao}
           onAlterar={(utilizador, alteracao) => setPedido({ utilizador, alteracao })}
           onEditarNome={setAEditarNome}
           onExcluir={handlePedirExcluir}
+          onReenviarConvite={handleReenviar}
         />
       )}
 
-      <HistoricoAcessos eventos={eventos.data} isLoading={eventos.isLoading} error={eventos.error} />
+      <HistoricoAcessos eventos={eventos.data} isLoading={eventos.isLoading} error={eventos.error} onTentarNovamente={() => eventos.recarregar()} />
 
       {modalApagar}
 
@@ -145,18 +173,19 @@ export default function Utilizadores() {
       )}
 
       {pedido && confirmacao && (
-        <Modal title={confirmacao.titulo} onClose={() => setPedido(null)} busy={idEmAlteracao !== null}>
+        <Modal title={confirmacao.titulo} subtitle={pedido.utilizador.email} onClose={() => setPedido(null)} busy={idEmAlteracao !== null}>
           <div className="space-y-5">
-            <p className="text-sm text-ink">{confirmacao.texto}</p>
-            <div className="flex gap-2 pt-2">
-              <Button variant="secondary" disabled={idEmAlteracao !== null} onClick={() => setPedido(null)} className="flex-1">
+            <p className="text-sm leading-relaxed text-ink">{confirmacao.texto}</p>
+            {/* O botão repete a ação do título, como na confirmação de apagar. */}
+            <div className="form-footer"><div className="form-footer-end">
+              <Button variant="secondary" disabled={idEmAlteracao !== null} onClick={() => setPedido(null)} data-autofocus>
                 Cancelar
               </Button>
               <Button variant={pedido.alteracao.ativo === false ? 'destructive' : 'primary'} loading={idEmAlteracao !== null}
-                onClick={handleConfirmar} className="flex-1">
-                Confirmar
+                onClick={handleConfirmar}>
+                {confirmacao.titulo}
               </Button>
-            </div>
+            </div></div>
           </div>
         </Modal>
       )}

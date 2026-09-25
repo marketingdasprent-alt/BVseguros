@@ -1,7 +1,9 @@
 import { Loader2 } from 'lucide-react'
+import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive'
+// danger (vermelho cheio) só no botão que confirma apagar/excluir.
+type Variant = 'primary' | 'secondary' | 'ghost' | 'ghost-danger' | 'destructive' | 'danger'
 type Size = 'sm' | 'md'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -16,6 +18,8 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   secondary: 'border border-border text-ink bg-white hover:border-border-strong',
   ghost: 'text-muted hover:text-ink hover:bg-ink/[0.03]',
   destructive: 'border border-danger/30 text-danger-text hover:bg-danger-bg',
+  danger: 'bg-danger text-white hover:bg-[#d92d20]',
+  'ghost-danger': 'text-danger-text hover:bg-danger-bg',
 }
 
 const SIZE_CLASSES: Record<Size, string> = {
@@ -25,7 +29,7 @@ const SIZE_CLASSES: Record<Size, string> = {
 
 const ICON_SIZE: Record<Size, number> = { sm: 14, md: 16 }
 
-export function Button({
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   variant = 'primary',
   size = 'md',
   icon,
@@ -35,9 +39,10 @@ export function Button({
   children,
   className = '',
   ...props
-}: ButtonProps) {
+}, ref) {
   return (
     <button
+      ref={ref}
       type={type}
       aria-busy={loading || undefined}
       disabled={disabled || loading}
@@ -52,4 +57,4 @@ export function Button({
       {children}
     </button>
   )
-}
+})

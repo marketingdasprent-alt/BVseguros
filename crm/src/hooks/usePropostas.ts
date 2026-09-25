@@ -21,7 +21,7 @@ export async function atualizarEstadoProposta(id: string, estado: EstadoProposta
     .select()
   if (error) throw error
   if (!data || data.length === 0) {
-    throw new Error('CONFLITO: esta proposta foi alterada por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+    throw new Error('CONFLITO: esta proposta foi alterada por outra pessoa entretanto. Atualize a página e tente novamente.')
   }
 }
 

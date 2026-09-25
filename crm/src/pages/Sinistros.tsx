@@ -1,7 +1,12 @@
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { KanbanBoard } from '@/components/crm/KanbanBoard'
+import { BarraPesquisa } from '@/components/crm/BarraPesquisa'
+import { SemResultados } from '@/components/crm/SemResultados'
+import { AvisoTruncado } from '@/components/crm/AvisoTruncado'
+import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
+import { corresponde } from '@/lib/pesquisa'
 import { SinistroCard } from '@/components/crm/SinistroCard'
 import { NovoSinistroModal } from '@/components/crm/NovoSinistroModal'
 import { Spinner } from '@/components/ui/Spinner'
@@ -17,7 +22,9 @@ import { TONE_ESTADO_SINISTRO } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
 
 export default function Sinistros() {
-  const { data: sinistros, isLoading, error, recarregar } = useSinistros()
+  const { data: sinistros, isLoading, error, recarregar, truncado } = useSinistros()
+  const filtros = useFiltrosUrl()
+  const termo = filtros.ler('q')
   const { data: apolices, isLoading: apolicesCarregando } = useApolices()
   const { toast } = useToast()
   const [modalAberto, setModalAberto] = useState(false)
@@ -28,6 +35,9 @@ export default function Sinistros() {
 
   const numeroApolice = (sinistro: Sinistro) =>
     apolices.find((a) => a.id === sinistro.apolice_id)?.numero_apolice ?? '—'
+
+  const sinistrosFiltrados = useMemo(() => sinistros.filter((s) => corresponde([numeroApolice(s), s.numero_sinistro, s.descricao, s.notas], termo)),
+    [sinistros, termo, apolices])
 
   const handleMudarEstado = async (id: string, estado: EstadoSinistro, atualizadoEm: string) => {
     try {
@@ -70,7 +80,7 @@ export default function Sinistros() {
 
   const handlePedirApagar = (sinistro: Sinistro) => {
     setAEditar(null)
-    pedirConfirmacao({ titulo: 'Sinistro', nome: `o sinistro da apólice ${numeroApolice(sinistro)}`, apagar: () => apagarSinistro(sinistro.id) })
+    pedirConfirmacao({ acao: 'Apagar sinistro', nome: `o sinistro da apólice ${numeroApolice(sinistro)}`, apagar: () => apagarSinistro(sinistro.id) })
   }
 
   const carregando = isLoading || apolicesCarregando
@@ -84,8 +94,14 @@ export default function Sinistros() {
       {carregando && <Spinner />}
       {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar sinistros: {error.message}</p>}
       {!carregando && !error && (
+        <>
+        <AvisoTruncado truncado={truncado} />
+        <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar sinistros" placeholder="Nº de apólice, nº de sinistro ou descrição" />
+        {sinistros.length > 0 && sinistrosFiltrados.length === 0 ? (
+          <SemResultados termo={termo} onLimpar={filtros.limpar} />
+        ) : (
         <KanbanBoard
-          itens={sinistros}
+          itens={sinistrosFiltrados}
           colunas={ESTADOS_SINISTRO}
           getId={(s) => s.id}
           getEstado={(s) => s.estado}
@@ -95,6 +111,8 @@ export default function Sinistros() {
           renderCard={(s) => <SinistroCard sinistro={s} numeroApolice={numeroApolice(s)} onEditar={setAEditar} />}
           vazioTexto="Sem sinistros"
         />
+        )}
+        </>
       )}
 
       {modalAberto && (

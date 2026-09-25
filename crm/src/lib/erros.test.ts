@@ -33,12 +33,19 @@ describe('mensagemErro', () => {
   })
 
   it('extrai a mensagem de um conflito de concorrência', () => {
-    const erro = new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
-    expect(mensagemErro(erro)).toBe('este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+    const erro = new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
+    expect(mensagemErro(erro)).toBe('este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
   })
 
   it('cai numa mensagem genérica para erros não reconhecidos', () => {
     const erro = new Error('falha de rede qualquer')
-    expect(mensagemErro(erro)).toBe('Não foi possível concluir. Tenta novamente ou contacta o suporte se persistir.')
+    expect(mensagemErro(erro)).toBe('Não foi possível concluir. Tente novamente ou contacte o suporte se persistir.')
+  })
+  // Forma real dos erros do Supabase: objeto simples, não instância de Error.
+  it('lê erros do Supabase que chegam como objetos simples', () => {
+    const conflito = { message: 'CONFLITO: Este lead já foi convertido em cliente.', code: 'P0001', details: null, hint: null }
+    expect(mensagemErro(conflito)).toBe('Este lead já foi convertido em cliente.')
+    const duplicado = { message: 'duplicate key value violates unique constraint "clientes_nif_unico"', code: '23505' }
+    expect(mensagemErro(duplicado)).toBe('Já existe um cliente registado com este NIF.')
   })
 })

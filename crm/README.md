@@ -64,6 +64,27 @@ só a função em `api/` a lê. O `vercel.json` define `"framework": "vite"` e d
 `/api/*` fora do rewrite para o `index.html`. Em `npm run dev`, o mesmo handler corre
 através de `server/local-api.js`.
 
+## Importar a carteira
+
+Em **Administração → Importar** (só admin): primeiro os clientes, depois as apólices
+(ligam-se ao cliente pelo NIF). Cada ecrã tem "Descarregar modelo" com as colunas
+certas. Aceita o CSV do Excel em PT (`;`, acentos, `dd/mm/aaaa`, `1.234,56`); para
+`.xlsx`, guardar antes como **CSV UTF-8**. Linhas com problemas não entram e ficam num
+relatório descarregável.
+
+## Aviso por email de leads do site (opcional)
+
+Sem isto, os pedidos do site já aparecem com contador no menu **Leads**. Para receber
+também um email:
+
+1. Conta [Brevo](https://www.brevo.com) com o remetente validado; na Vercel, definir
+   `BREVO_API_KEY`, `BREVO_REMETENTE`, `CRM_SITE_URL` e `AVISO_LEAD_SEGREDO` (um texto
+   longo inventado por si).
+2. Supabase → Database → Webhooks → Create: tabela `public.leads`, evento **Insert**,
+   tipo HTTP Request, `POST https://<endereço do CRM>/api/aviso-lead`, header
+   `x-aviso-segredo: <o mesmo AVISO_LEAD_SEGREDO>`.
+3. Enviar um pedido pelo site e confirmar em Webhooks → Logs que a resposta é 200.
+
 ## Por decidir
 
 Ver [`../documento.md`](../documento.md) secção 4 — ramos de seguro definitivos,

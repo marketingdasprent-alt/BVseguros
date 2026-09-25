@@ -66,7 +66,18 @@ Já implementado:
   criar, editar e (só admin) apagar com confirmação
 - Conversão de lead em cliente (uma transação: cria o cliente ligado ao lead, passa-lhe
   propostas e actividades, marca o lead como convertido)
-- Utilizadores (só admins): convidar e excluir contas pelo CRM (`crm/api/utilizadores.js`),
+- Renovações: editar estado (pendente/contactado/não renovada) e notas
+- Ficha do cliente (`/clientes/:id`): resumo, apólices, propostas, sinistros, atividades
+  e histórico de alterações
+- Pesquisa e filtros em todas as listas (sem acentos/maiúsculas, filtros na URL);
+  listas completas acima de 1000 registos
+- Importação de clientes e apólices por CSV (Administração → Importar)
+- Aviso de pedidos do site por tratar (contador no menu Leads; email opcional)
+- Histórico de alterações de leads, clientes, apólices, propostas, sinistros e renovações
+- Seguradoras como lista (Administração → Seguradoras), com nomes normalizados
+- Login com "Esqueci a senha"; CRM fora dos motores de busca
+- Utilizadores (só admins): convidar, reenviar convite, ver convites pendentes e último
+  acesso, e excluir contas pelo CRM (`crm/api/utilizadores.js`),
   editar nome, dar/retirar acesso, tornar administrador/mediador e histórico de quem
   alterou o quê. Excluir não apaga dados: o que era da pessoa fica sem responsável.
 - Responsável por lead e por cliente, com filtro "Os meus" / "Sem responsável"
@@ -129,12 +140,17 @@ Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo
 
 ## 6. Próximos passos
 
-1. Ligar o projecto `bvseguros-crm` ao GitHub na Vercel e criar o projecto do site.
-2. Correr `crm/supabase/migrations/2026-09-24_excluir_utilizador.sql` no Supabase (as
-   anteriores já foram aplicadas) e pôr `SUPABASE_SERVICE_ROLE_KEY` nas variáveis do
-   projecto `bvseguros-crm` na Vercel, para convidar e excluir contas funcionarem.
-3. Preencher os placeholders do site assim que o cliente enviar os dados.
+O plano completo de entrega está em [`crm/PROMPT-ENTREGA.md`](crm/PROMPT-ENTREGA.md)
+(fases 1 e 2 feitas em 25/09/2026). Falta:
+
+1. No Supabase, correr por esta ordem: `2026-09-25_importacao.sql`,
+   `2026-09-25_aviso_leads.sql`, `2026-09-25_historico.sql`, `2026-09-25_seguradoras.sql`;
+   e depois o script `crm/supabase/limpeza/2026-09-25_remover-dados-teste.sql`.
+2. Fase 3 do plano (configuração de produção): Site URL/Redirect URLs, SMTP e templates
+   em PT, backups, Vercel ligada ao GitHub, domínio, e (opcional) aviso por email dos
+   leads do site (ver `crm/README.md`).
+3. Fase 4 (RGPD) com o cliente; preencher os placeholders do site quando chegarem os dados.
 
 ---
 
-_Última actualização: 2026-09-24._
+_Última actualização: 2026-09-25._

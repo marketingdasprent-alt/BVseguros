@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Modal } from '@/components/ui/Modal'
-import { Button } from '@/components/ui/Button'
+import { Campo, CLASSE_INPUT, ContextoFormulario, RodapeFormulario } from '@/components/ui/Campo'
 import type { Profile } from '@/lib/types'
 
 interface EditarNomeModalProps {
@@ -25,33 +25,19 @@ export function EditarNomeModal({ utilizador, aGuardar, onFechar, onGuardar }: E
     if (isValido) await onGuardar(limpo)
   }
 
+  const restantes = NOME_MAX - nome.length
+
   return (
     <Modal title="Editar nome" onClose={onFechar} busy={aGuardar}>
       <form onSubmit={handleSubmit} className="space-y-5">
-        <p className="text-sm text-muted">{utilizador.email}</p>
-
-        <label className="block min-w-0 space-y-2">
-          <span className="block text-xs font-medium text-ink">
-            Nome<span className="text-danger"> *</span>
-          </span>
-          <input
-            required
-            maxLength={NOME_MAX}
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            placeholder="Nome e apelido"
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-          />
-        </label>
-
-        <div className="flex gap-2 pt-2">
-          <Button type="button" variant="secondary" disabled={aGuardar} onClick={onFechar} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" loading={aGuardar} disabled={!isValido || limpo === utilizador.nome} className="flex-1">
-            Guardar
-          </Button>
-        </div>
+        <ContextoFormulario itens={[{ rotulo: 'Conta', valor: utilizador.email }]} />
+        <Campo label="Nome" required
+          extra={restantes < 20 ? <span className="text-[11px] font-normal text-muted tabular-nums">{restantes} caracteres</span> : undefined}>
+          <input required maxLength={NOME_MAX} value={nome} onChange={(e) => setNome(e.target.value)}
+            placeholder="Nome e apelido" className={CLASSE_INPUT} />
+        </Campo>
+        <RodapeFormulario aGuardar={aGuardar} textoGuardar="Guardar alterações" onCancelar={onFechar}
+          desativarGuardar={!isValido || limpo === utilizador.nome} />
       </form>
     </Modal>
   )

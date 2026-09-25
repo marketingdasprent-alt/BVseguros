@@ -21,7 +21,7 @@ export async function atualizarEstadoSinistro(id: string, estado: EstadoSinistro
     .select()
   if (error) throw error
   if (!data || data.length === 0) {
-    throw new Error('CONFLITO: este sinistro foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.')
+    throw new Error('CONFLITO: este sinistro foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
   }
 }
 

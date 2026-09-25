@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { RAMOS, ESTADOS_APOLICE } from '@/lib/types'
 import type { Apolice, Cliente } from '@/lib/types'
 import { Badge } from '@/components/ui/Badge'
@@ -51,7 +52,7 @@ export function ApolicesTable({ apolices, clientes, onEditar }: ApolicesTablePro
                 <td className="sticky left-0 z-10 bg-white whitespace-nowrap">
                   {a.numero_apolice}
                 </td>
-                <td className="whitespace-nowrap">{nomeCliente(a.cliente_id)}</td>
+                <td className="whitespace-nowrap"><Link to={`/clientes/${a.cliente_id}`} className="hover:underline underline-offset-2">{nomeCliente(a.cliente_id)}</Link></td>
                 <td className="whitespace-nowrap">{rotuloRamo(a.ramo)}</td>
                 <td className="whitespace-nowrap">{a.seguradora}</td>
                 <td className="text-right tabular-nums whitespace-nowrap">

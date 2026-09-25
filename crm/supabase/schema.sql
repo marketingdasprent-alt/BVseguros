@@ -571,10 +571,10 @@ begin
 
   select * into v_lead from public.leads where id = p_lead_id for update;
   if not found then
-    raise exception 'CONFLITO: Este lead já não existe. Atualiza a página.';
+    raise exception 'CONFLITO: Este lead já não existe. Atualize a página.';
   end if;
   if v_lead.atualizado_em is distinct from p_atualizado_em then
-    raise exception 'CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualiza a página e tenta novamente.';
+    raise exception 'CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.';
   end if;
   if exists (select 1 from public.clientes where lead_origem_id = p_lead_id) then
     raise exception 'CONFLITO: Este lead já foi convertido em cliente.';
@@ -629,6 +629,324 @@ drop trigger if exists proteger_ultimo_admin on public.profiles;
 create trigger proteger_ultimo_admin
   before delete on public.profiles
   for each row execute function public.proteger_ultimo_admin();
+
+-- (de migrations/2026-09-25_importacao.sql)
+create or replace function public.importar_clientes(p_linhas jsonb)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_linha record;
+  v_responsavel uuid;
+  v_inseridos int := 0;
+  v_ignorados jsonb := '[]'::jsonb;
+begin
+  if not public.is_admin_user() then
+    raise exception 'CONFLITO: Só o administrador pode importar dados.';
+  end if;
+  if jsonb_array_length(p_linhas) > 500 then
+    raise exception 'CONFLITO: Envie no máximo 500 linhas de cada vez.';
+  end if;
+
+  for v_linha in select value as l, (ordinality - 1)::int as indice from jsonb_array_elements(p_linhas) with ordinality loop
+    begin
+      if nullif(v_linha.l->>'nif', '') is not null
+        and exists (select 1 from public.clientes where nif = v_linha.l->>'nif') then
+        v_ignorados := v_ignorados || jsonb_build_object('indice', v_linha.indice, 'motivo', 'Já existe um cliente com este NIF.');
+        continue;
+      end if;
+
+      -- Sem responsável válido, o trigger proteger_responsavel atribui a quem importa.
+      select id into v_responsavel from public.profiles
+        where lower(email) = lower(v_linha.l->>'responsavel_email') and ativo;
+
+      insert into public.clientes (nome, telefone, email, nif, morada, responsavel_id)
+      values (
+        btrim(v_linha.l->>'nome'),
+        btrim(v_linha.l->>'telefone'),
+        nullif(btrim(coalesce(v_linha.l->>'email', '')), ''),
+        nullif(btrim(coalesce(v_linha.l->>'nif', '')), ''),
+        nullif(btrim(coalesce(v_linha.l->>'morada', '')), ''),
+        v_responsavel
+      );
+      v_inseridos := v_inseridos + 1;
+    exception when others then
+      v_ignorados := v_ignorados || jsonb_build_object('indice', v_linha.indice, 'motivo', sqlerrm);
+    end;
+  end loop;
+
+  return jsonb_build_object('inseridos', v_inseridos, 'ignorados', v_ignorados);
+end;
+$$;
+
+create or replace function public.importar_apolices(p_linhas jsonb)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_linha record;
+  v_cliente uuid;
+  v_inseridos int := 0;
+  v_ignorados jsonb := '[]'::jsonb;
+begin
+  if not public.is_admin_user() then
+    raise exception 'CONFLITO: Só o administrador pode importar dados.';
+  end if;
+  if jsonb_array_length(p_linhas) > 500 then
+    raise exception 'CONFLITO: Envie no máximo 500 linhas de cada vez.';
+  end if;
+
+  for v_linha in select value as l, (ordinality - 1)::int as indice from jsonb_array_elements(p_linhas) with ordinality loop
+    begin
+      select id into v_cliente from public.clientes where nif = v_linha.l->>'nif_cliente';
+      if v_cliente is null then
+        v_ignorados := v_ignorados || jsonb_build_object('indice', v_linha.indice,
+          'motivo', 'Não existe nenhum cliente com o NIF ' || coalesce(v_linha.l->>'nif_cliente', '') || '. Importe primeiro os clientes.');
+        continue;
+      end if;
+      if exists (select 1 from public.apolices where numero_apolice = v_linha.l->>'numero_apolice') then
+        v_ignorados := v_ignorados || jsonb_build_object('indice', v_linha.indice, 'motivo', 'Já existe uma apólice com este número.');
+        continue;
+      end if;
+
+      insert into public.apolices (cliente_id, numero_apolice, ramo, seguradora, premio_anual, data_inicio, data_fim, estado)
+      values (
+        v_cliente,
+        btrim(v_linha.l->>'numero_apolice'),
+        v_linha.l->>'ramo',
+        btrim(v_linha.l->>'seguradora'),
+        (v_linha.l->>'premio_anual')::numeric,
+        (v_linha.l->>'data_inicio')::date,
+        nullif(v_linha.l->>'data_fim', '')::date,
+        coalesce(nullif(v_linha.l->>'estado', ''), 'ativa')
+      );
+      v_inseridos := v_inseridos + 1;
+    exception when others then
+      v_ignorados := v_ignorados || jsonb_build_object('indice', v_linha.indice, 'motivo', sqlerrm);
+    end;
+  end loop;
+
+  return jsonb_build_object('inseridos', v_inseridos, 'ignorados', v_ignorados);
+end;
+$$;
+
+revoke all on function public.importar_clientes(jsonb), public.importar_apolices(jsonb) from public;
+grant execute on function public.importar_clientes(jsonb), public.importar_apolices(jsonb) to authenticated;
+
+-- (de migrations/2026-09-25_aviso_leads.sql)
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+    and not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'leads'
+    ) then
+    alter publication supabase_realtime add table public.leads;
+  end if;
+end $$;
+
+-- O contador pergunta muitas vezes por estes leads; o índice evita ler a tabela toda.
+create index if not exists idx_leads_site_por_tratar on public.leads (criado_em)
+  where origem = 'site' and estado = 'novo' and responsavel_id is null;
+
+-- (de migrations/2026-09-25_historico.sql)
+create table if not exists public.historico_registos (
+  id uuid primary key default gen_random_uuid(),
+  tabela text not null,
+  registo_id uuid not null,
+  -- Sem chave estrangeira de propósito: o histórico sobrevive ao registo apagado.
+  cliente_id uuid,
+  acao text not null check (acao in ('criado', 'alterado', 'apagado')),
+  -- Nome/nº do registo, para continuar legível depois de apagado.
+  resumo text,
+  -- Só em "alterado": { campo: { antes, depois } }.
+  alteracoes jsonb,
+  autor_id uuid references public.profiles(id) on delete set null,
+  autor_nome text,
+  criado_em timestamptz not null default now()
+);
+
+alter table public.historico_registos enable row level security;
+
+-- Carteira partilhada: quem vê os registos vê o histórico deles. Sem políticas de
+-- escrita: só o trigger (security definer) grava, e ninguém edita nem apaga entradas.
+drop policy if exists "historico_ler" on public.historico_registos;
+create policy "historico_ler" on public.historico_registos
+  for select using (public.is_active_user());
+
+create index if not exists idx_historico_cliente on public.historico_registos (cliente_id, criado_em desc);
+create index if not exists idx_historico_registo on public.historico_registos (tabela, registo_id, criado_em desc);
+
+create or replace function public.registar_historico()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_novo jsonb := case when tg_op <> 'DELETE' then to_jsonb(new) end;
+  v_antigo jsonb := case when tg_op <> 'INSERT' then to_jsonb(old) end;
+  v_registo jsonb;
+  v_alteracoes jsonb := '{}'::jsonb;
+  v_campo text;
+  v_apolice uuid;
+begin
+  v_registo := coalesce(v_novo, v_antigo);
+
+  if tg_op = 'UPDATE' then
+    for v_campo in select jsonb_object_keys(v_novo) loop
+      -- Carimbos de data não dizem nada a quem lê o histórico.
+      continue when v_campo in ('atualizado_em', 'criado_em');
+      if v_novo -> v_campo is distinct from v_antigo -> v_campo then
+        v_alteracoes := v_alteracoes || jsonb_build_object(v_campo, jsonb_build_object('antes', v_antigo -> v_campo, 'depois', v_novo -> v_campo));
+      end if;
+    end loop;
+    if v_alteracoes = '{}'::jsonb then
+      return new;
+    end if;
+  end if;
+
+  if tg_table_name in ('sinistros', 'renovacoes') then
+    v_apolice := (v_registo ->> 'apolice_id')::uuid;
+  end if;
+
+  insert into public.historico_registos (tabela, registo_id, cliente_id, acao, resumo, alteracoes, autor_id, autor_nome)
+  values (
+    tg_table_name,
+    (v_registo ->> 'id')::uuid,
+    case tg_table_name
+      when 'clientes' then (v_registo ->> 'id')::uuid
+      when 'apolices' then (v_registo ->> 'cliente_id')::uuid
+      when 'propostas' then (v_registo ->> 'cliente_id')::uuid
+      else (select a.cliente_id from public.apolices a where a.id = v_apolice)
+    end,
+    case tg_op when 'INSERT' then 'criado' when 'UPDATE' then 'alterado' else 'apagado' end,
+    case tg_table_name
+      when 'apolices' then v_registo ->> 'numero_apolice'
+      when 'propostas' then v_registo ->> 'seguradora'
+      when 'sinistros' then v_registo ->> 'descricao'
+      when 'renovacoes' then (select a.numero_apolice from public.apolices a where a.id = v_apolice)
+      else v_registo ->> 'nome'
+    end,
+    case when tg_op = 'UPDATE' then v_alteracoes end,
+    auth.uid(),
+    (select p.nome from public.profiles p where p.id = auth.uid())
+  );
+
+  return coalesce(new, old);
+end;
+$$;
+
+do $$
+declare t text;
+begin
+  foreach t in array array['leads', 'clientes', 'apolices', 'propostas', 'sinistros', 'renovacoes'] loop
+    execute format('drop trigger if exists registar_historico on public.%I', t);
+    execute format('create trigger registar_historico after insert or update or delete on public.%I for each row execute function public.registar_historico()', t);
+  end loop;
+end $$;
+
+-- (de migrations/2026-09-25_seguradoras.sql)
+create table if not exists public.seguradoras (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null check (char_length(btrim(nome)) between 2 and 120),
+  ativa boolean not null default true,
+  criado_em timestamptz not null default now()
+);
+
+create unique index if not exists seguradoras_nome_unico on public.seguradoras (lower(btrim(nome)));
+
+alter table public.seguradoras enable row level security;
+
+drop policy if exists "seguradoras_ler" on public.seguradoras;
+create policy "seguradoras_ler" on public.seguradoras for select using (public.is_active_user());
+drop policy if exists "seguradoras_criar" on public.seguradoras;
+create policy "seguradoras_criar" on public.seguradoras for insert with check (public.is_admin_user());
+drop policy if exists "seguradoras_editar" on public.seguradoras;
+create policy "seguradoras_editar" on public.seguradoras for update using (public.is_admin_user()) with check (public.is_admin_user());
+
+-- Só os nomes que já estão nos dados: não se inventa nenhuma seguradora.
+insert into public.seguradoras (nome)
+select distinct on (lower(btrim(s))) btrim(s)
+from (select seguradora as s from public.apolices union all select seguradora from public.propostas) x
+where char_length(btrim(coalesce(s, ''))) >= 2
+order by lower(btrim(s)), btrim(s)
+on conflict (lower(btrim(nome))) do nothing;
+
+-- Nome oficial em vez de variações de maiúsculas/espaços; nome novo entra na lista.
+create or replace function public.normalizar_seguradora()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_oficial text;
+begin
+  new.seguradora := btrim(regexp_replace(new.seguradora, '\s+', ' ', 'g'));
+  select nome into v_oficial from public.seguradoras where lower(btrim(nome)) = lower(new.seguradora);
+  if v_oficial is null then
+    -- Um nome curto demais para a lista não pode impedir de gravar a apólice.
+    if char_length(new.seguradora) >= 2 then
+      insert into public.seguradoras (nome) values (new.seguradora) on conflict (lower(btrim(nome))) do nothing;
+    end if;
+  else
+    new.seguradora := v_oficial;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists normalizar_seguradora on public.apolices;
+create trigger normalizar_seguradora before insert or update of seguradora on public.apolices
+  for each row execute function public.normalizar_seguradora();
+drop trigger if exists normalizar_seguradora on public.propostas;
+create trigger normalizar_seguradora before insert or update of seguradora on public.propostas
+  for each row execute function public.normalizar_seguradora();
+
+-- Renomear passa o nome novo às apólices e propostas. Se o nome novo já existir,
+-- é juntar duplicados: tudo passa para a existente e esta desaparece da lista.
+create or replace function public.renomear_seguradora(p_id uuid, p_nome text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_antigo text;
+  v_nome text := btrim(regexp_replace(coalesce(p_nome, ''), '\s+', ' ', 'g'));
+  v_destino uuid;
+begin
+  if not public.is_admin_user() then
+    raise exception 'CONFLITO: Só o administrador pode gerir seguradoras.';
+  end if;
+  if char_length(v_nome) < 2 then
+    raise exception 'CONFLITO: O nome deve ter pelo menos 2 caracteres.';
+  end if;
+  select nome into v_antigo from public.seguradoras where id = p_id for update;
+  if v_antigo is null then
+    raise exception 'CONFLITO: Esta seguradora já não existe. Atualize a página.';
+  end if;
+
+  select id into v_destino from public.seguradoras where lower(btrim(nome)) = lower(v_nome) and id <> p_id;
+  if v_destino is not null then
+    select nome into v_nome from public.seguradoras where id = v_destino;
+    delete from public.seguradoras where id = p_id;
+  else
+    update public.seguradoras set nome = v_nome where id = p_id;
+  end if;
+
+  update public.apolices set seguradora = v_nome where lower(btrim(seguradora)) = lower(btrim(v_antigo));
+  update public.propostas set seguradora = v_nome where lower(btrim(seguradora)) = lower(btrim(v_antigo));
+end;
+$$;
+
+revoke all on function public.renomear_seguradora(uuid, text) from public;
+grant execute on function public.renomear_seguradora(uuid, text) to authenticated;
 
 -- Supabase serve a API a partir de uma cache do desenho da base.
 -- Sem isto, colunas/tabelas novas podem devolver "column not found" até a cache recarregar.

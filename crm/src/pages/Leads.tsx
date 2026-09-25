@@ -1,12 +1,16 @@
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { KanbanBoard } from '@/components/crm/KanbanBoard'
 import { LeadCard } from '@/components/crm/LeadCard'
 import { NovoLeadModal } from '@/components/crm/NovoLeadModal'
 import { ConverterLeadModal } from '@/components/crm/ConverterLeadModal'
 import { FiltroResponsavel } from '@/components/crm/FiltroResponsavel'
+import { BarraPesquisa } from '@/components/crm/BarraPesquisa'
+import { SemResultados } from '@/components/crm/SemResultados'
+import { AvisoTruncado } from '@/components/crm/AvisoTruncado'
+import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
+import { corresponde } from '@/lib/pesquisa'
 import { AtribuirResponsavelModal } from '@/components/crm/AtribuirResponsavelModal'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
@@ -22,20 +26,24 @@ import { mensagemErro } from '@/lib/erros'
 import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
 
 export default function Leads() {
-  const { data: leads, isLoading, error, recarregar } = useLeads()
+  const { data: leads, isLoading, error, recarregar, truncado } = useLeads()
   const { ativos, nomePorId } = useEquipa()
   const { profile, isAdmin } = useAuth()
   const { toast } = useToast()
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
-  const [searchParams, setSearchParams] = useSearchParams()
+  const filtros = useFiltrosUrl()
   const [modalAberto, setModalAberto] = useState(false)
   const [aEditar, setAEditar] = useState<Lead | null>(null)
   const [aConverter, setAConverter] = useState<Lead | null>(null)
   const [aAtribuir, setAAtribuir] = useState<Lead | null>(null)
   const [aGuardar, setAGuardar] = useState(false)
 
-  const filtro = lerFiltroResponsavel(searchParams.get('responsavel'))
-  const leadsFiltrados = useMemo(() => filtrarPorResponsavel(leads, filtro, profile?.id ?? null), [leads, filtro, profile?.id])
+  const filtro = lerFiltroResponsavel(filtros.ler('responsavel'))
+  const termo = filtros.ler('q')
+  const leadsFiltrados = useMemo(
+    () => filtrarPorResponsavel(leads, filtro, profile?.id ?? null).filter((l) => corresponde([l.nome, l.telefone, l.email, l.mensagem, l.notas], termo)),
+    [leads, filtro, profile?.id, termo],
+  )
 
   // Corre a gravação com o estado de "a guardar" e o toast de erro comuns a todos os modais.
   const guardar = async (acao: () => Promise<unknown>, sucesso: string, tituloErro: string, fechar: () => void) => {
@@ -87,7 +95,7 @@ export default function Leads() {
   const handlePedirApagar = (lead: Lead) => {
     setAEditar(null)
     pedirConfirmacao({
-      titulo: 'Lead',
+      acao: 'Apagar lead',
       nome: lead.nome,
       aviso: 'As propostas e atividades deste lead também são apagadas. Se já foi convertido, o cliente mantém-se.',
       apagar: () => apagarLead(lead.id),
@@ -104,8 +112,13 @@ export default function Leads() {
       {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar leads: {error.message}</p>}
       {!isLoading && !error && (
         <>
-          <FiltroResponsavel valor={filtro} onChange={(valor) => setSearchParams(valor === 'todos' ? {} : { responsavel: valor }, { replace: true })} />
+          <AvisoTruncado truncado={truncado} />
+          <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar leads" placeholder="Nome, telefone, email ou notas" />
+          {leads.length > 0 && leadsFiltrados.length === 0 ? (
+            <SemResultados termo={termo} onLimpar={filtros.limpar} />
+          ) : (
           <KanbanBoard
+            acoesBarra={<FiltroResponsavel valor={filtro} onChange={(valor) => filtros.definir('responsavel', valor, 'todos')} />}
             itens={leadsFiltrados}
             colunas={ESTADOS_LEAD}
             getId={(lead) => lead.id}
@@ -125,6 +138,7 @@ export default function Leads() {
             )}
             vazioTexto="Sem leads"
           />
+          )}
         </>
       )}
 
