@@ -85,6 +85,22 @@ também um email:
    `x-aviso-segredo: <o mesmo AVISO_LEAD_SEGREDO>`.
 3. Enviar um pedido pelo site e confirmar em Webhooks → Logs que a resposta é 200.
 
+## Emails de autenticação em PT
+
+Os modelos estão em [`supabase/emails/`](supabase/emails/); o assunto está na primeira
+linha de cada ficheiro. Em Supabase → Authentication → Emails → Templates, colar o
+assunto e o HTML:
+
+| Template no Supabase | Ficheiro |
+| --- | --- |
+| Invite user | `convite.html` |
+| Reset password | `recuperar-senha.html` |
+| Change email address | `alterar-email.html` |
+| Confirm signup | `confirmar-registo.html` |
+
+Antes, configurar o SMTP próprio (Authentication → Emails → SMTP Settings): o servidor
+de email de origem do Supabase só envia uns poucos emails por hora.
+
 ## Por decidir
 
 Ver [`../documento.md`](../documento.md) secção 4 — ramos de seguro definitivos,
