@@ -3,11 +3,15 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { Navigation } from '@/components/crm/Navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useLeadsPorTratar } from '@/hooks/useLeadsPorTratar';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
+import { iniciais } from '@/components/ui/Pessoa';
 
 export default function Layout() {
   const { profile } = useAuth();
+  const leadsPorTratar = useLeadsPorTratar();
+  const contagens = { '/leads': leadsPorTratar };
   const { toast } = useToast();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -16,7 +20,7 @@ export default function Layout() {
   const menuButton = useRef<HTMLButtonElement>(null);
   const location = useLocation();
   const name = profile?.nome || profile?.email || 'Conta';
-  const initials = name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  const initials = iniciais(name);
 
   useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
   useEffect(() => {
@@ -63,7 +67,7 @@ export default function Layout() {
         <img src="/brand/logo-icon-branco.png" alt="BV Seguros" width={27} height={30} />
       </div>
       <aside className={`app-sidebar${collapsed ? ' is-collapsed' : ''}`}>
-        {brand}<Navigation />
+        {brand}<Navigation contagens={contagens} />
         <button type="button" className="collapse-toggle" onClick={() => setCollapsed(!collapsed)} aria-label={collapsed ? 'Expandir navegação' : 'Recolher navegação'} title={collapsed ? 'Expandir navegação' : 'Recolher navegação'}>
           {collapsed ? <PanelLeftOpen size={18} /> : <><PanelLeftClose size={18} /><span>Recolher menu</span></>}
         </button>
@@ -71,7 +75,7 @@ export default function Layout() {
       </aside>
       {drawerOpen && <dialog ref={drawer} className="navigation-drawer" aria-label="Menu de navegação" onCancel={() => setDrawerOpen(false)}>
         <div className="relative">{brand}<button type="button" className="icon-button absolute right-3 top-1/2 -translate-y-1/2" aria-label="Fechar menu" onClick={() => setDrawerOpen(false)}><X size={20} /></button></div>
-        <Navigation onNavigate={() => setDrawerOpen(false)} />{account}
+        <Navigation onNavigate={() => setDrawerOpen(false)} contagens={contagens} />{account}
       </dialog>}
       <main id="conteudo" tabIndex={-1} className="app-main"><Outlet /></main>
     </div>

@@ -13,9 +13,11 @@ interface KanbanBoardProps<T> {
   getTone: (estado: string) => Tone;
   onMudarEstado: (id: string, estado: string, atualizadoEm: string) => void;
   renderCard: (item: T) => ReactNode; vazioTexto: string;
+  // Controlos extra à direita da barra (ex.: filtro de responsável).
+  acoesBarra?: ReactNode;
 }
 
-export function KanbanBoard<T>({ itens, colunas, getId, getEstado, getAtualizadoEm, getTone, onMudarEstado, renderCard, vazioTexto }: KanbanBoardProps<T>) {
+export function KanbanBoard<T>({ itens, colunas, getId, getEstado, getAtualizadoEm, getTone, onMudarEstado, renderCard, vazioTexto, acoesBarra }: KanbanBoardProps<T>) {
   const ref = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false });
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor));
@@ -36,10 +38,13 @@ export function KanbanBoard<T>({ itens, colunas, getId, getEstado, getAtualizado
   return <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
     <div className="kanban-toolbar">
       <div><strong>Pipeline</strong><span>{itens.length} {itens.length === 1 ? 'registo' : 'registos'} · {colunas.length} etapas</span></div>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+      {acoesBarra}
       {(edges.left || edges.right) && <div className="flex gap-1">
         <button className="icon-button border border-border bg-white" type="button" aria-label="Ver etapas anteriores" disabled={!edges.left} onClick={() => ref.current?.scrollBy({ left: -232 })}><ChevronLeft size={17} /></button>
         <button className="icon-button border border-border bg-white" type="button" aria-label="Ver etapas seguintes" disabled={!edges.right} onClick={() => ref.current?.scrollBy({ left: 232 })}><ChevronRight size={17} /></button>
       </div>}
+      </div>
     </div>
     <div ref={ref} className="kanban-scroll scroll-thin" role="region" tabIndex={0} aria-label="Quadro por etapas">
       {colunas.map((column) => <KanbanColumn key={column.valor} estado={column.valor} rotulo={column.rotulo} tone={getTone(column.valor)} itens={itens.filter((item) => getEstado(item) === column.valor)} getId={getId} renderCard={renderCard} vazioTexto={vazioTexto} />)}

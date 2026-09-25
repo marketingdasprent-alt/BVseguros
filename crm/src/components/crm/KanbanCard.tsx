@@ -1,7 +1,14 @@
 import { useDraggable } from '@dnd-kit/core';
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, PointerEvent, ReactNode } from 'react';
 
 interface KanbanCardProps { id: string; children: ReactNode; }
+
+// Para botões dentro de um cartão arrastável: sem isto, clicar ou carregar em
+// Enter/Espaço começava um arrasto em vez de acionar o botão.
+export const semArrasto = {
+  onPointerDown: (e: PointerEvent) => e.stopPropagation(),
+  onKeyDown: (e: KeyboardEvent) => e.stopPropagation(),
+};
 
 export function KanbanCard({ id, children }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });

@@ -1,11 +1,17 @@
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CalendarClock } from 'lucide-react'
 import { RenovacoesTable } from '@/components/crm/RenovacoesTable'
 import { MarcarRenovadaModal } from '@/components/crm/MarcarRenovadaModal'
+import { EditarRenovacaoModal } from '@/components/crm/EditarRenovacaoModal'
+import { BarraPesquisa } from '@/components/crm/BarraPesquisa'
+import { SemResultados } from '@/components/crm/SemResultados'
+import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
+import { corresponde } from '@/lib/pesquisa'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { useRenovacoes, marcarContactado, marcarRenovada } from '@/hooks/useRenovacoes'
+import { useRenovacoes, marcarContactado, marcarRenovada, guardarRenovacao } from '@/hooks/useRenovacoes'
 import type { RenovacaoItem } from '@/hooks/useRenovacoes'
 import { useClientes } from '@/hooks/useClientes'
 import { useToast } from '@/hooks/useToast'
@@ -17,6 +23,7 @@ export default function Renovacoes() {
   const { toast } = useToast()
   const [itemARenovar, setItemARenovar] = useState<RenovacaoItem | null>(null)
   const [aGuardar, setAGuardar] = useState(false)
+  const [aEditar, setAEditar] = useState<RenovacaoItem | null>(null)
 
   const handleMarcarContactado = async (item: RenovacaoItem) => {
     try {
@@ -43,6 +50,27 @@ export default function Renovacoes() {
     }
   }
 
+  const handleGuardarEdicao = async (item: RenovacaoItem, dados: Parameters<typeof guardarRenovacao>[2]) => {
+    setAGuardar(true)
+    try {
+      await guardarRenovacao(item.apolice, item.renovacao?.id ?? null, dados)
+      await recarregar()
+      setAEditar(null)
+      toast({ title: 'Renovação atualizada' })
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao guardar renovação', description: mensagemErro(err), variant: 'destructive' })
+    } finally {
+      setAGuardar(false)
+    }
+  }
+
+  const filtros = useFiltrosUrl()
+  const termo = filtros.ler('q')
+  const itensFiltrados = useMemo(() => {
+    const nomeCliente = new Map(clientes.map((c) => [c.id, c.nome]))
+    return itens.filter((i) => corresponde([i.apolice.numero_apolice, i.apolice.seguradora, nomeCliente.get(i.apolice.cliente_id), i.renovacao?.notas], termo))
+  }, [itens, clientes, termo])
+
   const carregando = isLoading || clientesCarregando
 
   return (
@@ -55,6 +83,7 @@ export default function Renovacoes() {
       {!carregando && !error && itens.length === 0 && (
         <div className="panel">
           <EmptyState
+            icon={CalendarClock}
             titulo="Sem renovações nos próximos 60 dias"
             descricao="Quando uma apólice ativa se aproximar do vencimento, aparece aqui automaticamente."
             action={
@@ -69,12 +98,20 @@ export default function Renovacoes() {
         </div>
       )}
       {!carregando && !error && itens.length > 0 && (
+        <>
+        <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar renovações" placeholder="Nº de apólice, cliente ou seguradora" />
+        {itensFiltrados.length === 0 ? (
+          <SemResultados termo={termo} onLimpar={filtros.limpar} />
+        ) : (
         <RenovacoesTable
-          itens={itens}
+          itens={itensFiltrados}
           clientes={clientes}
           onMarcarContactado={handleMarcarContactado}
           onAbrirRenovar={setItemARenovar}
+          onEditar={setAEditar}
         />
+        )}
+        </>
       )}
 
       {itemARenovar && (
@@ -83,6 +120,16 @@ export default function Renovacoes() {
           aGuardar={aGuardar}
           onFechar={() => setItemARenovar(null)}
           onConfirmar={handleConfirmarRenovacao}
+        />
+      )}
+
+      {aEditar && (
+        <EditarRenovacaoModal
+          item={aEditar}
+          nomeCliente={clientes.find((c) => c.id === aEditar.apolice.cliente_id)?.nome ?? '—'}
+          aGuardar={aGuardar}
+          onFechar={() => setAEditar(null)}
+          onGuardar={(dados) => handleGuardarEdicao(aEditar, dados)}
         />
       )}
     </div>

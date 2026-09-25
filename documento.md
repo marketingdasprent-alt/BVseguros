@@ -62,9 +62,24 @@ Já implementado:
   `ativo`/`is_admin`)
 - Dashboard com KPIs, pipeline, prioridades e actividade recente
 - Leads (Kanban com drag-and-drop; leads vindos do site com selo "Site" e mensagem)
-- Propostas, Clientes, Apólices, Renovações, Sinistros e Actividades
-- Utilizadores (só admins): editar nome, dar/retirar acesso, tornar
-  administrador/mediador e histórico de quem alterou o quê
+- Propostas, Clientes, Apólices, Renovações, Sinistros e Actividades, todos com
+  criar, editar e (só admin) apagar com confirmação
+- Conversão de lead em cliente (uma transação: cria o cliente ligado ao lead, passa-lhe
+  propostas e actividades, marca o lead como convertido)
+- Renovações: editar estado (pendente/contactado/não renovada) e notas
+- Ficha do cliente (`/clientes/:id`): resumo, apólices, propostas, sinistros, atividades
+  e histórico de alterações
+- Pesquisa e filtros em todas as listas (sem acentos/maiúsculas, filtros na URL);
+  listas completas acima de 1000 registos
+- Importação de clientes e apólices por CSV (Administração → Importar)
+- Aviso de pedidos do site por tratar (contador no menu Leads; email opcional)
+- Histórico de alterações de leads, clientes, apólices, propostas, sinistros e renovações
+- Seguradoras como lista (Administração → Seguradoras), com nomes normalizados
+- Login com "Esqueci a senha"; CRM fora dos motores de busca
+- Utilizadores (só admins): convidar, reenviar convite, ver convites pendentes e último
+  acesso, e excluir contas pelo CRM (`crm/api/utilizadores.js`),
+  editar nome, dar/retirar acesso, tornar administrador/mediador e histórico de quem
+  alterou o quê. Excluir não apaga dados: o que era da pessoa fica sem responsável.
 - Responsável por lead e por cliente, com filtro "Os meus" / "Sem responsável"
 - RLS em todas as tabelas desde a primeira migration
 
@@ -73,7 +88,9 @@ Permissões actuais (modelo da Razão Dinâmica, sem o isolamento por carteira):
 | Acção | Mediador | Admin |
 | --- | --- | --- |
 | Ver e editar leads, clientes, apólices, etc. | Tudo (carteira partilhada) | Tudo |
-| Apagar registos | Não | Sim (ainda sem botão no ecrã) |
+| Apagar registos | Não | Sim |
+| Converter lead em cliente | Sim | Sim |
+| Convidar e excluir contas | Não | Sim |
 | Assumir um lead/cliente sem responsável | Sim | Sim |
 | Atribuir ou passar a outro responsável | Não | Sim |
 | Gerir contas e ver o histórico de acessos | Não | Sim |
@@ -123,13 +140,17 @@ Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo
 
 ## 6. Próximos passos
 
-1. Ligar o projecto `bvseguros-crm` ao GitHub na Vercel e criar o projecto do site.
-2. Correr `crm/supabase/migrations/2026-09-24_nome_utilizador.sql` no Supabase
-   (as anteriores, `gestao_utilizadores` e `permissoes`, já foram aplicadas). Convidar contas
-   directamente pelo CRM fica para depois (precisa de função serverless com a
-   service-role key); por agora convida-se no painel do Supabase.
-3. Preencher os placeholders do site assim que o cliente enviar os dados.
+O plano completo de entrega está em [`crm/PROMPT-ENTREGA.md`](crm/PROMPT-ENTREGA.md)
+(fases 1 e 2 feitas em 25/09/2026). Falta:
+
+1. No Supabase, correr por esta ordem: `2026-09-25_importacao.sql`,
+   `2026-09-25_aviso_leads.sql`, `2026-09-25_historico.sql`, `2026-09-25_seguradoras.sql`;
+   e depois o script `crm/supabase/limpeza/2026-09-25_remover-dados-teste.sql`.
+2. Fase 3 do plano (configuração de produção): Site URL/Redirect URLs, SMTP e templates
+   em PT, backups, Vercel ligada ao GitHub, domínio, e (opcional) aviso por email dos
+   leads do site (ver `crm/README.md`).
+3. Fase 4 (RGPD) com o cliente; preencher os placeholders do site quando chegarem os dados.
 
 ---
 
-_Última actualização: 2026-09-24._
+_Última actualização: 2026-09-25._

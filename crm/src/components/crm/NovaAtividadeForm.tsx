@@ -1,7 +1,9 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { TIPOS_ATIVIDADE } from '@/lib/types'
-import type { AtividadeInsert, Cliente, Lead, TipoAtividade } from '@/lib/types'
+import type { Atividade, AtividadeEdicao, AtividadeInsert, Cliente, Lead, TipoAtividade } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
+import { CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
 
 interface NovaAtividadeFormProps {
   leads: Lead[]
@@ -9,23 +11,45 @@ interface NovaAtividadeFormProps {
   responsavelId: string | null
   aCriar: boolean
   onCriar: (atividade: AtividadeInsert) => Promise<boolean>
+  // Com inicial, abre num modal para editar essa atividade.
+  inicial?: Atividade
+  onGuardar?: (dados: AtividadeEdicao) => Promise<boolean>
+  onCancelar?: () => void
+  onApagar?: () => void
+  // Na ficha do cliente: a nova atividade começa já associada a ele.
+  clienteFixoId?: string
 }
 
-export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCriar }: NovaAtividadeFormProps) {
-  const [tipo, setTipo] = useState<TipoAtividade>('chamada')
-  const [titulo, setTitulo] = useState('')
-  const [ligadoA, setLigadoA] = useState<'nenhum' | 'lead' | 'cliente'>('nenhum')
-  const [ligadoId, setLigadoId] = useState('')
-  const [dataPrevista, setDataPrevista] = useState('')
+export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCriar, inicial, onGuardar, onCancelar, onApagar, clienteFixoId }: NovaAtividadeFormProps) {
+  const [tipo, setTipo] = useState<TipoAtividade>(inicial?.tipo ?? 'chamada')
+  const [titulo, setTitulo] = useState(inicial?.titulo ?? '')
+  // Depois de converter, a atividade tem lead e cliente; o cliente é o que conta.
+  const [ligadoA, setLigadoA] = useState<'nenhum' | 'lead' | 'cliente'>(
+    inicial?.cliente_id || clienteFixoId ? 'cliente' : inicial?.lead_id ? 'lead' : 'nenhum',
+  )
+  const [ligadoId, setLigadoId] = useState(inicial?.cliente_id ?? inicial?.lead_id ?? clienteFixoId ?? '')
+  const [dataPrevista, setDataPrevista] = useState(inicial?.data_prevista ?? '')
+  const [notas, setNotas] = useState(inicial?.notas ?? '')
 
   const listaLigacao = ligadoA === 'lead' ? leads : ligadoA === 'cliente' ? clientes : []
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (inicial && onGuardar) {
+      await onGuardar({
+        tipo,
+        titulo: titulo.trim(),
+        notas: notas.trim() || null,
+        lead_id: ligadoA === 'lead' && ligadoId ? ligadoId : ligadoA === 'cliente' ? inicial.lead_id : null,
+        cliente_id: ligadoA === 'cliente' && ligadoId ? ligadoId : null,
+        data_prevista: dataPrevista || null,
+      })
+      return
+    }
     const success = await onCriar({
       tipo,
       titulo,
-      notas: null,
+      notas: notas.trim() || null,
       lead_id: ligadoA === 'lead' && ligadoId ? ligadoId : null,
       cliente_id: ligadoA === 'cliente' && ligadoId ? ligadoId : null,
       responsavel_id: responsavelId,
@@ -36,13 +60,13 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
     if (!success) return;
     setTitulo('')
     setDataPrevista('')
-    setLigadoA('nenhum')
-    setLigadoId('')
+    setLigadoA(clienteFixoId ? 'cliente' : 'nenhum')
+    setLigadoId(clienteFixoId ?? '')
+    setNotas('')
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="panel form-panel grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-      <h2 className="form-title">Registar atividade</h2>
+  const campos = (
+    <>
       <Campo label="Tipo" required>
         <select
           value={tipo}
@@ -107,6 +131,29 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
         />
       </Campo>
 
+      <div className="col-span-full">
+        <Campo label="Notas">
+          <textarea rows={2} value={notas} onChange={(e) => setNotas(e.target.value)} className={CLASSE_INPUT} />
+        </Campo>
+      </div>
+    </>
+  )
+
+  if (inicial) {
+    return (
+      <Modal title="Editar atividade" subtitle={inicial.titulo} largo onClose={onCancelar ?? (() => {})} busy={aCriar}>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-2">{campos}</div>
+          <RodapeFormulario aGuardar={aCriar} textoGuardar="Guardar alterações" onCancelar={onCancelar ?? (() => {})} onApagar={onApagar} />
+        </form>
+      </Modal>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="panel form-panel grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+      <h2 className="form-title">Registar atividade</h2>
+      {campos}
       <Button type="submit" loading={aCriar} className="col-span-full md:col-span-3">
         Guardar atividade
       </Button>

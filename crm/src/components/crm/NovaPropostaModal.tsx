@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { RAMOS } from '@/lib/types'
-import type { Cliente, Lead, PropostaInsert, Ramo } from '@/lib/types'
+import type { Cliente, Lead, Proposta, PropostaEdicao, PropostaInsert, Ramo } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
+import { Campo, CLASSE_INPUT, ContextoFormulario, RodapeFormulario } from '@/components/ui/Campo'
+import { CampoSeguradora } from '@/components/crm/CampoSeguradora'
 
 interface NovaPropostaModalProps {
   leads: Lead[]
@@ -10,19 +12,37 @@ interface NovaPropostaModalProps {
   aCriar: boolean
   onFechar: () => void
   onCriar: (proposta: PropostaInsert) => Promise<void>
+  // Só em edição (a origem não muda):
+  inicial?: Proposta
+  nomeOrigem?: string
+  onGuardar?: (dados: PropostaEdicao) => Promise<void>
+  onApagar?: () => void
+  seguradoras?: string[]
 }
 
-export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar }: NovaPropostaModalProps) {
+export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, inicial, nomeOrigem, onGuardar, onApagar, seguradoras }: NovaPropostaModalProps) {
   const [origem, setOrigem] = useState<'lead' | 'cliente'>(leads.length > 0 ? 'lead' : 'cliente')
   const [origemId, setOrigemId] = useState(leads[0]?.id ?? clientes[0]?.id ?? '')
-  const [ramo, setRamo] = useState<Ramo>('auto')
-  const [seguradora, setSeguradora] = useState('')
-  const [premio, setPremio] = useState('')
+  const [ramo, setRamo] = useState<Ramo>(inicial?.ramo ?? 'auto')
+  const [seguradora, setSeguradora] = useState(inicial?.seguradora ?? '')
+  const [premio, setPremio] = useState(inicial?.premio_anual_estimado != null ? String(inicial.premio_anual_estimado) : '')
+  const [coberturas, setCoberturas] = useState(inicial?.coberturas ?? '')
+  const [notas, setNotas] = useState(inicial?.notas ?? '')
 
   const listaOrigem = origem === 'lead' ? leads : clientes
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (inicial && onGuardar) {
+      await onGuardar({
+        ramo,
+        seguradora: seguradora.trim(),
+        premio_anual_estimado: premio ? Number(premio) : null,
+        coberturas: coberturas.trim() || null,
+        notas: notas.trim() || null,
+      })
+      return
+    }
     await onCriar({
       lead_id: origem === 'lead' ? origemId : null,
       cliente_id: origem === 'cliente' ? origemId : null,
@@ -36,10 +56,11 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar }
   }
 
   return (
-    <Modal title="Nova proposta" onClose={onFechar} busy={aCriar}>
+    <Modal title={inicial ? 'Editar proposta' : 'Nova proposta'} onClose={onFechar} busy={aCriar}>
       <form onSubmit={handleSubmit} className="space-y-5">
-
-
+        {inicial ? (
+          <ContextoFormulario itens={[{ rotulo: inicial.lead_id ? 'Lead' : 'Cliente', valor: nomeOrigem }]} />
+        ) : (<>
         <div className="flex gap-2">
           <Button
             type="button"
@@ -90,6 +111,7 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar }
             </select>
           </label>
         )}
+        </>)}
 
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">Ramo</span>
@@ -106,17 +128,9 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar }
           </select>
         </label>
 
-        <label className="block min-w-0 space-y-2">
-          <span className="block text-xs font-medium text-ink">
-            Seguradora<span className="text-danger"> *</span>
-          </span>
-          <input
-            required
-            value={seguradora}
-            onChange={(e) => setSeguradora(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-          />
-        </label>
+        <Campo label="Seguradora" required>
+          <CampoSeguradora valor={seguradora} onChange={setSeguradora} opcoes={seguradoras} />
+        </Campo>
 
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">Prémio anual estimado (€)</span>
@@ -129,14 +143,19 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar }
           />
         </label>
 
-        <div className="flex gap-2 pt-2">
-          <Button type="button" variant="secondary" disabled={aCriar} onClick={onFechar} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" loading={aCriar} disabled={listaOrigem.length === 0} className="flex-1">
-            Criar proposta
-          </Button>
-        </div>
+        {inicial && (
+          <>
+            <Campo label="Coberturas">
+              <textarea rows={2} value={coberturas} onChange={(e) => setCoberturas(e.target.value)} className={CLASSE_INPUT} />
+            </Campo>
+            <Campo label="Notas">
+              <textarea rows={2} value={notas} onChange={(e) => setNotas(e.target.value)} className={CLASSE_INPUT} />
+            </Campo>
+          </>
+        )}
+
+        <RodapeFormulario aGuardar={aCriar} textoGuardar={inicial ? 'Guardar alterações' : 'Criar proposta'} onCancelar={onFechar}
+          onApagar={onApagar} desativarGuardar={!inicial && listaOrigem.length === 0} />
       </form>
     </Modal>
   )
