@@ -2,3 +2,4 @@
 .env*
 .playwright-cli/
 output/playwright/
+*.tsbuildinfo
