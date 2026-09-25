@@ -1,0 +1,57 @@
+<!-- Assunto: Convite para o CRM da BV Seguros -->
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convite para o CRM da BV Seguros</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F3F5F8;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Foi convidado para o CRM da BV Seguros. Defina a sua senha para entrar.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F3F5F8;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+          <tr>
+            <td align="center" style="padding:0 0 20px;">
+              <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                <tr>
+                  <td style="vertical-align:middle;padding-right:10px;">
+                    <img src="https://bvseguros-crm.vercel.app/brand/logo-icon.png" width="36" height="36" alt="" style="display:block;border:0;">
+                  </td>
+                  <td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#184070;">
+                    BV Seguros <span style="font-weight:normal;color:#5B6B7F;">· CRM</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#FFFFFF;border:1px solid #E2E7EE;border-radius:12px;padding:32px 28px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
+              <h1 style="margin:0 0 20px;font-size:21px;line-height:28px;color:#184070;">Foi convidado para o CRM</h1>
+                <p style="margin:0 0 16px;font-size:15px;line-height:24px;color:#18283B;">{{ if .Data.nome }}Olá {{ .Data.nome }},{{ else }}Olá,{{ end }}</p>
+                <p style="margin:0 0 16px;font-size:15px;line-height:24px;color:#18283B;">Foi criada uma conta para si no CRM da BV Seguros, onde a equipa gere leads, clientes e apólices.</p>
+                <p style="margin:0 0 16px;font-size:15px;line-height:24px;color:#18283B;">Para entrar, defina a sua senha no botão abaixo. Depois disso, entra sempre com o email <strong>{{ .Email }}</strong> e essa senha.</p>
+              <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:8px auto 24px;">
+                <tr>
+                  <td style="border-radius:8px;background-color:#184070;">
+                    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 24px;font-size:15px;font-weight:bold;color:#FFFFFF;text-decoration:none;border-radius:8px;">Definir senha e entrar</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 8px;font-size:13px;line-height:20px;color:#5B6B7F;text-align:center;">Se o botão não funcionar, copie este endereço para o browser:</p>
+              <p style="margin:0 0 20px;font-size:12px;line-height:18px;word-break:break-all;text-align:center;"><a href="{{ .ConfirmationURL }}" style="color:#184070;">{{ .ConfirmationURL }}</a></p>
+              <p style="margin:0;padding-top:16px;border-top:1px solid #E2E7EE;font-size:13px;line-height:20px;color:#5B6B7F;">O link só funciona uma vez e expira ao fim de algum tempo. Se expirar, peça a um administrador que reenvie o convite. Se não esperava este email, pode ignorá-lo.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:20px 4px 0;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#8593A3;">
+              Email automático do CRM interno da BV Seguros. Não responda a esta mensagem.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

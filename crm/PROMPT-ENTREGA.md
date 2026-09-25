@@ -147,12 +147,12 @@ Supabase/Vercel) · **[cliente]** depende de decisão ou dados do cliente.
 
 ## Fase 3: configuração de produção [tu]
 
-- [ ] Supabase → Authentication → URL Configuration: Site URL e Redirect URLs do CRM.
+- [x] Supabase → Authentication → URL Configuration: Redirect URLs do CRM (25/09; "Esqueci a senha" testado em produção).
 - [ ] Supabase → SMTP próprio (email da BV ou Brevo) e templates em PT (convite, recuperar senha).
 - [ ] Supabase → confirmar plano e **cópias de segurança** (no gratuito não há backups recuperáveis).
 - [ ] Vercel → ligar `bvseguros-crm` ao GitHub (`main`) e domínio `crm.<domínio>` [cliente: domínio].
 - [ ] Vercel → `BREVO_API_KEY` e `AVISO_LEAD_SEGREDO` (para 2.5) e Database Webhook no Supabase.
-- [ ] Correr as migrações novas e o script de limpeza (1.4).
+- [x] Correr as migrações novas e o script de limpeza (1.4) (25/09).
 
 ---
 
