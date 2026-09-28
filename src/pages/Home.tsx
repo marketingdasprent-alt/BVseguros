@@ -267,7 +267,7 @@ export default function Home() {
               <h1>Proteção a sério, de corretora independente.</h1>
               <p
                 className="text-body-large text-secondary"
-                style={{ marginTop: "var(--space-sm)", textAlign: "justify" }}
+                style={{ marginTop: "var(--space-sm)" }}
               >
                 Ajudamos famílias e empresas a escolher o seguro certo, sem
                 letras miúdas por explicar e com alguém do outro lado quando

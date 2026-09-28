@@ -69,8 +69,8 @@ Construído sobre o [Web Blueprint](BLUEPRINT.md): design tokens, `Container`/
 Checklist completo em `docs/agent-protocol.md`. Resumo:
 
 1. `npm run check` (lint + typecheck + build) passa.
-2. `grep -rn "—" src *.md docs` devolve zero resultados fora dos exemplos do próprio
-   `docs/content-style.md`.
+2. `npm run qa` passa: entre outras coisas, procura travessões (U+2014) em `src`, `*.md`
+   e `docs`, fora dos exemplos do próprio `docs/content-style.md`.
 3. Testar no browser: os 3 estados relevantes, responsivo (mobile + desktop),
    teclado/foco visível em qualquer coisa interactiva.
 4. Sem `console.log` esquecido, sem dados reais inventados.
