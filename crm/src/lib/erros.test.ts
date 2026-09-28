@@ -32,6 +32,13 @@ describe('mensagemErro', () => {
     expect(mensagemErro(erro)).toBe('NIF inválido — deve ter exatamente 9 dígitos.')
   })
 
+  it('identifica nome ou telefone vazios em leads e clientes', () => {
+    const nome = { message: 'new row for relation "clientes" violates check constraint "clientes_nome_valido"', code: '23514' }
+    expect(mensagemErro(nome)).toBe('O nome deve ter pelo menos 2 caracteres.')
+    const telefone = { message: 'new row for relation "leads" violates check constraint "leads_telefone_valido"', code: '23514' }
+    expect(mensagemErro(telefone)).toBe('Indique um telefone.')
+  })
+
   it('extrai a mensagem de um conflito de concorrência', () => {
     const erro = new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
     expect(mensagemErro(erro)).toBe('este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')

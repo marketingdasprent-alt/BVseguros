@@ -1,5 +1,5 @@
 -- BV Seguros · CRM: mensagens da conversão de leads na forma de cortesia (você), como o resto do CRM.
--- Correr uma vez no SQL Editor do Supabase. Só troca textos; a lógica de converter_lead não muda.
+-- Correr uma vez no SQL Editor do Supabase, depois de 2026-09-24_excluir_utilizador.sql. Só troca textos; a lógica de converter_lead não muda.
 -- O schema.sql já inclui esta versão para projetos novos.
 begin;
 

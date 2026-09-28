@@ -153,6 +153,7 @@ Supabase/Vercel) · **[cliente]** depende de decisão ou dados do cliente.
 - [ ] Vercel → ligar `bvseguros-crm` ao GitHub (`main`) e domínio `crm.<domínio>` [cliente: domínio].
 - [ ] Vercel → `BREVO_API_KEY` e `AVISO_LEAD_SEGREDO` (para 2.5) e Database Webhook no Supabase.
 - [x] Correr as migrações novas e o script de limpeza (1.4) (25/09).
+- [x] Correr `2026-09-28_validar_nome_telefone.sql` no Supabase (28/09; dados antigos já cumpriam).
 
 ---
 
@@ -182,7 +183,7 @@ testes ponta a ponta (Playwright) em CI. Alinhar o `crm/AGENTS.md` com o código
 ## Critérios de entrega (tudo verdade)
 
 - [ ] Fases 1 e 2 feitas, com `npm run typecheck`, `npm test` e `npm run build` a passar.
-- [ ] Todas as migrações testadas nos dois cenários do PGlite.
+- [x] Todas as migrações testadas nos dois cenários do PGlite (`npm run test:db`, 28/09).
 - [ ] Percurso completo no browser, desktop e telemóvel: login → recuperar senha →
       importar CSV → ficha de cliente → criar/editar/converter/apagar → convite.
 - [ ] Base de produção sem dados de teste; contas com nomes reais.

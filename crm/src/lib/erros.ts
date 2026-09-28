@@ -22,6 +22,7 @@ export function mensagemErro(erro: unknown): string {
     if (msg.includes('nao_futura')) return 'A data de ocorrência não pode ser no futuro.'
     if (msg.includes('nif_formato')) return 'NIF inválido — deve ter exatamente 9 dígitos.'
     if (msg.includes('nome_valido')) return 'O nome deve ter pelo menos 2 caracteres.'
+    if (msg.includes('telefone_valido')) return 'Indique um telefone.'
     return 'Um dos valores introduzidos não é válido.'
   }
 

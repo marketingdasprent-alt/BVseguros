@@ -252,6 +252,14 @@ alter table public.clientes
 alter table public.clientes
   add constraint clientes_nif_unico unique (nif);
 
+-- (de migrations/2026-09-28_validar_nome_telefone.sql)
+alter table public.leads
+  add constraint leads_nome_valido check (char_length(btrim(nome)) between 2 and 254),
+  add constraint leads_telefone_valido check (char_length(btrim(telefone)) between 1 and 30);
+alter table public.clientes
+  add constraint clientes_nome_valido check (char_length(btrim(nome)) between 2 and 254),
+  add constraint clientes_telefone_valido check (char_length(btrim(telefone)) between 1 and 30);
+
 alter table public.apolices
   add constraint apolices_numero_unico unique (numero_apolice);
 

@@ -48,6 +48,22 @@ Abre em <http://localhost:5183>.
    `SUPABASE_SERVICE_ROLE_KEY` no `.env.local` (local) e nas variáveis da Vercel
    (produção). A base de dados impede que se fique sem nenhum admin ativo.
 
+## Alterar a base de dados
+
+Cada alteração vai numa migração nova em [`supabase/migrations/`](supabase/migrations/)
+**e** no `schema.sql`. O cabeçalho de cada migração diz depois de qual corre
+("depois de 2026-09-25_seguradoras.sql"); é essa a ordem, não a alfabética (há várias no
+mesmo dia). Antes de correr no Supabase:
+
+```bash
+npm run test:db
+```
+
+Testa num Postgres local (PGlite), sem tocar no Supabase: projeto novo só com o
+`schema.sql` e produção de 23/09 ([`supabase/tests/base-2026-09-23.sql`](supabase/tests/base-2026-09-23.sql))
+com todas as migrações. Os dois têm de dar a mesma estrutura, e as regras de acesso
+(site, conta inativa, mediador, admin) são verificadas em ambos.
+
 ## Publicar (Vercel)
 
 Projecto Vercel próprio, separado do site institucional, com **Root Directory =
