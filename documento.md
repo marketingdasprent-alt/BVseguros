@@ -119,7 +119,8 @@ separadas, basta trocar as políticas `_ler`/`_editar` para filtrar por
 
 Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo corre-se
 `crm/supabase/schema.sql`; num projecto existente, as migrações de
-`crm/supabase/migrations/` por ordem de data.
+`crm/supabase/migrations/` pela ordem que cada cabeçalho indica ("depois de …"), não a
+alfabética. `npm run test:db` (em `crm/`) mostra a ordem e testa-as antes de as correr.
 
 ## 5. Por decidir / por confirmar com o cliente
 
@@ -143,14 +144,11 @@ Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo
 O plano completo de entrega está em [`crm/PROMPT-ENTREGA.md`](crm/PROMPT-ENTREGA.md)
 (fases 1 e 2 feitas em 25/09/2026). Falta:
 
-1. No Supabase, correr por esta ordem: `2026-09-25_importacao.sql`,
-   `2026-09-25_aviso_leads.sql`, `2026-09-25_historico.sql`, `2026-09-25_seguradoras.sql`;
-   e depois o script `crm/supabase/limpeza/2026-09-25_remover-dados-teste.sql`.
-2. Fase 3 do plano (configuração de produção): Site URL/Redirect URLs, SMTP e templates
+1. Fase 3 do plano (configuração de produção): Site URL/Redirect URLs, SMTP e templates
    em PT, backups, Vercel ligada ao GitHub, domínio, e (opcional) aviso por email dos
    leads do site (ver `crm/README.md`).
-3. Fase 4 (RGPD) com o cliente; preencher os placeholders do site quando chegarem os dados.
+2. Fase 4 (RGPD) com o cliente; preencher os placeholders do site quando chegarem os dados.
 
 ---
 
-_Última actualização: 2026-09-25._
+_Última actualização: 2026-09-28._

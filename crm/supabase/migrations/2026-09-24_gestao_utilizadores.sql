@@ -1,5 +1,5 @@
 -- BV Seguros · CRM: regras de integridade para o ecrã de gestão de utilizadores.
--- Correr uma vez no SQL Editor do Supabase (projeto já criado com schema.sql).
+-- Correr uma vez no SQL Editor do Supabase, depois de 2026-09-24_leads_site.sql.
 -- O schema.sql já inclui estas alterações para projetos novos.
 
 -- ============================================================
