@@ -42,8 +42,23 @@ async function chamarApiUtilizadores(method: 'GET' | 'POST' | 'DELETE', corpoPed
   return corpo
 }
 
-export async function convidarUtilizador(nome: string, email: string, grupoId: string | null) {
-  return (await chamarApiUtilizadores('POST', { nome, email, grupoId }, 'Não foi possível enviar o convite.')).message ?? ''
+export interface NovaConta {
+  nome: string
+  email: string
+  // null com admin = true: o administrador não precisa de grupo.
+  grupoId: string | null
+  admin: boolean
+  // Sem senha: envia convite por email. Com senha: cria já a conta, sem email.
+  senha: string | null
+}
+
+export async function criarUtilizador({ nome, email, grupoId, admin, senha }: NovaConta) {
+  const corpo = senha ? { nome, email, grupoId, admin, modo: 'senha', senha } : { nome, email, grupoId, admin }
+  return (await chamarApiUtilizadores('POST', corpo, senha ? 'Não foi possível criar a conta.' : 'Não foi possível enviar o convite.')).message ?? ''
+}
+
+export async function definirSenha(id: string, senha: string) {
+  return (await chamarApiUtilizadores('POST', { acao: 'definir-senha', id, senha }, 'Não foi possível definir a senha.')).message ?? ''
 }
 
 export async function reenviarConvite(id: string) {

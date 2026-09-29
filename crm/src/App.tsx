@@ -45,6 +45,7 @@ function AreaPrivada() {
       </div>
     )
   }
+  if (profile?.ativo && profile.deve_trocar_senha) return <DefinirSenha obrigatoria />
   if (!profile?.ativo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-sand p-6">

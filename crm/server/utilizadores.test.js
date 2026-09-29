@@ -14,7 +14,7 @@ function falso({
   erroConvite = null,
   authUser = { email: 'nuno@bv.pt', invited_at: '2026-09-24', email_confirmed_at: null },
 } = {}) {
-  const chamadas = { convites: [], updates: [], inserts: [], apagados: [] }
+  const chamadas = { convites: [], updates: [], inserts: [], apagados: [], criados: [], senhas: [] }
   const client = (_url, _key, opcoes) => {
     const authHeader = opcoes?.global?.headers?.Authorization
     const tabela = (nome) => {
@@ -58,6 +58,14 @@ function falso({
             error: null,
           }),
           getUserById: async () => (authUser ? { data: { user: authUser }, error: null } : { data: {}, error: new Error('x') }),
+          createUser: async (dados) => {
+            chamadas.criados.push(dados)
+            return { data: { user: { id: 'novo-id' } }, error: null }
+          },
+          updateUserById: async (id, dados) => {
+            chamadas.senhas.push({ id, ...dados })
+            return { error: null }
+          },
           deleteUser: async (id) => {
             chamadas.apagados.push(id)
             return { error: null }
@@ -219,5 +227,66 @@ describe('api/utilizadores: reenviar convite (POST acao=reenviar)', () => {
 
   it('recusa id inválido', async () => {
     expect((await pedir(createHandler({ env: ENV, client: falso().client }), { body: { acao: 'reenviar', id: 'x' } })).statusCode).toBe(400)
+  })
+})
+// Senha de exemplo só para os testes; nunca é uma senha real.
+const SENHA = 'Exemplo-123'
+
+describe('api/utilizadores: criar conta com senha (POST modo=senha)', () => {
+  const corpo = { nome: 'Nuno Costa', email: 'nuno@bv.pt', grupoId: 'cccccccc-0000-0000-0000-000000000003', modo: 'senha', senha: SENHA }
+
+  it('cria já confirmada, sem enviar email, e obriga a trocar a senha', async () => {
+    const { client, chamadas } = falso()
+    const res = await pedir(createHandler({ env: ENV, client }), { body: corpo })
+    expect(res.statusCode).toBe(201)
+    expect(chamadas.convites).toHaveLength(0)
+    expect(chamadas.criados[0]).toMatchObject({ email: 'nuno@bv.pt', password: SENHA, email_confirm: true, user_metadata: { nome: 'Nuno Costa' } })
+    expect(chamadas.updates[0]).toMatchObject({ nome: 'profiles', dados: { ativo: true, grupo_id: corpo.grupoId, deve_trocar_senha: true }, auth: 'Bearer bom' })
+    expect(chamadas.inserts[0].dados).toMatchObject({ alteracao: 'conta_criada', perfil_nome: 'Nuno Costa' })
+  })
+
+  it('a senha não aparece na resposta nem no histórico', async () => {
+    const { client, chamadas } = falso()
+    const res = await pedir(createHandler({ env: ENV, client }), { body: corpo })
+    expect(JSON.stringify(res.corpo)).not.toContain(SENHA)
+    expect(JSON.stringify(chamadas.inserts)).not.toContain(SENHA)
+  })
+
+  it('recusa senhas com menos de 8 caracteres sem criar nada', async () => {
+    const { client, chamadas } = falso()
+    const res = await pedir(createHandler({ env: ENV, client }), { body: { ...corpo, senha: 'curta' } })
+    expect(res.statusCode).toBe(400)
+    expect(chamadas.criados).toHaveLength(0)
+  })
+
+  it('como administrador, fica admin e sem grupo', async () => {
+    const { client, chamadas } = falso()
+    await pedir(createHandler({ env: ENV, client }), { body: { ...corpo, admin: true } })
+    expect(chamadas.updates[0].dados).toMatchObject({ ativo: true, is_admin: true })
+    expect(chamadas.updates[0].dados).not.toHaveProperty('grupo_id')
+  })
+})
+
+describe('api/utilizadores: definir senha (POST acao=definir-senha)', () => {
+  it('define a senha, confirma a conta e obriga a trocar no primeiro acesso', async () => {
+    const { client, chamadas } = falso()
+    const res = await pedir(createHandler({ env: ENV, client }), { body: { acao: 'definir-senha', id: ALVO_ID, senha: SENHA } })
+    expect(res.statusCode).toBe(200)
+    expect(chamadas.senhas[0]).toMatchObject({ id: ALVO_ID, password: SENHA, email_confirm: true })
+    expect(chamadas.updates[0]).toMatchObject({ nome: 'profiles', dados: { deve_trocar_senha: true }, id: ALVO_ID, auth: 'Bearer bom' })
+    expect(chamadas.inserts[0].dados).toMatchObject({ alteracao: 'senha_definida', perfil_id: ALVO_ID })
+    expect(JSON.stringify(chamadas.inserts)).not.toContain(SENHA)
+  })
+
+  it('não define a senha da própria conta nem senhas curtas', async () => {
+    const h = createHandler({ env: ENV, client: falso().client })
+    expect((await pedir(h, { body: { acao: 'definir-senha', id: ADMIN.id, senha: SENHA } })).statusCode).toBe(400)
+    expect((await pedir(h, { body: { acao: 'definir-senha', id: ALVO_ID, senha: '123' } })).statusCode).toBe(400)
+  })
+
+  it('quem não é admin não define senhas', async () => {
+    const { client, chamadas } = falso({ autor: { nome: 'Med', is_admin: false, ativo: true } })
+    expect((await pedir(createHandler({ env: ENV, client }), { body: { acao: 'definir-senha', id: ALVO_ID, senha: SENHA } })).statusCode).toBe(403)
+    expect(chamadas.senhas).toHaveLength(0)
   })
 })

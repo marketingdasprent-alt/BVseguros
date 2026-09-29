@@ -304,6 +304,22 @@ async function grupos(db, c) {
   })
 }
 
+// Senha inicial definida pelo admin: a pessoa só consegue desligar o próprio aviso.
+async function senhas(db, c) {
+  const p = `[${c}] senha inicial:`
+  const novo = async (email) => (await db.query(`insert into auth.users (email, raw_user_meta_data) values ($1, '{"nome":"Conta Teste"}') returning id`, [email])).rows[0].id
+  const [admin, ana, rui] = [await novo('adm2@bv.pt'), await novo('ana@bv.pt'), await novo('rui@bv.pt')]
+  await db.query(`update public.profiles set ativo = true, is_admin = true where id = $1`, [admin])
+  await como(db, admin, () => db.query(`update public.profiles set ativo = true, deve_trocar_senha = true where id in ($1, $2)`, [ana, rui]))
+  const flag = async (id) => (await db.query(`select deve_trocar_senha f from public.profiles where id = $1`, [id])).rows[0].f
+  ;(await flag(ana)) && (await flag(rui)) ? ok(`${p} o admin marca contas para trocar a senha`) : falha(`${p} o admin não conseguiu marcar`)
+  await como(db, ana, () => db.query(`select public.senha_trocada()`))
+  !(await flag(ana)) && (await flag(rui)) ? ok(`${p} senha_trocada só desliga o aviso da própria conta`) : falha(`${p} senha_trocada mexeu na conta errada`)
+  await como(db, rui, () => espera(`${p} a pessoa não desliga o aviso a editar o perfil`, semLinhas(db.query(`update public.profiles set deve_trocar_senha = false where id = '${rui}' returning id`))))
+  const eventos = await db.query(`insert into public.eventos_acesso (perfil_id, perfil_nome, alteracao) values ($1, 'Rui', 'conta_criada'), ($1, 'Rui', 'senha_definida')`, [rui]).then(() => true, () => false)
+  eventos ? ok(`${p} o histórico aceita "conta criada" e "senha definida"`) : falha(`${p} eventos novos recusados`)
+}
+
 try {
   const ordem = ordemMigracoes()
   ok(`ordem das migrações: ${ordem.join(' → ')}`)
@@ -324,6 +340,8 @@ try {
   await comportamento(await novaBase(producao), 'B')
   await grupos(await novaBase(schema), 'A')
   await grupos(await novaBase(producao), 'B')
+  await senhas(await novaBase(schema), 'A')
+  await senhas(await novaBase(producao), 'B')
 } catch (e) {
   falha(e.message)
 }

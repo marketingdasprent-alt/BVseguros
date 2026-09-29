@@ -76,7 +76,7 @@ Já implementado:
 - Histórico de alterações de leads, clientes, apólices, propostas, sinistros e renovações
 - Seguradoras como lista (Administração → Seguradoras), com nomes normalizados
 - Login com "Esqueci a senha"; CRM fora dos motores de busca
-- Utilizadores (só admins): convidar, reenviar convite, ver convites pendentes e último
+- Utilizadores (só admins): convidar por email ou criar já com senha (troca obrigatória no primeiro acesso), definir a senha de uma conta, reenviar convite, ver convites pendentes e último
   acesso, e excluir contas pelo CRM (`crm/api/utilizadores.js`),
   editar nome, dar/retirar acesso, tornar administrador/mediador e histórico de quem
   alterou o quê. Excluir não apaga dados: o que era da pessoa fica sem responsável.

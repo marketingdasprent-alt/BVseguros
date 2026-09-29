@@ -100,6 +100,8 @@ export interface Profile {
   ativo: boolean
   // Sem grupo, uma conta que não é admin não vê nenhum módulo.
   grupo_id: string | null
+  // Senha definida pelo admin: no próximo acesso o CRM pede uma nova.
+  deve_trocar_senha: boolean
   criado_em: string
 }
 
@@ -130,7 +132,7 @@ export interface EstadoConta {
 // Vista da equipa sem emails, disponível a todas as contas ativas (listar_equipa).
 export type MembroEquipa = Pick<Profile, 'id' | 'nome' | 'ativo'>
 
-export type AlteracaoRegistada = 'acesso_dado' | 'acesso_retirado' | 'tornado_admin' | 'tornado_mediador' | 'nome_alterado' | 'convidado' | 'excluido' | 'grupo_alterado'
+export type AlteracaoRegistada = 'acesso_dado' | 'acesso_retirado' | 'tornado_admin' | 'tornado_mediador' | 'nome_alterado' | 'convidado' | 'excluido' | 'grupo_alterado' | 'conta_criada' | 'senha_definida'
 
 export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
   acesso_dado: 'deu acesso a',
@@ -141,6 +143,8 @@ export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
   convidado: 'convidou',
   excluido: 'excluiu a conta de',
   grupo_alterado: 'mudou o grupo de',
+  conta_criada: 'criou com senha a conta de',
+  senha_definida: 'definiu a senha de',
 }
 
 export interface EventoAcesso {

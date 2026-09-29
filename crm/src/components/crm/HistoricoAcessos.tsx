@@ -1,4 +1,4 @@
-import { AlertTriangle, Crown, History, PenLine, Users, ShieldCheck, ShieldOff, User, UserPlus, UserX, type LucideIcon } from 'lucide-react'
+import { AlertTriangle, Crown, History, KeyRound, PenLine, UserCheck, Users, ShieldCheck, ShieldOff, User, UserPlus, UserX, type LucideIcon } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Notice'
@@ -25,6 +25,8 @@ const ICONES: Record<AlteracaoRegistada, LucideIcon> = {
   nome_alterado: PenLine,
   excluido: UserX,
   grupo_alterado: Users,
+  conta_criada: UserCheck,
+  senha_definida: KeyRound,
 }
 
 export function HistoricoAcessos({ eventos, isLoading, error, onTentarNovamente }: HistoricoAcessosProps) {
