@@ -62,7 +62,7 @@
   .account-identity strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 500; }
   .account-identity .nav-label > span { display: block; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; font-size: 10px; color: #acbfd4; }
   .sign-out, .collapse-toggle { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 11px; color: #bdccdd; }
-  .sign-out { margin-top: 10px; }
+  .account-links { display: flex; flex-wrap: wrap; gap: 0 18px; margin-top: 10px; }
   .collapse-toggle { margin: 0 25px 12px; }
   .app-main { min-width: 0; flex: 1; padding: 38px 40px 48px; }
   .app-main > div { max-width: 1480px; margin-inline: auto; }
@@ -228,6 +228,7 @@
 .app-sidebar.is-collapsed .nav-item { justify-content: center; padding-inline: 0; }
 .app-sidebar.is-collapsed .sidebar-account { padding-inline: 22px; }
 .app-sidebar.is-collapsed .sign-out { justify-content: center; width: 32px; }
+.app-sidebar.is-collapsed .account-links { flex-direction: column; }
 
 /* Portáteis com ecrã baixo: o mesmo menu, mais compacto, para continuar a caber inteiro. */
 @media (min-width: 640px) and (max-height: 979px) {
@@ -237,7 +238,8 @@
   .nav-item { min-height: 32px; padding-block: 5px; margin-top: 1px; }
   .collapse-toggle { margin-bottom: 4px; }
   .sidebar-account { padding-block: 12px 14px; }
-  .sign-out { margin-top: 6px; min-height: 30px; }
+  .account-links { margin-top: 6px; }
+  .sign-out { min-height: 30px; }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -264,6 +266,7 @@
   .nav-item { justify-content: center; padding-inline: 0; }
   .sidebar-account { padding-inline: 22px; }
   .sign-out { justify-content: center; width: 32px; }
+  .app-sidebar .account-links { flex-direction: column; }
   .app-main { padding: 28px; }
   .metric { padding: 20px 16px; }
   .dashboard-columns { grid-template-columns: 1fr; }

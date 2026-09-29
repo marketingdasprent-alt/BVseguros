@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual do CRM · BV Seguros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #184070; --navy-escuro: #112b49; --navy-suave: #e8eff7; --tinta: #1d2a3a; --cinza: #5b6b7f;
+    --linha: #e3e8ef; --fundo: #f6f8fb; --branco: #fff;
+    --verde: #067647; --verde-bg: #ecfdf3; --laranja: #b54708; --laranja-bg: #fffaeb; --vermelho: #b42318; --vermelho-bg: #fef3f2;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--fundo); color: var(--tinta); font: 15px/1.65 Inter, system-ui, sans-serif; }
+  h1, h2, h3 { font-family: 'Plus Jakarta Sans', Inter, sans-serif; color: var(--navy-escuro); line-height: 1.25; letter-spacing: -.01em; }
+  a { color: var(--navy); text-underline-offset: 3px; }
+  .pagina { max-width: 860px; margin: 0 auto; padding: 0 16px 64px; }
+
+  .capa { background: linear-gradient(160deg, var(--navy-escuro), var(--navy)); color: #fff; padding: 56px 16px 64px; }
+  .capa-interior { max-width: 860px; margin: 0 auto; display: grid; gap: 28px; }
+  .capa img { width: 64px; height: auto; }
+  .capa .etiqueta { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #b6cbe3; }
+  .capa h1 { color: #fff; font-size: clamp(30px, 6vw, 44px); margin: 8px 0 12px; }
+  .capa p { margin: 0; max-width: 560px; color: #d4e0ee; font-size: 16px; }
+  .capa .meta { font-size: 13px; color: #9fb5ce; }
+
+  .indice { background: var(--branco); border: 1px solid var(--linha); border-radius: 14px; padding: 24px; margin: -32px 0 40px; position: relative; box-shadow: 0 14px 34px -22px #0b203c55; }
+  .indice h2 { font-size: 15px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--cinza); }
+  .indice ol { margin: 0; padding: 0; list-style: none; columns: 2 240px; column-gap: 32px; }
+  .indice li { break-inside: avoid; padding: 4px 0; }
+  .indice a { text-decoration: none; font-weight: 500; }
+  .indice a:hover { text-decoration: underline; }
+  .indice .num { display: inline-block; width: 28px; color: var(--cinza); font-variant-numeric: tabular-nums; }
+
+  section { background: var(--branco); border: 1px solid var(--linha); border-radius: 14px; padding: 28px; margin-bottom: 20px; }
+  section > h2 { font-size: 24px; margin: 0 0 6px; display: flex; gap: 12px; align-items: baseline; }
+  section > h2 .num { font-size: 14px; font-weight: 700; color: #fff; background: var(--navy); border-radius: 8px; padding: 2px 9px; }
+  section > .intro { color: var(--cinza); margin: 0 0 18px; }
+  h3 { font-size: 17px; margin: 24px 0 8px; }
+  ol.passos { counter-reset: passo; list-style: none; padding: 0; margin: 10px 0; }
+  ol.passos > li { counter-increment: passo; position: relative; padding: 2px 0 10px 40px; }
+  ol.passos > li::before { content: counter(passo); position: absolute; left: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%; background: var(--navy-suave); color: var(--navy); font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+  ul { padding-left: 20px; } li { margin: 3px 0; }
+
+  .ui { display: inline-block; font-weight: 600; color: var(--navy-escuro); background: var(--navy-suave); border-radius: 6px; padding: 0 7px; font-size: .92em; white-space: nowrap; }
+  .menu { font-weight: 600; color: var(--navy-escuro); }
+  .estado { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 1px 9px; margin: 2px 2px; border: 1px solid transparent; white-space: nowrap; }
+  .e-neutro { background: #f2f4f7; color: #344054; } .e-azul { background: #eff8ff; color: #175cd3; }
+  .e-verde { background: var(--verde-bg); color: var(--verde); } .e-laranja { background: var(--laranja-bg); color: var(--laranja); }
+  .e-vermelho { background: var(--vermelho-bg); color: var(--vermelho); }
+
+  .nota { border-radius: 10px; padding: 12px 14px 12px 44px; margin: 14px 0; position: relative; font-size: 14px; }
+  .nota::before { position: absolute; left: 14px; top: 11px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 12px; color: #fff; }
+  .nota strong:first-child { display: block; }
+  .dica { background: var(--navy-suave); } .dica::before { content: "i"; background: var(--navy); }
+  .atencao { background: var(--laranja-bg); } .atencao::before { content: "!"; background: var(--laranja); }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--cinza); font-weight: 600; }
+  .tabela { overflow-x: auto; }
+  code { font: 13px ui-monospace, SFMono-Regular, Consolas, monospace; background: #f2f4f7; border-radius: 5px; padding: 1px 5px; }
+  .so-admin { display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--laranja); background: var(--laranja-bg); border-radius: 6px; padding: 2px 8px; vertical-align: middle; }
+  footer { text-align: center; color: var(--cinza); font-size: 13px; margin-top: 32px; }
+
+  @media (max-width: 640px) { section { padding: 20px 16px; } .indice { padding: 18px 16px; } }
+  @media print {
+    @page { size: A4; margin: 16mm 14mm; }
+    body { background: #fff; font-size: 11pt; }
+    .capa { -webkit-print-color-adjust: exact; print-color-adjust: exact; min-height: 80vh; display: grid; align-content: center; break-after: page; }
+    .indice { margin-top: 0; box-shadow: none; break-after: page; }
+    section { border: 0; padding: 0; margin: 0 0 18px; break-inside: auto; }
+    section > h2 { break-after: avoid; } h3 { break-after: avoid; }
+    .nota, table, ol.passos > li { break-inside: avoid; }
+    .estado, .ui, .nota, section > h2 .num, ol.passos > li::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="capa">
+  <div class="capa-interior">
+    <img src="data:image/png;base64,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" alt="BV Seguros">
+    <div>
+      <span class="etiqueta">Manual de utilização</span>
+      <h1>CRM da BV Seguros</h1>
+      <p>Como gerir leads, clientes, apólices, renovações, sinistros e tarefas no dia a dia, e como o administrador gere contas e permissões.</p>
+    </div>
+    <span class="meta">Versão de setembro de 2026 · bvseguros-crm.vercel.app</span>
+  </div>
+</header>
+
+<main class="pagina">
+
+<nav class="indice" aria-label="Índice">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#entrar"><span class="num">1</span>Entrar no CRM</a></li>
+    <li><a href="#ecra"><span class="num">2</span>O ecrã e o menu</a></li>
+    <li><a href="#dashboard"><span class="num">3</span>Dashboard</a></li>
+    <li><a href="#leads"><span class="num">4</span>Leads</a></li>
+    <li><a href="#propostas"><span class="num">5</span>Propostas</a></li>
+    <li><a href="#clientes"><span class="num">6</span>Clientes e ficha do cliente</a></li>
+    <li><a href="#apolices"><span class="num">7</span>Apólices</a></li>
+    <li><a href="#renovacoes"><span class="num">8</span>Renovações</a></li>
+    <li><a href="#sinistros"><span class="num">9</span>Sinistros</a></li>
+    <li><a href="#tarefas"><span class="num">10</span>Tarefas e atividades</a></li>
+    <li><a href="#pesquisa"><span class="num">11</span>Pesquisa e filtros</a></li>
+    <li><a href="#utilizadores"><span class="num">12</span>Utilizadores</a></li>
+    <li><a href="#grupos"><span class="num">13</span>Grupos e permissões</a></li>
+    <li><a href="#seguradoras"><span class="num">14</span>Seguradoras e importação</a></li>
+    <li><a href="#duvidas"><span class="num">15</span>Dúvidas frequentes</a></li>
+  </ol>
+</nav>
+
+<section id="entrar">
+  <h2><span class="num">1</span>Entrar no CRM</h2>
+  <p class="intro">O CRM abre em <strong>bvseguros-crm.vercel.app</strong>, no computador ou no telemóvel. Só entra quem tem uma conta criada pelo administrador.</p>
+
+  <h3>A primeira vez</h3>
+  <p>Há duas formas de receber acesso, conforme o administrador escolheu:</p>
+  <ul>
+    <li><strong>Por convite:</strong> recebe um email "Convite para o CRM da BV Seguros". Carregue no botão do email, escolha a sua senha e entra logo.</li>
+    <li><strong>Com uma senha inicial:</strong> o administrador dá-lhe o email e uma senha. Entre com eles e o CRM pede logo uma <strong>senha nova, só sua</strong>, antes de continuar. A senha inicial deixa de funcionar.</li>
+  </ul>
+  <div class="nota dica"><strong>A senha tem de ter pelo menos 8 caracteres.</strong>Use uma senha que não use noutros sites. Nunca a partilhe com colegas: cada pessoa tem a sua conta.</div>
+
+  <h3>Entrar no dia a dia</h3>
+  <ol class="passos">
+    <li>Abra o CRM e escreva o seu <strong>email</strong> e a sua <strong>palavra-passe</strong>.</li>
+    <li>Carregue em <span class="ui">Entrar</span>.</li>
+  </ol>
+
+  <h3>Esqueci a senha</h3>
+  <ol class="passos">
+    <li>No ecrã de entrada, carregue em <span class="ui">Esqueci a senha</span>.</li>
+    <li>Escreva o seu email e carregue em <span class="ui">Enviar link</span>.</li>
+    <li>Abra o email "Definir uma senha nova no CRM da BV Seguros" e escolha a senha nova.</li>
+  </ol>
+  <div class="nota atencao"><strong>O email não chegou?</strong>Veja a pasta de spam. Se mesmo assim não aparecer, peça ao administrador para <em>definir uma senha</em> para si (secção 12).</div>
+
+  <h3>Sair</h3>
+  <p>Carregue em <span class="ui">Terminar sessão</span>, no fundo do menu. Faça-o sempre num computador partilhado.</p>
+</section>
+
+<section id="ecra">
+  <h2><span class="num">2</span>O ecrã e o menu</h2>
+  <p class="intro">O menu à esquerda leva a cada parte do CRM. <strong>O que aparece depende do seu grupo</strong>: se um módulo não estiver no menu, é porque o seu grupo não tem acesso a ele (ver secção 13).</p>
+  <ul>
+    <li><strong>Grupos do menu:</strong> Visão geral, Comercial, Carteira, Organização e, para o administrador, Administração. Carregue no título de um grupo para o abrir ou fechar; o CRM lembra-se da sua escolha.</li>
+    <li><span class="ui">Recolher menu</span> deixa só os ícones, para dar mais espaço às listas. Passe o rato por cima de um ícone para ver o nome.</li>
+    <li>O número laranja ao lado de <span class="menu">Leads</span> são <strong>pedidos do site por tratar</strong>.</li>
+    <li>No <strong>telemóvel</strong>, o menu abre no botão <span class="ui">☰</span> no canto superior esquerdo.</li>
+  </ul>
+  <div class="nota dica"><strong>Com "só ver"</strong>Se o seu grupo só tem permissão para ver um módulo, os botões de criar, editar e apagar não aparecem nele. Não é um erro.</div>
+</section>
+
+<section id="dashboard">
+  <h2><span class="num">3</span>Dashboard</h2>
+  <p class="intro">O resumo do dia, quando entra no CRM.</p>
+  <ul>
+    <li><strong>Números da carteira:</strong> leads em carteira, clientes, apólices ativas e taxa de conversão.</li>
+    <li><strong>Leads por estado:</strong> quantos leads há em cada etapa.</li>
+    <li><strong>Acompanhamento operacional:</strong> propostas e sinistros em aberto, renovações a vencer nos próximos 30 dias e <strong>tarefas em atraso</strong>. Carregue numa linha para ir diretamente à lista.</li>
+    <li><strong>Atividades recentes:</strong> os últimos registos da equipa.</li>
+  </ul>
+</section>
+
+<section id="leads">
+  <h2><span class="num">4</span>Leads</h2>
+  <p class="intro">Um lead é um contacto que ainda não é cliente. Os leads organizam-se num quadro por etapas:</p>
+  <p><span class="estado e-azul">Novo</span> <span class="estado e-neutro">Contactado</span> <span class="estado e-laranja">Proposta enviada</span> <span class="estado e-verde">Convertido</span> <span class="estado e-vermelho">Perdido</span></p>
+
+  <h3>Criar um lead</h3>
+  <ol class="passos">
+    <li>Em <span class="menu">Leads</span>, carregue em <span class="ui">Novo lead</span>.</li>
+    <li>Preencha o nome, o telefone e o ramo de interesse (o email e as notas são opcionais).</li>
+    <li>Carregue em <span class="ui">Criar lead</span>. Quem cria fica como <strong>responsável</strong>.</li>
+  </ol>
+
+  <h3>Pedidos do site</h3>
+  <p>Quem preenche o formulário de contacto do site entra aqui automaticamente, na etapa <strong>Novo</strong>, com o selo <span class="estado e-verde">Site</span> e a mensagem que escreveu. Entram <strong>sem responsável</strong>: carregue em <span class="ui">Assumir</span> para ficar com o pedido.</p>
+
+  <h3>Mudar de etapa</h3>
+  <p>Arraste o cartão para a coluna seguinte. No teclado ou no telemóvel, use as setas no topo do quadro para ver as outras etapas.</p>
+
+  <h3>Atividades e próximo passo</h3>
+  <ol class="passos">
+    <li>No cartão do lead, carregue em <span class="ui">Atividades</span>.</li>
+    <li>Registe o que aconteceu: <strong>Chamada</strong>, <strong>Email</strong>, <strong>Reunião</strong> ou <strong>Nota</strong>. Para marcar o próximo passo, escolha <strong>Tarefa</strong> e um <strong>prazo</strong> (por exemplo, "Voltar a ligar" até dia 5).</li>
+    <li>Carregue em <span class="ui">Guardar atividade</span>.</li>
+  </ol>
+  <p>A tarefa por fazer mais próxima aparece no cartão. Se o prazo já passou, aparece a vermelho: <span class="estado e-vermelho">Atrasada desde 27/09/2026</span>. Quando fizer a tarefa, abra de novo as atividades e carregue em <span class="estado e-neutro">Pendente</span> para a marcar como <span class="estado e-verde">Concluída</span>.</p>
+
+  <h3>Converter em cliente</h3>
+  <ol class="passos">
+    <li>Arraste o lead para <strong>Convertido</strong>, ou abra <span class="ui">Editar</span> e carregue em <span class="ui">Converter</span>.</li>
+    <li>Confirme os dados do cliente (pode acrescentar o NIF e a morada) e carregue em <span class="ui">Criar cliente</span>.</li>
+  </ol>
+  <p>O cliente fica ligado ao lead e recebe as propostas e as atividades que o lead tinha. Se o cliente já existir no CRM, use <span class="ui">Só marcar como convertido</span>.</p>
+
+  <h3>Responsável</h3>
+  <ul>
+    <li><span class="ui">Assumir</span>: fica com um lead que ainda não tem responsável.</li>
+    <li><span class="ui">Atribuir</span>: passa o lead a outra pessoa. Só aparece a quem tem essa permissão no grupo.</li>
+    <li>O filtro <span class="ui">Todos</span> · <span class="ui">Os meus</span> · <span class="ui">Sem responsável</span> ajuda a ver só o que lhe interessa.</li>
+  </ul>
+</section>
+
+<section id="propostas">
+  <h2><span class="num">5</span>Propostas</h2>
+  <p class="intro">Simulações e propostas enviadas a leads ou clientes, também num quadro por etapas:</p>
+  <p><span class="estado e-neutro">Rascunho</span> <span class="estado e-azul">Enviada</span> <span class="estado e-verde">Aceite</span> <span class="estado e-vermelho">Rejeitada</span></p>
+  <ol class="passos">
+    <li>Carregue em <span class="ui">Nova proposta</span> e escolha se é para um <strong>lead</strong> ou para um <strong>cliente</strong>.</li>
+    <li>Indique o ramo, a seguradora, o prémio anual estimado e as coberturas.</li>
+    <li>Arraste o cartão à medida que a proposta avança.</li>
+  </ol>
+  <div class="nota dica"><strong>Quando um lead passa a cliente</strong>as propostas dele passam automaticamente para o cliente.</div>
+</section>
+
+<section id="clientes">
+  <h2><span class="num">6</span>Clientes e ficha do cliente</h2>
+  <p class="intro">A lista de clientes e, para cada um, a ficha com tudo o que o CRM sabe sobre ele.</p>
+  <h3>Criar um cliente</h3>
+  <ol class="passos">
+    <li>Em <span class="menu">Clientes</span>, carregue em <span class="ui">Novo cliente</span>.</li>
+    <li>O nome e o telefone são obrigatórios. O NIF tem de ter 9 dígitos e não pode repetir-se.</li>
+  </ol>
+  <h3>A ficha do cliente</h3>
+  <p>Carregue no nome de um cliente para abrir a ficha:</p>
+  <ul>
+    <li><strong>Resumo:</strong> apólices ativas, prémio total e sinistros em aberto.</li>
+    <li><strong>Apólices, Propostas, Sinistros e Atividades</strong> do cliente. Daqui pode criar uma <span class="ui">Nova apólice</span> ou <span class="ui">Registar atividade</span>.</li>
+    <li><strong>Histórico de alterações:</strong> quem mudou o quê e quando, também nas apólices, propostas, sinistros e renovações.</li>
+  </ul>
+</section>
+
+<section id="apolices">
+  <h2><span class="num">7</span>Apólices</h2>
+  <p class="intro">Os contratos de seguro de cada cliente.</p>
+  <p><span class="estado e-verde">Ativa</span> <span class="estado e-laranja">Pendente</span> <span class="estado e-vermelho">Cancelada</span> <span class="estado e-neutro">Expirada</span></p>
+  <ol class="passos">
+    <li>Carregue em <span class="ui">Nova apólice</span> (ou crie-a a partir da ficha do cliente).</li>
+    <li>Preencha o cliente, o nº da apólice (não se pode repetir), o ramo, a seguradora, o prémio anual e as datas de início e fim.</li>
+  </ol>
+  <div class="nota dica"><strong>Preencha sempre a data de fim</strong>É ela que faz a apólice aparecer em <em>Renovações</em> quando se aproxima o vencimento.</div>
+</section>
+
+<section id="renovacoes">
+  <h2><span class="num">8</span>Renovações</h2>
+  <p class="intro">As apólices ativas que terminam <strong>nos próximos 60 dias</strong> aparecem aqui automaticamente, da mais urgente para a menos urgente.</p>
+  <p><span class="estado e-laranja">Pendente</span> <span class="estado e-azul">Contactado</span> <span class="estado e-verde">Renovada</span> <span class="estado e-vermelho">Não renovada</span></p>
+  <ol class="passos">
+    <li>Depois de falar com o cliente, carregue em <span class="ui">Marcar contactado</span>.</li>
+    <li>Quando a apólice for renovada, carregue em <span class="ui">Marcar renovada</span>, indique a <strong>nova data de fim</strong> e, se mudou, o <strong>novo prémio anual</strong>. A apólice é atualizada de uma vez.</li>
+    <li>Use <span class="ui">Editar</span> para escrever notas ou marcar como <strong>Não renovada</strong>.</li>
+  </ol>
+</section>
+
+<section id="sinistros">
+  <h2><span class="num">9</span>Sinistros</h2>
+  <p class="intro">As participações de ocorrências sobre uma apólice, da participação ao pagamento.</p>
+  <p><span class="estado e-azul">Participado</span> <span class="estado e-laranja">Em análise</span> <span class="estado e-verde">Aprovado</span> <span class="estado e-vermelho">Recusado</span> <span class="estado e-verde">Pago</span></p>
+  <ol class="passos">
+    <li>Carregue em <span class="ui">Novo sinistro</span> e escolha a apólice.</li>
+    <li>Indique a data da ocorrência (não pode ser no futuro), a descrição e, se souber, o nº do sinistro e o valor estimado.</li>
+    <li>Arraste o cartão à medida que o processo avança; registe o valor pago no fim.</li>
+  </ol>
+</section>
+
+<section id="tarefas">
+  <h2><span class="num">10</span>Tarefas e atividades</h2>
+  <p class="intro">O registo de tudo o que se fala com leads e clientes, e a lista do que falta fazer.</p>
+  <ul>
+    <li>A página <span class="menu">Tarefas</span> abre em <strong>Tarefas por concluir</strong>. No filtro, escolha <strong>Tarefas em atraso</strong> ou <strong>Todas as atividades</strong> (para ver também chamadas, emails, reuniões e notas).</li>
+    <li>Carregue em <span class="estado e-neutro">Pendente</span> para concluir uma tarefa.</li>
+    <li><span class="ui">Nova atividade</span> permite registar uma atividade e associá-la a um lead ou cliente.</li>
+  </ul>
+  <div class="nota dica"><strong>Boa prática</strong>No fim de cada contacto, deixe uma tarefa com prazo para o próximo passo. Assim nada fica esquecido e as tarefas em atraso aparecem no Dashboard.</div>
+</section>
+
+<section id="pesquisa">
+  <h2><span class="num">11</span>Pesquisa e filtros</h2>
+  <ul>
+    <li>Todas as listas têm uma <strong>barra de pesquisa</strong>. Não precisa de acentos nem de maiúsculas: "joao" encontra "João".</li>
+    <li>Os filtros ficam no endereço da página: pode <strong>copiar o link</strong> e enviá-lo a um colega para ele ver a mesma lista filtrada.</li>
+    <li><span class="ui">Limpar pesquisa e filtros</span> volta à lista completa.</li>
+  </ul>
+</section>
+
+<section id="utilizadores">
+  <h2><span class="num">12</span>Utilizadores <span class="so-admin">Só administrador</span></h2>
+  <p class="intro">Em <span class="menu">Administração → Utilizadores</span> gere quem pode entrar no CRM.</p>
+
+  <h3>Adicionar uma pessoa</h3>
+  <ol class="passos">
+    <li>Carregue em <span class="ui">Adicionar utilizador</span>.</li>
+    <li>Escolha como dar acesso:
+      <ul>
+        <li><strong>Enviar convite por email:</strong> a pessoa recebe um email e escolhe a senha.</li>
+        <li><strong>Criar já com senha:</strong> escreve uma senha inicial (mínimo 8 caracteres) e a conta fica logo pronta, sem email. No primeiro acesso a pessoa escolhe uma senha nova.</li>
+      </ul>
+    </li>
+    <li>Preencha o nome, o email e o <strong>grupo</strong>. Para dar acesso total, escolha <strong>Administrador (acesso total)</strong>.</li>
+  </ol>
+  <div class="nota atencao"><strong>Passe a senha inicial por um canal seguro</strong>de preferência por telefone ou numa mensagem que apague a seguir. Como a pessoa a troca no primeiro acesso, deixa de valer logo depois.</div>
+
+  <h3>Menu de cada conta (⋯)</h3>
+  <div class="tabela"><table>
+    <thead><tr><th>Ação</th><th>Para quê</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Editar nome</strong></td><td>Corrigir o nome que aparece no CRM.</td></tr>
+      <tr><td><strong>Mudar de grupo</strong></td><td>Mudar o que a pessoa pode ver e fazer.</td></tr>
+      <tr><td><strong>Definir senha</strong></td><td>Dar uma senha nova a quem não recebe os emails ou se esqueceu dela. A pessoa troca-a no primeiro acesso.</td></tr>
+      <tr><td><strong>Reenviar convite</strong></td><td>Voltar a enviar o email a quem ainda não aceitou.</td></tr>
+      <tr><td><strong>Retirar acesso</strong></td><td>Bloquear a conta sem a apagar. Pode voltar a dar acesso mais tarde.</td></tr>
+      <tr><td><strong>Tornar administrador</strong></td><td>Dar acesso total, incluindo gerir contas e grupos.</td></tr>
+      <tr><td><strong>Excluir conta</strong></td><td>Apagar a conta de vez. Os leads, clientes e tarefas dela ficam <strong>sem responsável</strong>; nada é apagado.</td></tr>
+    </tbody>
+  </table></div>
+  <p>O <strong>Histórico de acessos</strong>, no fim da página, regista quem deu ou retirou acesso, mudou grupos ou definiu senhas. As senhas nunca são guardadas nem mostradas.</p>
+  <div class="nota dica"><strong>Tem de existir sempre um administrador ativo.</strong>O CRM não deixa retirar o acesso nem excluir o último.</div>
+</section>
+
+<section id="grupos">
+  <h2><span class="num">13</span>Grupos e permissões <span class="so-admin">Só administrador</span></h2>
+  <p class="intro">Cada pessoa pertence a um grupo, e é o grupo que decide o que ela vê e faz. O administrador tem sempre acesso a tudo.</p>
+  <h3>Criar ou editar um grupo</h3>
+  <ol class="passos">
+    <li>Em <span class="menu">Administração → Grupos</span>, carregue em <span class="ui">Novo grupo</span> (ou no nome de um grupo para o editar).</li>
+    <li>Dê-lhe um nome, por exemplo "Comercial" ou "Backoffice".</li>
+    <li>Escolha a <strong>carteira</strong>:
+      <ul>
+        <li><strong>Toda a carteira:</strong> vê os leads e clientes de toda a equipa.</li>
+        <li><strong>Só a sua carteira:</strong> vê só os leads e clientes de que é responsável, e os que ainda não têm responsável. As apólices, propostas, renovações, sinistros e tarefas seguem o cliente.</li>
+      </ul>
+    </li>
+    <li>Para cada módulo, escolha <span class="ui">Sem acesso</span>, <span class="ui">Ver</span> ou <span class="ui">Ver e editar</span>. Os botões <span class="ui">Nenhum</span> · <span class="ui">Todos ver</span> · <span class="ui">Todos editar</span> mudam todos de uma vez.</li>
+    <li>Com <strong>Ver e editar</strong>, pode ainda dar <strong>Pode apagar</strong> e, em Leads e Clientes, <strong>Pode passar a outro responsável</strong>.</li>
+  </ol>
+  <div class="tabela"><table>
+    <thead><tr><th>Nível</th><th>O que a pessoa pode fazer</th></tr></thead>
+    <tbody>
+      <tr><td><span class="estado e-neutro">Sem acesso</span></td><td>O módulo não aparece no menu.</td></tr>
+      <tr><td><span class="estado e-azul">Ver</span></td><td>Consulta as listas, sem criar, editar, arrastar ou apagar.</td></tr>
+      <tr><td><span class="estado e-verde">Ver e editar</span></td><td>Cria e edita. Apagar e passar a outro responsável são opções à parte.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="nota atencao"><strong>As mudanças valem logo</strong>mas o menu de cada pessoa só se atualiza quando ela recarregar a página. Um grupo com pessoas não pode ser apagado: mude-as primeiro para outro grupo.</div>
+</section>
+
+<section id="seguradoras">
+  <h2><span class="num">14</span>Seguradoras e importação <span class="so-admin">Só administrador</span></h2>
+  <h3>Seguradoras</h3>
+  <p>A lista de seguradoras que aparece nos formulários de apólices e propostas. Quando alguém escreve uma seguradora nova em "Outra…", ela entra aqui sozinha. Use <span class="ui">Renomear ou juntar</span> para corrigir nomes duplicados, e <span class="ui">Desativar</span> para a tirar dos formulários sem mexer nas apólices antigas.</p>
+
+  <h3>Importar a carteira (CSV)</h3>
+  <ol class="passos">
+    <li>Em <span class="menu">Administração → Importar</span>, escolha <strong>Clientes</strong> e carregue em <span class="ui">Descarregar modelo</span>.</li>
+    <li>Preencha o modelo numa folha de cálculo e guarde-o em CSV.</li>
+    <li>Envie o ficheiro, veja a <strong>pré-visualização</strong> e confirme. As linhas com problemas são indicadas e não entram.</li>
+    <li>Depois, faça o mesmo com as <strong>Apólices</strong>. Ligam-se aos clientes pelo <strong>NIF</strong>, por isso importe sempre os clientes primeiro.</li>
+  </ol>
+  <div class="tabela"><table>
+    <thead><tr><th>Ficheiro</th><th>Colunas obrigatórias</th><th>Opcionais</th></tr></thead>
+    <tbody>
+      <tr><td>Clientes</td><td><code>nome</code>, <code>telefone</code></td><td><code>email</code>, <code>nif</code>, <code>morada</code>, <code>responsavel_email</code></td></tr>
+      <tr><td>Apólices</td><td><code>nif_cliente</code>, <code>numero_apolice</code>, <code>ramo</code>, <code>seguradora</code>, <code>data_inicio</code></td><td><code>premio_anual</code>, <code>data_fim</code>, <code>estado</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Clientes com um NIF que já existe no CRM não são duplicados. Se a coluna <code>responsavel_email</code> tiver o email de uma conta ativa, essa pessoa fica responsável; caso contrário, fica quem importa.</p>
+</section>
+
+<section id="duvidas">
+  <h2><span class="num">15</span>Dúvidas frequentes</h2>
+  <h3>Não vejo um módulo no menu.</h3>
+  <p>O seu grupo não tem acesso a ele. Peça ao administrador para o incluir.</p>
+  <h3>Não aparece o botão para criar ou apagar.</h3>
+  <p>O seu grupo só tem permissão para ver esse módulo, ou não tem a opção "Pode apagar".</p>
+  <h3>Não encontro um cliente que sei que existe.</h3>
+  <p>Se o seu grupo usa <em>Só a sua carteira</em>, só vê os clientes de que é responsável. Peça a quem é responsável, ou ao administrador, para lho passar.</p>
+  <h3>Aparece "este registo foi alterado por outra pessoa".</h3>
+  <p>Alguém gravou o mesmo registo enquanto o tinha aberto. Atualize a página e faça a alteração de novo.</p>
+  <h3>Aparece "A sua conta ainda não tem acesso ativo".</h3>
+  <p>O administrador ainda não lhe deu acesso, ou retirou-o. Contacte-o.</p>
+  <h3>Os meus dados estão seguros?</h3>
+  <p>O acesso é protegido na base de dados, não só no ecrã: cada pessoa só consegue ler e gravar o que o seu grupo permite. O CRM não aparece nos motores de pesquisa. Não guarde no CRM dados de saúde dos clientes.</p>
+</section>
+
+<footer>
+  BV Seguros · Seguros e Soluções · Manual do CRM interno
+</footer>
+
+</main>
+</body>
+</html>

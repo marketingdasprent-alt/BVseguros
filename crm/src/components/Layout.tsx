@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
+import { CircleHelp, LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { Navigation } from '@/components/crm/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useLeadsPorTratar } from '@/hooks/useLeadsPorTratar';
@@ -54,9 +54,16 @@ export default function Layout() {
         <span className="account-avatar" aria-hidden="true">{initials}</span>
         <div className="nav-label min-w-0"><strong>{name}</strong><span>{profile?.email}</span></div>
       </div>
+      {/* Na mesma linha que "Terminar sessão": uma linha a mais trazia de volta o scroll ao menu. */}
+      <div className="account-links">
+      {/* Ficheiro estático em public/: abre à parte para não perder o que se está a fazer no CRM. */}
+      <a href="/manual.html" target="_blank" rel="noopener" className="sign-out" aria-label="Ajuda: manual do CRM (abre noutro separador)" title="Ajuda: manual do CRM">
+        <CircleHelp size={16} /><span className="nav-label">Ajuda</span>
+      </a>
       <button type="button" className="sign-out" onClick={handleSignOut} disabled={signingOut} aria-label="Terminar sessão" title="Terminar sessão">
         <LogOut size={16} /><span className="nav-label">{signingOut ? 'A terminar…' : 'Terminar sessão'}</span>
       </button>
+      </div>
     </div>
   );
   return (
