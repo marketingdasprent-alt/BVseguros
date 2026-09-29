@@ -15,12 +15,14 @@ import { useRenovacoes, marcarContactado, marcarRenovada, guardarRenovacao } fro
 import type { RenovacaoItem } from '@/hooks/useRenovacoes'
 import { useClientes } from '@/hooks/useClientes'
 import { useToast } from '@/hooks/useToast'
+import { useAuth } from '@/hooks/useAuth'
 import { mensagemErro } from '@/lib/erros'
 
 export default function Renovacoes() {
   const { data: itens, isLoading, error, recarregar } = useRenovacoes()
   const { data: clientes, isLoading: clientesCarregando } = useClientes()
   const { toast } = useToast()
+  const { pode } = useAuth()
   const [itemARenovar, setItemARenovar] = useState<RenovacaoItem | null>(null)
   const [aGuardar, setAGuardar] = useState(false)
   const [aEditar, setAEditar] = useState<RenovacaoItem | null>(null)
@@ -109,6 +111,8 @@ export default function Renovacoes() {
           onMarcarContactado={handleMarcarContactado}
           onAbrirRenovar={setItemARenovar}
           onEditar={setAEditar}
+          podeEditar={pode('renovacoes', 'editar')}
+          podeRenovar={pode('renovacoes', 'editar') && pode('apolices', 'editar')}
         />
         )}
         </>

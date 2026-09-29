@@ -126,6 +126,21 @@ describe('api/utilizadores: convidar (POST)', () => {
     expect(chamadas.inserts[0].dados).toMatchObject({ alteracao: 'convidado', perfil_nome: 'Nuno Costa', realizado_por: ADMIN.id })
   })
 
+  it('com grupo, a conta fica ativa já nesse grupo', async () => {
+    const { client, chamadas } = falso()
+    const grupoId = 'cccccccc-0000-0000-0000-000000000003'
+    const res = await pedir(createHandler({ env: ENV, client }), { body: { nome: 'Nuno Costa', email: 'nuno@bv.pt', grupoId } })
+    expect(res.statusCode).toBe(201)
+    expect(chamadas.updates[0]).toMatchObject({ nome: 'profiles', dados: { ativo: true, grupo_id: grupoId }, auth: 'Bearer bom' })
+  })
+
+  it('recusa um grupo com formato inválido sem enviar convite', async () => {
+    const { client, chamadas } = falso()
+    const res = await pedir(createHandler({ env: ENV, client }), { body: { nome: 'Nuno Costa', email: 'nuno@bv.pt', grupoId: 'x; drop' } })
+    expect(res.statusCode).toBe(400)
+    expect(chamadas.convites).toHaveLength(0)
+  })
+
   it('explica o limite de emails do Supabase', async () => {
     const { client } = falso({ erroConvite: { status: 429, message: 'email rate limit exceeded' } })
     const res = await pedir(createHandler({ env: ENV, client }))

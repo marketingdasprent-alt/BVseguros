@@ -1,4 +1,4 @@
-import { Clock, Crown, Mail, PenLine, Send, ShieldCheck, ShieldOff, User, UserX } from 'lucide-react'
+import { Clock, Crown, KeyRound, Mail, PenLine, Send, ShieldCheck, ShieldOff, User, UserX } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { RowActions } from '@/components/ui/RowActions'
@@ -10,19 +10,24 @@ interface UtilizadoresTableProps {
   utilizadores: Profile[]
   // Vazio quando a API não está configurada: a página mostra um aviso e aqui fica "—".
   estados: Record<string, EstadoConta>
+  nomeGrupo: (id: string | null) => string | null
   idAtual: string | null
   idEmAlteracao: string | null
   onAlterar: (utilizador: Profile, alteracao: AlteracaoAcesso) => void
   onEditarNome: (utilizador: Profile) => void
+  onMudarGrupo: (utilizador: Profile) => void
   onExcluir: (utilizador: Profile) => void
   onReenviarConvite: (utilizador: Profile) => void
 }
 
 export function UtilizadoresTable({
-  utilizadores, estados, idAtual, idEmAlteracao, onAlterar, onEditarNome, onExcluir, onReenviarConvite,
+  utilizadores, estados, nomeGrupo, idAtual, idEmAlteracao, onAlterar, onEditarNome, onMudarGrupo, onExcluir, onReenviarConvite,
 }: UtilizadoresTableProps) {
   const acoesDe = (u: Profile): AcaoLinha[] => {
-    const acoes: AcaoLinha[] = [{ rotulo: 'Editar nome', icone: PenLine, onSelect: () => onEditarNome(u) }]
+    const acoes: AcaoLinha[] = [
+      { rotulo: 'Editar nome', icone: PenLine, onSelect: () => onEditarNome(u) },
+      { rotulo: 'Mudar de grupo', icone: KeyRound, onSelect: () => onMudarGrupo(u) },
+    ]
     // Tirar o próprio acesso ou excluir-se deixava o admin fora do CRM a meio da sessão.
     if (u.id === idAtual) return acoes
     return [
@@ -31,7 +36,7 @@ export function UtilizadoresTable({
         ? { rotulo: 'Retirar acesso', icone: ShieldOff, onSelect: () => onAlterar(u, { ativo: false }) }
         : { rotulo: 'Dar acesso', icone: ShieldCheck, onSelect: () => onAlterar(u, { ativo: true }) },
       u.is_admin
-        ? { rotulo: 'Tornar mediador', icone: User, onSelect: () => onAlterar(u, { is_admin: false }) }
+        ? { rotulo: 'Deixar de ser administrador', icone: User, onSelect: () => onAlterar(u, { is_admin: false }) }
         : { rotulo: 'Tornar administrador', icone: Crown, onSelect: () => onAlterar(u, { is_admin: true }) },
       { rotulo: 'Excluir conta', icone: UserX, perigo: true, separadorAntes: true, onSelect: () => onExcluir(u) },
     ]
@@ -47,7 +52,7 @@ export function UtilizadoresTable({
               <th className="sticky left-0 z-10 font-semibold uppercase whitespace-nowrap">Nome</th>
               <th className="font-semibold uppercase whitespace-nowrap">Email</th>
               <th className="font-semibold uppercase whitespace-nowrap">Estado</th>
-              <th className="font-semibold uppercase whitespace-nowrap">Perfil</th>
+              <th className="font-semibold uppercase whitespace-nowrap">Grupo</th>
               <th className="font-semibold uppercase whitespace-nowrap">Último acesso</th>
               <th className="font-semibold uppercase whitespace-nowrap"><span className="sr-only">Ações</span></th>
             </tr>
@@ -74,7 +79,9 @@ export function UtilizadoresTable({
                     </div>
                   </td>
                   <td className="whitespace-nowrap">
-                    <Badge tone={u.is_admin ? 'info' : 'neutral'}>{u.is_admin ? 'Administrador' : 'Mediador'}</Badge>
+                    {u.is_admin ? <Badge tone="info">Administrador</Badge>
+                      : nomeGrupo(u.grupo_id) ? <Badge>{nomeGrupo(u.grupo_id)}</Badge>
+                      : <Badge tone="warning">Sem grupo</Badge>}
                   </td>
                   <td className="whitespace-nowrap text-xs tabular-nums text-muted">
                     {!estado ? '—' : estado.ultimoAcesso ? formatarDataRelativa(estado.ultimoAcesso) : (

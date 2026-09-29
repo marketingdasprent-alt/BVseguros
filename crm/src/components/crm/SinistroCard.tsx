@@ -5,7 +5,7 @@ import { formatarMoeda } from '@/lib/format'
 interface SinistroCardProps {
   sinistro: Sinistro
   numeroApolice: string
-  onEditar: (sinistro: Sinistro) => void
+  onEditar?: (sinistro: Sinistro) => void
 }
 
 export function SinistroCard({ sinistro, numeroApolice, onEditar }: SinistroCardProps) {
@@ -16,13 +16,15 @@ export function SinistroCard({ sinistro, numeroApolice, onEditar }: SinistroCard
       {sinistro.valor_estimado != null && (
         <p className="text-xs text-muted tabular-nums">Valor estimado: {formatarMoeda(sinistro.valor_estimado)}</p>
       )}
-      <div className="card-actions justify-end">
-        <span className="card-actions-links">
-          <button type="button" {...semArrasto} onClick={() => onEditar(sinistro)} aria-label={`Editar sinistro da apólice ${numeroApolice}`}>
-            Editar
-          </button>
-        </span>
-      </div>
+      {onEditar && (
+        <div className="card-actions justify-end">
+          <span className="card-actions-links">
+            <button type="button" {...semArrasto} onClick={() => onEditar(sinistro)} aria-label={`Editar sinistro da apólice ${numeroApolice}`}>
+              Editar
+            </button>
+          </span>
+        </div>
+      )}
     </KanbanCard>
   )
 }

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 interface ApolicesTableProps {
   apolices: Apolice[]
   clientes: Cliente[]
-  onEditar: (apolice: Apolice) => void
+  onEditar?: (apolice: Apolice) => void
 }
 
 export function ApolicesTable({ apolices, clientes, onEditar }: ApolicesTableProps) {
@@ -62,7 +62,7 @@ export function ApolicesTable({ apolices, clientes, onEditar }: ApolicesTablePro
                   <Badge tone={TONE_ESTADO_APOLICE[a.estado]}>{rotuloEstado(a.estado)}</Badge>
                 </td>
                 <td className="whitespace-nowrap text-right">
-                  <Button size="sm" variant="ghost" onClick={() => onEditar(a)} aria-label={`Editar apólice ${a.numero_apolice}`}>Editar</Button>
+                  {onEditar && <Button size="sm" variant="ghost" onClick={() => onEditar(a)} aria-label={`Editar apólice ${a.numero_apolice}`}>Editar</Button>}
                 </td>
               </tr>
             ))}

@@ -8,8 +8,9 @@ interface ClientesTableProps {
   nomePorId: Map<string, string>
   podeAtribuir: boolean
   onAtribuir: (cliente: Cliente) => void
-  onAssumir: (cliente: Cliente) => void
-  onEditar: (cliente: Cliente) => void
+  // Sem estes (grupo só com "ver"), a linha não mostra Assumir nem Editar.
+  onAssumir?: (cliente: Cliente) => void
+  onEditar?: (cliente: Cliente) => void
 }
 
 export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, onAssumir, onEditar }: ClientesTableProps) {
@@ -50,9 +51,9 @@ export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, o
                 <td className="whitespace-nowrap">
                   <span className="flex items-center gap-3">
                     <Pessoa nome={c.responsavel_id ? nomePorId.get(c.responsavel_id) ?? 'Atribuído' : null} />
-                    {(podeAtribuir || !c.responsavel_id) && (
+                    {(podeAtribuir || (!c.responsavel_id && onAssumir)) && (
                       <button type="button" className="inline-action row-hover-action"
-                        onClick={() => (podeAtribuir ? onAtribuir(c) : onAssumir(c))}
+                        onClick={() => (podeAtribuir ? onAtribuir(c) : onAssumir?.(c))}
                         aria-label={`${podeAtribuir ? 'Atribuir' : 'Assumir'} ${c.nome}`}>
                         {podeAtribuir ? 'Atribuir' : 'Assumir'}
                       </button>
@@ -60,7 +61,7 @@ export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, o
                   </span>
                 </td>
                 <td className="whitespace-nowrap text-right">
-                  <Button size="sm" variant="ghost" onClick={() => onEditar(c)} aria-label={`Editar ${c.nome}`}>Editar</Button>
+                  {onEditar && <Button size="sm" variant="ghost" onClick={() => onEditar(c)} aria-label={`Editar ${c.nome}`}>Editar</Button>}
                 </td>
               </tr>
             ))}

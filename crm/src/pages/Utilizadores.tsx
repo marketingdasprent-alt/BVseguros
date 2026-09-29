@@ -9,6 +9,8 @@ import { UtilizadoresTable } from '@/components/crm/UtilizadoresTable'
 import { HistoricoAcessos } from '@/components/crm/HistoricoAcessos'
 import { EditarNomeModal } from '@/components/crm/EditarNomeModal'
 import { ConvidarModal } from '@/components/crm/ConvidarModal'
+import { MudarGrupoModal } from '@/components/crm/MudarGrupoModal'
+import { useGrupos } from '@/hooks/useGrupos'
 import { AlertTriangle, Info, UserPlus } from 'lucide-react'
 import { Notice } from '@/components/ui/Notice'
 import { useUtilizadores, useEventosAcesso, useEstadosContas, alterarAcesso, alterarNome, convidarUtilizador, excluirUtilizador, reenviarConvite } from '@/hooks/useUtilizadores'
@@ -23,11 +25,12 @@ interface PedidoAlteracao {
   alteracao: AlteracaoAcesso
 }
 
-function descreverAlteracao({ utilizador, alteracao }: PedidoAlteracao) {
-  if (alteracao.ativo === true) return { titulo: 'Dar acesso', texto: `${utilizador.nome} passa a conseguir entrar no CRM e ver todos os dados.` }
+function descreverAlteracao({ utilizador, alteracao }: PedidoAlteracao, grupo: string | null) {
+  const permissoes = grupo ? `as permissões do grupo ${grupo}` : 'nenhum módulo, porque ainda não tem grupo'
+  if (alteracao.ativo === true) return { titulo: 'Dar acesso', texto: `${utilizador.nome} passa a conseguir entrar no CRM, com ${utilizador.is_admin ? 'acesso total (é administrador)' : permissoes}.` }
   if (alteracao.ativo === false) return { titulo: 'Retirar acesso', texto: `${utilizador.nome} deixa de conseguir ver ou alterar dados do CRM. A conta não é apagada e pode voltar a ter acesso.` }
-  if (alteracao.is_admin === true) return { titulo: 'Tornar administrador', texto: `${utilizador.nome} passa a poder dar e retirar acesso a outras contas.` }
-  return { titulo: 'Tornar mediador', texto: `${utilizador.nome} deixa de poder gerir as contas de outros utilizadores.` }
+  if (alteracao.is_admin === true) return { titulo: 'Tornar administrador', texto: `${utilizador.nome} passa a ter acesso a tudo e a poder gerir contas e grupos.` }
+  return { titulo: 'Deixar de ser administrador', texto: `${utilizador.nome} deixa de poder gerir contas e grupos e passa a ter ${permissoes}.` }
 }
 
 export default function Utilizadores() {
@@ -35,6 +38,8 @@ export default function Utilizadores() {
   const { data: utilizadores, isLoading, error, recarregar } = useUtilizadores()
   const eventos = useEventosAcesso()
   const estadosContas = useEstadosContas()
+  const grupos = useGrupos()
+  const [aMudarGrupo, setAMudarGrupo] = useState<Profile | null>(null)
   const { toast } = useToast()
   const [pedido, setPedido] = useState<PedidoAlteracao | null>(null)
   const [idEmAlteracao, setIdEmAlteracao] = useState<string | null>(null)
@@ -48,6 +53,7 @@ export default function Utilizadores() {
   if (!isAdmin) return <Navigate to="/" replace />
 
   const semAcesso = utilizadores.filter((u) => !u.ativo).length
+  const nomeGrupo = (id: string | null) => grupos.data.find((g) => g.id === id)?.nome ?? null
 
   const handleConfirmar = async () => {
     if (!pedido) return
@@ -55,7 +61,7 @@ export default function Utilizadores() {
     try {
       await alterarAcesso(pedido.utilizador.id, pedido.alteracao)
       await Promise.all([recarregar(), eventos.recarregar()])
-      toast({ title: `${descreverAlteracao(pedido).titulo}: ${pedido.utilizador.nome}` })
+      toast({ title: `${descreverAlteracao(pedido, null).titulo}: ${pedido.utilizador.nome}` })
       setPedido(null)
     } catch (err: unknown) {
       toast({ title: 'Erro ao alterar a conta', description: mensagemErro(err), variant: 'destructive' })
@@ -80,11 +86,11 @@ export default function Utilizadores() {
     }
   }
 
-  const handleConvidar = async (nome: string, email: string) => {
+  const handleConvidar = async (nome: string, email: string, grupoId: string | null) => {
     setAEnviarConvite(true)
     try {
-      const mensagem = await convidarUtilizador(nome, email)
-      await Promise.all([recarregar(), eventos.recarregar(), estadosContas.recarregar()])
+      const mensagem = await convidarUtilizador(nome, email, grupoId)
+      await Promise.all([recarregar(), eventos.recarregar(), estadosContas.recarregar(), grupos.recarregar()])
       toast({ title: 'Convite enviado', description: mensagem })
       return true
     } catch (err: unknown) {
@@ -108,6 +114,21 @@ export default function Utilizadores() {
     }
   }
 
+  const handleMudarGrupo = async (grupoId: string | null) => {
+    if (!aMudarGrupo) return
+    setIdEmAlteracao(aMudarGrupo.id)
+    try {
+      await alterarAcesso(aMudarGrupo.id, { grupo_id: grupoId })
+      await Promise.all([recarregar(), eventos.recarregar(), grupos.recarregar()])
+      toast({ title: `Grupo de ${aMudarGrupo.nome}: ${nomeGrupo(grupoId) ?? 'sem grupo'}` })
+      setAMudarGrupo(null)
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao mudar de grupo', description: mensagemErro(err), variant: 'destructive' })
+    } finally {
+      setIdEmAlteracao(null)
+    }
+  }
+
   const handlePedirExcluir = (utilizador: Profile) =>
     pedirConfirmacao({
       acao: 'Excluir conta', mensagemSucesso: 'Conta excluída',
@@ -116,7 +137,7 @@ export default function Utilizadores() {
       apagar: async () => { await excluirUtilizador(utilizador.id) },
     })
 
-  const confirmacao = pedido && descreverAlteracao(pedido)
+  const confirmacao = pedido && descreverAlteracao(pedido, nomeGrupo(pedido.utilizador.grupo_id))
 
   return (
     <div className="space-y-6">
@@ -153,6 +174,8 @@ export default function Utilizadores() {
         <UtilizadoresTable
           utilizadores={utilizadores}
           estados={estadosContas.data}
+          nomeGrupo={nomeGrupo}
+          onMudarGrupo={setAMudarGrupo}
           idAtual={profile?.id ?? null}
           idEmAlteracao={idEmAlteracao}
           onAlterar={(utilizador, alteracao) => setPedido({ utilizador, alteracao })}
@@ -166,7 +189,12 @@ export default function Utilizadores() {
 
       {modalApagar}
 
-      {aConvidar && <ConvidarModal aEnviar={aEnviarConvite} onFechar={() => setAConvidar(false)} onConvidar={handleConvidar} />}
+      {aConvidar && <ConvidarModal aEnviar={aEnviarConvite} grupos={grupos.data} onFechar={() => setAConvidar(false)} onConvidar={handleConvidar} />}
+
+      {aMudarGrupo && (
+        <MudarGrupoModal utilizador={aMudarGrupo} grupos={grupos.data} aGuardar={idEmAlteracao !== null}
+          onFechar={() => setAMudarGrupo(null)} onGuardar={handleMudarGrupo} />
+      )}
 
       {aEditarNome && (
         <EditarNomeModal utilizador={aEditarNome} aGuardar={aGuardarNome} onFechar={() => setAEditarNome(null)} onGuardar={handleGuardarNome} />

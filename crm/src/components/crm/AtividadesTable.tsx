@@ -8,8 +8,9 @@ interface AtividadesTableProps {
   atividades: Atividade[]
   leads: Lead[]
   clientes: Cliente[]
-  onAlternarConcluida: (atividade: Atividade) => void
-  onEditar: (atividade: Atividade) => void
+  // Sem estes (grupo só com "ver"), o estado é só leitura e não há "Editar".
+  onAlternarConcluida?: (atividade: Atividade) => void
+  onEditar?: (atividade: Atividade) => void
 }
 
 export function AtividadesTable({ atividades, leads, clientes, onAlternarConcluida, onEditar }: AtividadesTableProps) {
@@ -48,7 +49,9 @@ export function AtividadesTable({ atividades, leads, clientes, onAlternarConclui
                     {a.data_prevista ? formatarData(a.data_prevista) : '—'}
                   </td>
                   <td className="whitespace-nowrap">
-                    {a.tipo === 'tarefa' ? (
+                    {a.tipo === 'tarefa' && !onAlternarConcluida ? (
+                      <Badge tone={a.concluida ? 'success' : 'neutral'}>{a.concluida ? 'Concluída' : 'Pendente'}</Badge>
+                    ) : a.tipo === 'tarefa' && onAlternarConcluida ? (
                       <button aria-label={`${a.concluida ? 'Marcar pendente' : 'Concluir tarefa'}: ${a.titulo}`} onClick={() => onAlternarConcluida(a)} className="focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 rounded">
                         <Badge tone={a.concluida ? 'success' : 'neutral'}>
                           {a.concluida ? 'Concluída' : 'Pendente'}
@@ -59,7 +62,7 @@ export function AtividadesTable({ atividades, leads, clientes, onAlternarConclui
                     )}
                   </td>
                   <td className="whitespace-nowrap text-right">
-                    <Button size="sm" variant="ghost" onClick={() => onEditar(a)} aria-label={`Editar ${a.titulo}`}>Editar</Button>
+                    {onEditar && <Button size="sm" variant="ghost" onClick={() => onEditar(a)} aria-label={`Editar ${a.titulo}`}>Editar</Button>}
                   </td>
                 </tr>
               )

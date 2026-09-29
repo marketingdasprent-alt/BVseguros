@@ -1,3 +1,4 @@
+import type { Carteira, Modulo, PermissaoModulo } from '@/lib/permissoes'
 export type EstadoLead = 'novo' | 'contactado' | 'proposta_enviada' | 'convertido' | 'perdido'
 
 export const ESTADOS_LEAD: { valor: EstadoLead; rotulo: string }[] = [
@@ -97,10 +98,28 @@ export interface Profile {
   email: string
   is_admin: boolean
   ativo: boolean
+  // Sem grupo, uma conta que não é admin não vê nenhum módulo.
+  grupo_id: string | null
   criado_em: string
 }
 
-export type AlteracaoAcesso = Partial<Pick<Profile, 'ativo' | 'is_admin'>>
+export type AlteracaoAcesso = Partial<Pick<Profile, 'ativo' | 'is_admin' | 'grupo_id'>>
+
+export interface Grupo {
+  id: string
+  nome: string
+  descricao: string | null
+  carteira: Carteira
+  criado_em: string
+}
+
+// Um grupo com as permissões de todos os módulos (os que faltam na base valem "sem acesso").
+export interface GrupoComPermissoes extends Grupo {
+  permissoes: Record<Modulo, PermissaoModulo>
+  membros: number
+}
+
+export type GrupoEdicao = Pick<Grupo, 'nome' | 'descricao' | 'carteira'> & { permissoes: Record<Modulo, PermissaoModulo> }
 
 // Vem do Auth do Supabase (api/utilizadores.js, GET), não de profiles.
 export interface EstadoConta {
@@ -111,7 +130,7 @@ export interface EstadoConta {
 // Vista da equipa sem emails, disponível a todas as contas ativas (listar_equipa).
 export type MembroEquipa = Pick<Profile, 'id' | 'nome' | 'ativo'>
 
-export type AlteracaoRegistada = 'acesso_dado' | 'acesso_retirado' | 'tornado_admin' | 'tornado_mediador' | 'nome_alterado' | 'convidado' | 'excluido'
+export type AlteracaoRegistada = 'acesso_dado' | 'acesso_retirado' | 'tornado_admin' | 'tornado_mediador' | 'nome_alterado' | 'convidado' | 'excluido' | 'grupo_alterado'
 
 export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
   acesso_dado: 'deu acesso a',
@@ -121,6 +140,7 @@ export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
   nome_alterado: 'mudou o nome para',
   convidado: 'convidou',
   excluido: 'excluiu a conta de',
+  grupo_alterado: 'mudou o grupo de',
 }
 
 export interface EventoAcesso {
@@ -131,6 +151,8 @@ export interface EventoAcesso {
   realizado_por: string | null
   realizado_por_nome: string | null
   nome_anterior: string | null
+  // Em grupo_alterado: o nome do grupo novo.
+  detalhe: string | null
   criado_em: string
 }
 

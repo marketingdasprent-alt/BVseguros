@@ -29,7 +29,8 @@ export default function Clientes() {
   const [aMostrarForm, setAMostrarForm] = useState(false)
   const [aCriar, setACriar] = useState(false)
   const { ativos, nomePorId } = useEquipa()
-  const { profile, isAdmin } = useAuth()
+  const { profile, pode } = useAuth()
+  const podeEditar = pode('clientes', 'editar')
   const filtros = useFiltrosUrl()
   const busca = filtros.ler('q')
   const [aAtribuir, setAAtribuir] = useState<Cliente | null>(null)
@@ -100,7 +101,7 @@ export default function Clientes() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Clientes" description={<> {clientes.length} {clientes.length === 1 ? 'cliente registado' : 'clientes registados'} </>} action={<Button icon={<Plus />} onClick={() => setAMostrarForm((v) => !v)}>
+      <PageHeader title="Clientes" description={<> {clientes.length} {clientes.length === 1 ? 'cliente registado' : 'clientes registados'} </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setAMostrarForm((v) => !v)}>
           Novo cliente
         </Button>} />
 
@@ -128,10 +129,10 @@ export default function Clientes() {
             <ClientesTable
               clientes={clientesFiltrados}
               nomePorId={nomePorId}
-              podeAtribuir={isAdmin}
+              podeAtribuir={pode('clientes', 'atribuir')}
               onAtribuir={setAAtribuir}
-              onAssumir={(c) => profile && handleAtribuir(c, profile.id)}
-              onEditar={setAEditar}
+              onAssumir={podeEditar ? (c) => profile && handleAtribuir(c, profile.id) : undefined}
+              onEditar={podeEditar ? setAEditar : undefined}
             />
           )}
         </>
@@ -145,7 +146,7 @@ export default function Clientes() {
           aGuardar={aGuardarEdicao}
           onFechar={() => setAEditar(null)}
           onGuardar={(dados) => handleEditar(aEditar, dados)}
-          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+          onApagar={pode('clientes', 'apagar') ? () => handlePedirApagar(aEditar) : undefined}
         />
       )}
 

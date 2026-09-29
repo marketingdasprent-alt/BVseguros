@@ -118,7 +118,7 @@ async function comportamento(db, c) {
   const perfil = (await db.query(`select nome, ativo from public.profiles where id = $1`, [ids.med])).rows[0]
   perfil?.nome === 'Miguel Mediador' && perfil.ativo === false ? ok(`${p} conta nova fica inativa, com o nome do convite`) : falha(`${p} perfil criado errado: ${JSON.stringify(perfil)}`)
   await db.query(`update public.profiles set ativo = true, is_admin = true where id = $1`, [ids.admin])
-  await db.query(`update public.profiles set ativo = true where id in ($1, $2)`, [ids.med, ids.med2])
+  await db.query(`update public.profiles set ativo = true, grupo_id = (select id from public.grupos where nome = 'Mediador') where id in ($1, $2)`, [ids.med, ids.med2])
 
   await como(db, 'anon', async () => {
     await espera(`${p} site: anónimo não lê leads`, semLinhas(db.query(`select * from public.leads`)))
@@ -150,7 +150,7 @@ async function comportamento(db, c) {
     leadMed = (await db.query(`insert into public.leads (nome, telefone, ramo_interesse, responsavel_id) values ('Lead Med', '913000000', 'vida', '${ids.med2}') returning *`)).rows[0]
     leadMed.responsavel_id === ids.med ? ok(`${p} mediador: quem cria fica responsável`) : falha(`${p} responsável errado ao criar: ${leadMed.responsavel_id}`)
     await espera(`${p} mediador: não apaga leads`, semLinhas(db.query(`delete from public.leads where id = '${leadMed.id}' returning id`)))
-    await espera(`${p} mediador: não passa lead a outro`, db.query(`update public.leads set responsavel_id = '${ids.med2}' where id = '${leadMed.id}'`), true, /administrador/)
+    await espera(`${p} mediador: não passa lead a outro`, db.query(`update public.leads set responsavel_id = '${ids.med2}' where id = '${leadMed.id}'`), true, /permissão para atribuir/)
     await espera(`${p} mediador: assume lead do site sem responsável`, db.query(`update public.leads set responsavel_id = '${ids.med}' where id = '${siteLead.id}'`))
     await espera(`${p} mediador: não se promove a admin`, semLinhas(db.query(`update public.profiles set is_admin = true where id = '${ids.med}' returning id`)))
     const equipa = (await db.query(`select * from public.listar_equipa()`)).rows
@@ -209,6 +209,101 @@ async function comportamento(db, c) {
   orfaos > 0 ? ok(`${p} contas: clientes do mediador excluído ficam sem responsável, não são apagados`) : falha(`${p} clientes do mediador excluído desapareceram`)
 }
 
+// Grupos configuráveis: só ver, sem acesso, carteira própria, apagar/atribuir como extras.
+async function grupos(db, c) {
+  const p = `[${c}] grupos:`
+  const ids = {}
+  for (const k of ['admin', 'med', 'ver', 'nada', 'prop', 'chefe']) {
+    ids[k] = (await db.query(`insert into auth.users (email, raw_user_meta_data) values ($1, $2) returning id`, [`${k}@bv.pt`, { nome: `Conta ${k}` }])).rows[0].id
+  }
+  await db.query(`update public.profiles set ativo = true, is_admin = true where id = $1`, [ids.admin])
+  const todos = (nivel, extras = {}) => ['dashboard', 'leads', 'propostas', 'clientes', 'apolices', 'renovacoes', 'sinistros', 'atividades']
+    .map((modulo) => ({ modulo, nivel: modulo === 'dashboard' && nivel === 'editar' ? 'ver' : nivel, ...(modulo !== 'dashboard' ? extras : {}) }))
+  const g = {}
+  await como(db, ids.admin, async () => {
+    const guardar = (nome, carteira, perms) => db.query(`select public.guardar_grupo(null, $1, null, $2, $3::jsonb) id`, [nome, carteira, JSON.stringify(perms)]).then((r) => r.rows[0].id)
+    g.ver = await guardar('Só ver', 'toda', todos('ver'))
+    g.nada = await guardar('Sem nada', 'toda', [])
+    g.prop = await guardar('Carteira própria', 'propria', todos('editar'))
+    g.chefe = await guardar('Chefe de equipa', 'toda', todos('editar', { apagar: true }).map((x) => ['leads', 'clientes'].includes(x.modulo) ? { ...x, atribuir: true } : x))
+    ok(`${p} admin cria grupos pelo CRM`)
+    await espera(`${p} nome repetido é recusado`, db.query(`select public.guardar_grupo(null, ' só VER ', null, 'toda', '[]'::jsonb)`), true, /grupos_nome_unico/)
+    await espera(`${p} "atribuir" só existe em leads e clientes`, db.query(`select public.guardar_grupo(null, 'Mau', null, 'toda', $1::jsonb)`, [JSON.stringify([{ modulo: 'apolices', nivel: 'editar', atribuir: true }])]), true, /atribuir_valido/)
+    await espera(`${p} "apagar" exige poder editar`, db.query(`select public.guardar_grupo(null, 'Mau', null, 'toda', $1::jsonb)`, [JSON.stringify([{ modulo: 'leads', nivel: 'ver', apagar: true }])]), true, /extras_validos/)
+  })
+  const mediador = (await db.query(`select id from public.grupos where nome = 'Mediador'`)).rows[0].id
+  for (const [k, grupo] of [['med', mediador], ['ver', g.ver], ['nada', g.nada], ['prop', g.prop], ['chefe', g.chefe]]) {
+    await db.query(`update public.profiles set ativo = true, grupo_id = $2 where id = $1`, [ids[k], grupo])
+  }
+  const ev = (await db.query(`select detalhe from public.eventos_acesso where alteracao = 'grupo_alterado' and perfil_id = $1`, [ids.prop])).rows[0]
+  ev?.detalhe === 'Carteira própria' ? ok(`${p} mudança de grupo fica no histórico de acessos`) : falha(`${p} evento de grupo: ${JSON.stringify(ev)}`)
+
+  // Dados: um lead e um cliente de cada mediador, mais um lead sem responsável.
+  const lead = async (uid, nome) => como(db, uid, () => db.query(`insert into public.leads (nome, telefone, ramo_interesse) values ($1, '912000000', 'auto') returning id`, [nome]).then((r) => r.rows[0].id))
+  const cliente = async (uid, nome) => como(db, uid, () => db.query(`insert into public.clientes (nome, telefone) values ($1, '912000000') returning id`, [nome]).then((r) => r.rows[0].id))
+  const leadMed = await lead(ids.med, 'Lead do Med'), leadProp = await lead(ids.prop, 'Lead do Prop')
+  const clienteMed = await cliente(ids.med, 'Cliente do Med'), clienteProp = await cliente(ids.prop, 'Cliente do Prop')
+  await db.query(`insert into public.leads (nome, telefone, ramo_interesse) values ('Lead livre', '912000000', 'vida')`)
+  const apolice = async (uid, cid, n) => como(db, uid, () => db.query(`insert into public.apolices (cliente_id, numero_apolice, ramo, seguradora, data_inicio) values ($1, $2, 'auto', 'Fidelidade', '2026-01-01') returning id`, [cid, n]).then((r) => r.rows[0].id))
+  const apMed = await apolice(ids.med, clienteMed, 'AP-MED')
+  await apolice(ids.prop, clienteProp, 'AP-PROP')
+  await como(db, ids.med, () => db.query(`insert into public.sinistros (apolice_id, data_ocorrencia, descricao) values ($1, '2026-02-01', 'Toque')`, [apMed]))
+  const nomes = async (uid, tabela, col = 'nome') => como(db, uid, () => db.query(`select ${col} x from public.${tabela} order by 1`).then((r) => r.rows.map((l) => l.x)))
+
+  await como(db, ids.med, async () => {
+    await espera(`${p} mediador não gere grupos`, db.query(`select public.guardar_grupo(null, 'Meu', null, 'toda', '[]'::jsonb)`), true, /administrador/)
+    const perm = (await db.query(`select public.minhas_permissoes() j`)).rows[0].j
+    perm.grupo === 'Mediador' && perm.modulos.leads?.nivel === 'editar' && perm.modulos.leads.apagar === false ? ok(`${p} minhas_permissoes devolve o grupo e os módulos`) : falha(`${p} minhas_permissoes: ${JSON.stringify(perm)}`)
+    await espera(`${p} mediador só vê o próprio grupo`, db.query(`select nome from public.grupos`).then((r) => { if (r.rows.length !== 1) throw new Error(`viu ${r.rows.length}`) }))
+  })
+
+  await como(db, ids.ver, async () => {
+    const n = (await db.query(`select count(*)::int n from public.leads`)).rows[0].n
+    n === 3 ? ok(`${p} "só ver" vê a carteira toda`) : falha(`${p} "só ver" viu ${n} leads`)
+    await espera(`${p} "só ver" não cria leads`, db.query(`insert into public.leads (nome, telefone, ramo_interesse) values ('Xy', '912000000', 'auto')`), true, /row-level security/)
+    await espera(`${p} "só ver" não edita leads`, semLinhas(db.query(`update public.leads set notas = 'x' returning id`)))
+    await espera(`${p} "só ver" não converte leads`, db.query(`select * from public.converter_lead($1, now(), 'X y', '912000000', '', '', '')`, [leadMed]), true, /permissão para converter/)
+    await espera(`${p} "só ver" não renova apólices`, db.query(`select public.marcar_renovada($1, null, '2026-12-31', '2027-12-31', null)`, [apMed]), true, /permissão para renovar/)
+  })
+
+  await como(db, ids.nada, async () => {
+    for (const t of ['leads', 'clientes', 'apolices', 'sinistros', 'atividades', 'historico_registos']) {
+      await espera(`${p} grupo sem módulos não vê ${t}`, semLinhas(db.query(`select * from public.${t}`)))
+    }
+  })
+
+  const leadsProp = await nomes(ids.prop, 'leads')
+  JSON.stringify(leadsProp) === JSON.stringify(['Lead do Prop', 'Lead livre']) ? ok(`${p} carteira própria: vê os seus leads e os sem responsável`) : falha(`${p} carteira própria viu leads: ${leadsProp}`)
+  const clientesProp = await nomes(ids.prop, 'clientes')
+  JSON.stringify(clientesProp) === JSON.stringify(['Cliente do Prop']) ? ok(`${p} carteira própria: só vê os seus clientes`) : falha(`${p} carteira própria viu clientes: ${clientesProp}`)
+  const apProp = await nomes(ids.prop, 'apolices', 'numero_apolice')
+  JSON.stringify(apProp) === JSON.stringify(['AP-PROP']) ? ok(`${p} carteira própria: só vê apólices dos seus clientes`) : falha(`${p} carteira própria viu apólices: ${apProp}`)
+  const sinProp = await nomes(ids.prop, 'sinistros', 'descricao')
+  sinProp.length === 0 ? ok(`${p} carteira própria: não vê sinistros de clientes de outros`) : falha(`${p} carteira própria viu sinistros: ${sinProp}`)
+  const histProp = await como(db, ids.prop, () => db.query(`select resumo from public.historico_registos where cliente_id = $1`, [clienteMed]).then((r) => r.rows))
+  histProp.length === 0 ? ok(`${p} carteira própria: não vê o histórico de clientes de outros`) : falha(`${p} carteira própria viu histórico: ${JSON.stringify(histProp)}`)
+  await como(db, ids.prop, async () => {
+    await espera(`${p} carteira própria: não cria apólice para cliente de outro`, db.query(`insert into public.apolices (cliente_id, numero_apolice, ramo, seguradora, data_inicio) values ($1, 'AP-X', 'auto', 'Fidelidade', '2026-01-01')`, [clienteMed]), true, /row-level security/)
+    await espera(`${p} carteira própria: não edita lead de outro`, semLinhas(db.query(`update public.leads set notas = 'x' where id = $1 returning id`, [leadMed])))
+    await espera(`${p} carteira própria: não converte lead de outro`, db.query(`select * from public.converter_lead($1, now(), 'X y', '912000000', '', '', '')`, [leadMed]), true, /já não existe/)
+    await espera(`${p} carteira própria: não apaga (sem o extra "apagar")`, semLinhas(db.query(`delete from public.leads where id = $1 returning id`, [leadProp])))
+  })
+
+  await como(db, ids.chefe, async () => {
+    await espera(`${p} com "atribuir": passa lead a outro`, db.query(`update public.leads set responsavel_id = $2 where id = $1`, [leadMed, ids.prop]))
+    const apagado = (await db.query(`delete from public.leads where id = $1 returning id`, [leadProp])).rows.length
+    apagado === 1 ? ok(`${p} com "apagar": apaga leads`) : falha(`${p} chefe não conseguiu apagar`)
+  })
+  const leadsDepois = await nomes(ids.prop, 'leads')
+  leadsDepois.includes('Lead do Med') ? ok(`${p} lead atribuído passa a aparecer na carteira de quem o recebe`) : falha(`${p} carteira própria depois da atribuição: ${leadsDepois}`)
+
+  await como(db, ids.admin, async () => {
+    await espera(`${p} não se apaga um grupo com pessoas`, db.query(`delete from public.grupos where id = $1`, [g.prop]), true, /foreign key/)
+    await db.query(`update public.profiles set grupo_id = null where id = $1`, [ids.nada])
+    await espera(`${p} grupo vazio pode ser apagado`, db.query(`delete from public.grupos where id = $1`, [g.nada]))
+  })
+}
+
 try {
   const ordem = ordemMigracoes()
   ok(`ordem das migrações: ${ordem.join(' → ')}`)
@@ -227,6 +322,8 @@ try {
 
   await comportamento(a, 'A')
   await comportamento(await novaBase(producao), 'B')
+  await grupos(await novaBase(schema), 'A')
+  await grupos(await novaBase(producao), 'B')
 } catch (e) {
   falha(e.message)
 }

@@ -1,4 +1,4 @@
-import { AlertTriangle, Crown, History, PenLine, ShieldCheck, ShieldOff, User, UserPlus, UserX, type LucideIcon } from 'lucide-react'
+import { AlertTriangle, Crown, History, PenLine, Users, ShieldCheck, ShieldOff, User, UserPlus, UserX, type LucideIcon } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Notice'
@@ -24,6 +24,7 @@ const ICONES: Record<AlteracaoRegistada, LucideIcon> = {
   tornado_mediador: User,
   nome_alterado: PenLine,
   excluido: UserX,
+  grupo_alterado: Users,
 }
 
 export function HistoricoAcessos({ eventos, isLoading, error, onTentarNovamente }: HistoricoAcessosProps) {
@@ -61,6 +62,7 @@ export function HistoricoAcessos({ eventos, isLoading, error, onTentarNovamente 
                       ? <>mudou o nome de <span className="font-semibold">{e.nome_anterior}</span> para</>
                       : ROTULOS_ALTERACAO[e.alteracao]}{' '}
                     <span className="font-semibold">{e.perfil_nome}</span>
+                    {e.alteracao === 'grupo_alterado' && e.detalhe && <> para <span className="font-semibold">{e.detalhe}</span></>}
                   </strong>
                   <small><time dateTime={e.criado_em}>{formatarDataRelativa(e.criado_em)}</time></small>
                 </div>

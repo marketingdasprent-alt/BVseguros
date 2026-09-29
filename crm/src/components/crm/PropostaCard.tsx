@@ -7,7 +7,8 @@ import { formatarMoeda } from '@/lib/format'
 interface PropostaCardProps {
   proposta: Proposta
   nomeOrigem: string
-  onEditar: (proposta: Proposta) => void
+  // Sem ele (grupo só com "ver"), o cartão não mostra "Editar".
+  onEditar?: (proposta: Proposta) => void
 }
 
 export function PropostaCard({ proposta, nomeOrigem, onEditar }: PropostaCardProps) {
@@ -25,13 +26,15 @@ export function PropostaCard({ proposta, nomeOrigem, onEditar }: PropostaCardPro
           Prémio estimado: {formatarMoeda(proposta.premio_anual_estimado)}
         </p>
       )}
-      <div className="card-actions justify-end">
-        <span className="card-actions-links">
-          <button type="button" {...semArrasto} onClick={() => onEditar(proposta)} aria-label={`Editar proposta de ${nomeOrigem}`}>
-            Editar
-          </button>
-        </span>
-      </div>
+      {onEditar && (
+        <div className="card-actions justify-end">
+          <span className="card-actions-links">
+            <button type="button" {...semArrasto} onClick={() => onEditar(proposta)} aria-label={`Editar proposta de ${nomeOrigem}`}>
+              Editar
+            </button>
+          </span>
+        </div>
+      )}
     </KanbanCard>
   )
 }

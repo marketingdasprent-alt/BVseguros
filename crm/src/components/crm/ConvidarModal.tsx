@@ -4,17 +4,21 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Notice'
 import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
+import type { Grupo } from '@/lib/types'
 
 interface ConvidarModalProps {
   aEnviar: boolean
+  grupos: Grupo[]
   onFechar: () => void
   // true = enviado; o modal mostra então o estado de sucesso em vez de fechar.
-  onConvidar: (nome: string, email: string) => Promise<boolean>
+  onConvidar: (nome: string, email: string, grupoId: string | null) => Promise<boolean>
 }
 
-export function ConvidarModal({ aEnviar, onFechar, onConvidar }: ConvidarModalProps) {
+export function ConvidarModal({ aEnviar, grupos, onFechar, onConvidar }: ConvidarModalProps) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
+  // Com um só grupo, fica já escolhido.
+  const [grupoId, setGrupoId] = useState(grupos.length === 1 ? grupos[0].id : '')
   const [enviadoPara, setEnviadoPara] = useState<string | null>(null)
   const botaoFechar = useRef<HTMLButtonElement>(null)
   const campoNome = useRef<HTMLInputElement>(null)
@@ -27,7 +31,7 @@ export function ConvidarModal({ aEnviar, onFechar, onConvidar }: ConvidarModalPr
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     const destino = email.trim()
-    if (await onConvidar(nome.trim(), destino)) setEnviadoPara(destino)
+    if (await onConvidar(nome.trim(), destino, grupoId || null)) setEnviadoPara(destino)
   }
 
   const convidarOutra = () => {
@@ -54,7 +58,7 @@ export function ConvidarModal({ aEnviar, onFechar, onConvidar }: ConvidarModalPr
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           <Notice tone="info" icon={Mail}>
-            A pessoa recebe um email para definir a senha. A conta fica já com acesso, como mediador.
+            A pessoa recebe um email para definir a senha. A conta fica já com acesso, com as permissões do grupo escolhido.
           </Notice>
           <Campo label="Nome" required>
             <input ref={campoNome} required minLength={2} maxLength={120} value={nome} onChange={(e) => setNome(e.target.value)}
@@ -62,6 +66,12 @@ export function ConvidarModal({ aEnviar, onFechar, onConvidar }: ConvidarModalPr
           </Campo>
           <Campo label="Email" required>
             <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={CLASSE_INPUT} />
+          </Campo>
+          <Campo label="Grupo" required>
+            <select required value={grupoId} onChange={(e) => setGrupoId(e.target.value)} className={CLASSE_INPUT}>
+              <option value="">Escolher grupo…</option>
+              {grupos.map((g) => <option key={g.id} value={g.id}>{g.nome}</option>)}
+            </select>
           </Campo>
           <RodapeFormulario aGuardar={aEnviar} textoGuardar="Enviar convite" onCancelar={onFechar} />
         </form>

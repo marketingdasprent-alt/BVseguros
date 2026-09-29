@@ -14,6 +14,7 @@ export function mensagemErro(erro: unknown): string {
   if (codigo === '23505' || msg.includes('duplicate key')) {
     if (msg.includes('nif')) return 'Já existe um cliente registado com este NIF.'
     if (msg.includes('numero_apolice') || msg.includes('numero_unico')) return 'Já existe uma apólice com este número.'
+    if (msg.includes('grupos_nome_unico')) return 'Já existe um grupo com este nome.'
     return 'Este registo já existe (valor duplicado).'
   }
 
@@ -24,6 +25,10 @@ export function mensagemErro(erro: unknown): string {
     if (msg.includes('nome_valido')) return 'O nome deve ter pelo menos 2 caracteres.'
     if (msg.includes('telefone_valido')) return 'Indique um telefone.'
     return 'Um dos valores introduzidos não é válido.'
+  }
+
+  if ((codigo === '23503' || msg.includes('foreign key')) && msg.includes('grupo_id')) {
+    return 'Este grupo tem pessoas. Mude-as para outro grupo antes de o apagar.'
   }
 
   if (msg.includes('CONFLITO')) return msg.replace('CONFLITO: ', '')

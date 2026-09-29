@@ -154,6 +154,7 @@ Supabase/Vercel) · **[cliente]** depende de decisão ou dados do cliente.
 - [ ] Vercel → `BREVO_API_KEY` e `AVISO_LEAD_SEGREDO` (para 2.5) e Database Webhook no Supabase.
 - [x] Correr as migrações novas e o script de limpeza (1.4) (25/09).
 - [x] Correr `2026-09-28_validar_nome_telefone.sql` no Supabase (28/09; dados antigos já cumpriam).
+- [x] Correr `2026-09-28_grupos_permissoes.sql` no Supabase e publicar o CRM logo a seguir (29/09).
 
 ---
 
@@ -182,7 +183,7 @@ testes ponta a ponta (Playwright) em CI. Alinhar o `crm/AGENTS.md` com o código
 
 ## Critérios de entrega (tudo verdade)
 
-- [ ] Fases 1 e 2 feitas, com `npm run typecheck`, `npm test` e `npm run build` a passar.
+- [x] Fases 1 e 2 feitas, com `npm run typecheck`, `npm test` e `npm run build` a passar (29/09).
 - [x] Todas as migrações testadas nos dois cenários do PGlite (`npm run test:db`, 28/09).
 - [ ] Percurso completo no browser, desktop e telemóvel: login → recuperar senha →
       importar CSV → ficha de cliente → criar/editar/converter/apagar → convite.

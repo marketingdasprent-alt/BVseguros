@@ -30,7 +30,8 @@ export default function Sinistros() {
   const [modalAberto, setModalAberto] = useState(false)
   const [aCriar, setACriar] = useState(false)
   const [aEditar, setAEditar] = useState<Sinistro | null>(null)
-  const { isAdmin } = useAuth()
+  const { pode } = useAuth()
+  const podeEditar = pode('sinistros', 'editar')
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const numeroApolice = (sinistro: Sinistro) =>
@@ -87,7 +88,7 @@ export default function Sinistros() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Sinistros" description={<> Acompanhamento de processos, da participação ao pagamento. </>} action={<Button icon={<Plus />} onClick={() => setModalAberto(true)}>
+      <PageHeader title="Sinistros" description={<> Acompanhamento de processos, da participação ao pagamento. </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setModalAberto(true)}>
           Novo sinistro
         </Button>} />
 
@@ -107,8 +108,8 @@ export default function Sinistros() {
           getEstado={(s) => s.estado}
           getAtualizadoEm={(s) => s.atualizado_em}
           getTone={(estado) => TONE_ESTADO_SINISTRO[estado as EstadoSinistro]}
-          onMudarEstado={(id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoSinistro, atualizadoEm)}
-          renderCard={(s) => <SinistroCard sinistro={s} numeroApolice={numeroApolice(s)} onEditar={setAEditar} />}
+          onMudarEstado={podeEditar ? (id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoSinistro, atualizadoEm) : undefined}
+          renderCard={(s) => <SinistroCard sinistro={s} numeroApolice={numeroApolice(s)} onEditar={podeEditar ? setAEditar : undefined} />}
           vazioTexto="Sem sinistros"
         />
         )}
@@ -132,7 +133,7 @@ export default function Sinistros() {
           onFechar={() => setAEditar(null)}
           onCriar={handleCriar}
           onGuardar={(dados) => handleEditar(aEditar, dados)}
-          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+          onApagar={pode('sinistros', 'apagar') ? () => handlePedirApagar(aEditar) : undefined}
         />
       )}
 

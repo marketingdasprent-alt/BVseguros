@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Spinner } from '@/components/ui/Spinner'
 import Layout from '@/components/Layout'
+import { ComPermissao } from '@/components/ComPermissao'
 import Login from '@/pages/Login'
 import DefinirSenha from '@/pages/DefinirSenha'
 
@@ -23,6 +24,7 @@ const Atividades = lazy(() => import('@/pages/Atividades'))
 const Utilizadores = lazy(() => import('@/pages/Utilizadores'))
 const Importar = lazy(() => import('@/pages/Importar'))
 const Seguradoras = lazy(() => import('@/pages/Seguradoras'))
+const Grupos = lazy(() => import('@/pages/Grupos'))
 
 function AreaPrivada() {
   const { session, loading, profile, profileLoading, profileError, refreshProfile } = useAuth()
@@ -64,16 +66,17 @@ function AreaPrivada() {
     <Suspense fallback={<div className="p-10"><Spinner /></div>}>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/leads" element={<Leads />} />
-          <Route path="/propostas" element={<Propostas />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/clientes/:id" element={<ClienteFicha />} />
-          <Route path="/apolices" element={<Apolices />} />
-          <Route path="/renovacoes" element={<Renovacoes />} />
-          <Route path="/sinistros" element={<Sinistros />} />
-          <Route path="/atividades" element={<Atividades />} />
+          <Route path="/" element={<ComPermissao modulo="dashboard"><Dashboard /></ComPermissao>} />
+          <Route path="/leads" element={<ComPermissao modulo="leads"><Leads /></ComPermissao>} />
+          <Route path="/propostas" element={<ComPermissao modulo="propostas"><Propostas /></ComPermissao>} />
+          <Route path="/clientes" element={<ComPermissao modulo="clientes"><Clientes /></ComPermissao>} />
+          <Route path="/clientes/:id" element={<ComPermissao modulo="clientes"><ClienteFicha /></ComPermissao>} />
+          <Route path="/apolices" element={<ComPermissao modulo="apolices"><Apolices /></ComPermissao>} />
+          <Route path="/renovacoes" element={<ComPermissao modulo="renovacoes"><Renovacoes /></ComPermissao>} />
+          <Route path="/sinistros" element={<ComPermissao modulo="sinistros"><Sinistros /></ComPermissao>} />
+          <Route path="/atividades" element={<ComPermissao modulo="atividades"><Atividades /></ComPermissao>} />
           <Route path="/utilizadores" element={<Utilizadores />} />
+          <Route path="/grupos" element={<Grupos />} />
           <Route path="/importar" element={<Importar />} />
           <Route path="/seguradoras" element={<Seguradoras />} />
           <Route path="*" element={<Navigate to="/" replace />} />
