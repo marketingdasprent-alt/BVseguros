@@ -7,6 +7,13 @@ import { createClient } from '@supabase/supabase-js'
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const UUID_VALIDO = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
 
+// Senha escolhida pelo admin: 8 a 72 caracteres (o limite de cima é o do bcrypt no Auth).
+function senhaInvalida(senha) {
+  if (typeof senha !== 'string' || senha.length < 8) return 'A senha tem de ter pelo menos 8 caracteres.'
+  if (senha.length > 72) return 'A senha pode ter no máximo 72 caracteres.'
+  return null
+}
+
 export function createHandler({ env = process.env, client = createClient } = {}) {
   return async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store')
@@ -50,6 +57,32 @@ export function createHandler({ env = process.env, client = createClient } = {})
 
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
       const redirectTo = env.CRM_SITE_URL || undefined
+      // Com a sessão do admin (não com a service role), para o histórico registar
+      // quem fez a alteração, pelo trigger auditar_acesso.
+      const comoAutor = client(url, serviceKey, { ...opcoes, global: { headers: { Authorization: `Bearer ${token}` } } })
+
+      if (req.method === 'POST' && body?.acao === 'definir-senha') {
+        const id = typeof body.id === 'string' ? body.id : ''
+        if (!UUID_VALIDO.test(id)) return res.status(400).json({ error: 'Utilizador inválido.' })
+        if (id === auth.user.id) return res.status(400).json({ error: 'Para mudar a sua própria senha, use "Esqueci a senha" no login.' })
+        const erroSenha = senhaInvalida(body.senha)
+        if (erroSenha) return res.status(400).json({ error: erroSenha })
+
+        const { data: perfil } = await admin.from('profiles').select('nome').eq('id', id).maybeSingle()
+        if (!perfil) return res.status(404).json({ error: 'Esta conta já não existe. Atualize a página.' })
+        // email_confirm: um convite ainda por aceitar deixa de estar pendente e a pessoa entra com esta senha.
+        const { error: senhaError } = await admin.auth.admin.updateUserById(id, { password: body.senha, email_confirm: true })
+        if (senhaError) {
+          const fraca = /weak|password/i.test(senhaError.message || '')
+          return res.status(400).json({ error: fraca ? 'O Supabase recusou esta senha por ser fraca. Escolha outra.' : 'Não foi possível definir a senha. Tente novamente.' })
+        }
+        await comoAutor.from('profiles').update({ deve_trocar_senha: true }).eq('id', id)
+        await admin.from('eventos_acesso').insert({
+          perfil_id: id, perfil_nome: perfil.nome, alteracao: 'senha_definida',
+          realizado_por: auth.user.id, realizado_por_nome: autor.nome,
+        })
+        return res.status(200).json({ message: `Senha definida. ${perfil.nome} vai escolher uma nova no primeiro acesso.` })
+      }
 
       if (req.method === 'POST' && body?.acao === 'reenviar') {
         const id = typeof body.id === 'string' ? body.id : ''
@@ -119,7 +152,15 @@ export function createHandler({ env = process.env, client = createClient } = {})
       if (nome.length < 2 || nome.length > 120) return res.status(400).json({ error: 'Indique um nome com 2 a 120 caracteres.' })
       if (!EMAIL_VALIDO.test(email) || email.length > 254) return res.status(400).json({ error: 'Indique um email válido.' })
       // Grupo opcional: sem ele a conta fica ativa mas sem módulos até o admin escolher um.
-      const grupoId = typeof body?.grupoId === 'string' && body.grupoId ? body.grupoId : null
+      // Administrador dispensa grupo (tem acesso a tudo).
+      const comoAdmin = body?.admin === true
+      const grupoId = !comoAdmin && typeof body?.grupoId === 'string' && body.grupoId ? body.grupoId : null
+      // "senha": cria já com a senha escolhida pelo admin, sem enviar email.
+      const comSenha = body?.modo === 'senha'
+      if (comSenha) {
+        const erroSenha = senhaInvalida(body.senha)
+        if (erroSenha) return res.status(400).json({ error: erroSenha })
+      }
       if (grupoId && !UUID_VALIDO.test(grupoId)) return res.status(400).json({ error: 'Grupo inválido.' })
       if (grupoId) {
         const { data: grupo, error: grupoError } = await admin.from('grupos').select('id').eq('id', grupoId).maybeSingle()
@@ -130,33 +171,43 @@ export function createHandler({ env = process.env, client = createClient } = {})
       const { data: existente, error: existenteError } = await admin
         .from('profiles').select('id').eq('email', email).maybeSingle()
       if (existenteError) return res.status(503).json({ error: 'Não foi possível verificar as contas existentes.' })
-      if (existente) return res.status(409).json({ error: 'Já existe uma conta com este email. Se ainda não aceitou o convite, use Reenviar convite na lista.' })
+      if (existente) return res.status(409).json({ error: 'Já existe uma conta com este email. Se ainda não aceitou o convite, use Reenviar convite ou Definir senha na lista.' })
 
       // O nome vai nos metadados: o trigger handle_new_user usa-o para criar o perfil.
-      const { data: convite, error: conviteError } = await admin.auth.admin.inviteUserByEmail(email, { data: { nome }, redirectTo })
-      if (conviteError || !convite?.user) {
-        const limite = conviteError?.status === 429 || /rate limit/i.test(conviteError?.message || '')
-        return res.status(limite ? 429 : 409).json({
-          error: limite
-            ? 'O Supabase atingiu o limite de emails por hora. Tente mais tarde ou configure um SMTP próprio.'
-            : 'Não foi possível enviar o convite. Verifique o email e tente novamente.',
-        })
+      const { data: criado, error: criarError } = comSenha
+        ? await admin.auth.admin.createUser({ email, password: body.senha, email_confirm: true, user_metadata: { nome } })
+        : await admin.auth.admin.inviteUserByEmail(email, { data: { nome }, redirectTo })
+      if (criarError || !criado?.user) {
+        const msg = criarError?.message || ''
+        const limite = criarError?.status === 429 || /rate limit/i.test(msg)
+        const fraca = comSenha && /weak|password/i.test(msg)
+        let erro = 'Não foi possível enviar o convite. Verifique o email e tente novamente.'
+        if (limite) erro = 'O Supabase atingiu o limite de emails por hora. Tente mais tarde ou configure um SMTP próprio.'
+        else if (fraca) erro = 'O Supabase recusou esta senha por ser fraca. Escolha outra.'
+        else if (comSenha) erro = 'Não foi possível criar a conta. Verifique o email e tente novamente.'
+        return res.status(limite ? 429 : fraca ? 400 : 409).json({ error: erro })
       }
 
-      // Ativar com a sessão do admin (não com a service role) para o histórico
-      // registar quem deu o acesso, pelo trigger auditar_acesso.
-      const comoAutor = client(url, serviceKey, { ...opcoes, global: { headers: { Authorization: `Bearer ${token}` } } })
-      const { error: ativarError } = await comoAutor.from('profiles').update(grupoId ? { ativo: true, grupo_id: grupoId } : { ativo: true }).eq('id', convite.user.id)
+      const { error: ativarError } = await comoAutor.from('profiles').update({
+        ativo: true,
+        ...(grupoId ? { grupo_id: grupoId } : {}),
+        ...(comoAdmin ? { is_admin: true } : {}),
+        ...(comSenha ? { deve_trocar_senha: true } : {}),
+      }).eq('id', criado.user.id)
 
       await admin.from('eventos_acesso').insert({
-        perfil_id: convite.user.id, perfil_nome: nome, alteracao: 'convidado',
+        perfil_id: criado.user.id, perfil_nome: nome, alteracao: comSenha ? 'conta_criada' : 'convidado',
         realizado_por: auth.user.id, realizado_por_nome: autor.nome,
       })
 
       if (ativarError) {
-        return res.status(201).json({ message: 'Convite enviado, mas a conta ficou sem acesso. Dê-lhe acesso na lista.' })
+        return res.status(201).json({ message: `${comSenha ? 'Conta criada' : 'Convite enviado'}, mas ficou sem acesso. Dê-lhe acesso na lista.` })
       }
-      return res.status(201).json({ message: `Convite enviado para ${email}. A conta já tem acesso assim que definir a senha.` })
+      return res.status(201).json({
+        message: comSenha
+          ? `Conta criada para ${email}. Já pode entrar com a senha definida; no primeiro acesso escolhe uma nova.`
+          : `Convite enviado para ${email}. A conta já tem acesso assim que definir a senha.`,
+      })
     } catch {
       return res.status(400).json({ error: 'Não foi possível concluir o pedido. Verifique os dados e tente novamente.' })
     }

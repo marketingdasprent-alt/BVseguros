@@ -10,15 +10,17 @@ import { HistoricoAcessos } from '@/components/crm/HistoricoAcessos'
 import { EditarNomeModal } from '@/components/crm/EditarNomeModal'
 import { ConvidarModal } from '@/components/crm/ConvidarModal'
 import { MudarGrupoModal } from '@/components/crm/MudarGrupoModal'
+import { DefinirSenhaModal } from '@/components/crm/DefinirSenhaModal'
 import { useGrupos } from '@/hooks/useGrupos'
 import { AlertTriangle, Info, UserPlus } from 'lucide-react'
 import { Notice } from '@/components/ui/Notice'
-import { useUtilizadores, useEventosAcesso, useEstadosContas, alterarAcesso, alterarNome, convidarUtilizador, excluirUtilizador, reenviarConvite } from '@/hooks/useUtilizadores'
+import { useUtilizadores, useEventosAcesso, useEstadosContas, alterarAcesso, alterarNome, criarUtilizador, definirSenha, excluirUtilizador, reenviarConvite } from '@/hooks/useUtilizadores'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { mensagemErro } from '@/lib/erros'
 import type { AlteracaoAcesso, Profile } from '@/lib/types'
+import type { NovaConta } from '@/hooks/useUtilizadores'
 
 interface PedidoAlteracao {
   utilizador: Profile
@@ -40,6 +42,7 @@ export default function Utilizadores() {
   const estadosContas = useEstadosContas()
   const grupos = useGrupos()
   const [aMudarGrupo, setAMudarGrupo] = useState<Profile | null>(null)
+  const [aDefinirSenha, setADefinirSenha] = useState<Profile | null>(null)
   const { toast } = useToast()
   const [pedido, setPedido] = useState<PedidoAlteracao | null>(null)
   const [idEmAlteracao, setIdEmAlteracao] = useState<string | null>(null)
@@ -86,15 +89,15 @@ export default function Utilizadores() {
     }
   }
 
-  const handleConvidar = async (nome: string, email: string, grupoId: string | null) => {
+  const handleCriar = async (conta: NovaConta) => {
     setAEnviarConvite(true)
     try {
-      const mensagem = await convidarUtilizador(nome, email, grupoId)
+      const mensagem = await criarUtilizador(conta)
       await Promise.all([recarregar(), eventos.recarregar(), estadosContas.recarregar(), grupos.recarregar()])
-      toast({ title: 'Convite enviado', description: mensagem })
+      toast({ title: conta.senha ? 'Conta criada' : 'Convite enviado', description: mensagem })
       return true
     } catch (err: unknown) {
-      toast({ title: 'Erro ao convidar', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: conta.senha ? 'Erro ao criar a conta' : 'Erro ao convidar', description: mensagemErro(err), variant: 'destructive' })
       return false
     } finally {
       setAEnviarConvite(false)
@@ -129,6 +132,21 @@ export default function Utilizadores() {
     }
   }
 
+  const handleDefinirSenha = async (senha: string) => {
+    if (!aDefinirSenha) return
+    setIdEmAlteracao(aDefinirSenha.id)
+    try {
+      const mensagem = await definirSenha(aDefinirSenha.id, senha)
+      await Promise.all([recarregar(), eventos.recarregar(), estadosContas.recarregar()])
+      toast({ title: 'Senha definida', description: mensagem })
+      setADefinirSenha(null)
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao definir a senha', description: mensagemErro(err), variant: 'destructive' })
+    } finally {
+      setIdEmAlteracao(null)
+    }
+  }
+
   const handlePedirExcluir = (utilizador: Profile) =>
     pedirConfirmacao({
       acao: 'Excluir conta', mensagemSucesso: 'Conta excluída',
@@ -147,7 +165,7 @@ export default function Utilizadores() {
           {semAcesso > 0 && <strong className="font-medium text-ink">{semAcesso} {semAcesso === 1 ? 'conta à espera' : 'contas à espera'} de acesso. </strong>}
           Quem pode entrar no CRM. Contas criadas por outra via (por exemplo, no painel do Supabase) aparecem aqui sem acesso até lho dar.
         </>}
-        action={<Button icon={<UserPlus />} onClick={() => setAConvidar(true)}>Convidar utilizador</Button>}
+        action={<Button icon={<UserPlus />} onClick={() => setAConvidar(true)}>Adicionar utilizador</Button>}
       />
 
       {isLoading && <Spinner />}
@@ -176,6 +194,7 @@ export default function Utilizadores() {
           estados={estadosContas.data}
           nomeGrupo={nomeGrupo}
           onMudarGrupo={setAMudarGrupo}
+          onDefinirSenha={setADefinirSenha}
           idAtual={profile?.id ?? null}
           idEmAlteracao={idEmAlteracao}
           onAlterar={(utilizador, alteracao) => setPedido({ utilizador, alteracao })}
@@ -189,7 +208,12 @@ export default function Utilizadores() {
 
       {modalApagar}
 
-      {aConvidar && <ConvidarModal aEnviar={aEnviarConvite} grupos={grupos.data} onFechar={() => setAConvidar(false)} onConvidar={handleConvidar} />}
+      {aConvidar && <ConvidarModal aEnviar={aEnviarConvite} grupos={grupos.data} onFechar={() => setAConvidar(false)} onCriar={handleCriar} />}
+
+      {aDefinirSenha && (
+        <DefinirSenhaModal utilizador={aDefinirSenha} convitePendente={!!estadosContas.data[aDefinirSenha.id]?.convitePendente}
+          aGuardar={idEmAlteracao !== null} onFechar={() => setADefinirSenha(null)} onGuardar={handleDefinirSenha} />
+      )}
 
       {aMudarGrupo && (
         <MudarGrupoModal utilizador={aMudarGrupo} grupos={grupos.data} aGuardar={idEmAlteracao !== null}

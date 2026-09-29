@@ -2,7 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 
-export default function DefinirSenha() {
+interface DefinirSenhaProps {
+  // Primeiro acesso com uma senha escolhida pelo admin: tem de a trocar antes de entrar.
+  obrigatoria?: boolean
+}
+
+export default function DefinirSenha({ obrigatoria = false }: DefinirSenhaProps) {
   const [senha, setSenha] = useState('')
   const [confirmar, setConfirmar] = useState('')
   const [erro, setErro] = useState<string | null>(null)
@@ -24,12 +29,15 @@ export default function DefinirSenha() {
 
     setAGuardar(true)
     const { error } = await supabase.auth.updateUser({ password: senha })
-    setAGuardar(false)
-
     if (error) {
-      setErro(error.message)
+      setAGuardar(false)
+      setErro(/different from the old/i.test(error.message) ? 'A senha nova tem de ser diferente da atual.' : error.message)
       return
     }
+    // Desliga o pedido de troca; se falhar, o pior é voltar a pedir a senha no próximo acesso.
+    const { error: erroFlag } = await supabase.rpc('senha_trocada')
+    if (erroFlag) console.error(erroFlag)
+    setAGuardar(false)
     setConcluido(true)
   }
 
@@ -52,9 +60,11 @@ export default function DefinirSenha() {
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-xl p-8 border border-border space-y-5">
         <div className="flex flex-col items-center gap-2 mb-2">
           <img src="/brand/logo-icon.png" alt="BV Seguros" className="h-14 w-auto" />
-          <h1 className="font-display text-lg font-bold text-navy">Definir senha</h1>
+          <h1 className="font-display text-lg font-bold text-navy">{obrigatoria ? 'Escolha uma senha nova' : 'Definir senha'}</h1>
           <p className="text-sm text-muted text-center">
-            Escolha a senha para aceder ao CRM da BV Seguros.
+            {obrigatoria
+              ? 'A senha com que entrou foi definida pelo administrador. Por segurança, escolha uma só sua antes de continuar.'
+              : 'Escolha a senha para aceder ao CRM da BV Seguros.'}
           </p>
         </div>
 
@@ -87,6 +97,11 @@ export default function DefinirSenha() {
         <Button type="submit" loading={aGuardar} className="w-full">
           Definir senha
         </Button>
+        {obrigatoria && (
+          <button type="button" onClick={() => supabase.auth.signOut()} className="block w-full text-center text-sm text-muted underline hover:text-ink">
+            Terminar sessão
+          </button>
+        )}
       </form>
     </div>
   )

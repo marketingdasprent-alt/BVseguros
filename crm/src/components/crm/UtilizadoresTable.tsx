@@ -1,4 +1,4 @@
-import { Clock, Crown, KeyRound, Mail, PenLine, Send, ShieldCheck, ShieldOff, User, UserX } from 'lucide-react'
+import { Clock, Crown, KeyRound, LockKeyhole, Mail, PenLine, Send, ShieldCheck, ShieldOff, User, UserX } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { RowActions } from '@/components/ui/RowActions'
@@ -16,12 +16,13 @@ interface UtilizadoresTableProps {
   onAlterar: (utilizador: Profile, alteracao: AlteracaoAcesso) => void
   onEditarNome: (utilizador: Profile) => void
   onMudarGrupo: (utilizador: Profile) => void
+  onDefinirSenha: (utilizador: Profile) => void
   onExcluir: (utilizador: Profile) => void
   onReenviarConvite: (utilizador: Profile) => void
 }
 
 export function UtilizadoresTable({
-  utilizadores, estados, nomeGrupo, idAtual, idEmAlteracao, onAlterar, onEditarNome, onMudarGrupo, onExcluir, onReenviarConvite,
+  utilizadores, estados, nomeGrupo, idAtual, idEmAlteracao, onAlterar, onEditarNome, onMudarGrupo, onDefinirSenha, onExcluir, onReenviarConvite,
 }: UtilizadoresTableProps) {
   const acoesDe = (u: Profile): AcaoLinha[] => {
     const acoes: AcaoLinha[] = [
@@ -32,6 +33,7 @@ export function UtilizadoresTable({
     if (u.id === idAtual) return acoes
     return [
       ...acoes,
+      { rotulo: 'Definir senha', icone: LockKeyhole, onSelect: () => onDefinirSenha(u) },
       u.ativo
         ? { rotulo: 'Retirar acesso', icone: ShieldOff, onSelect: () => onAlterar(u, { ativo: false }) }
         : { rotulo: 'Dar acesso', icone: ShieldCheck, onSelect: () => onAlterar(u, { ativo: true }) },
