@@ -117,7 +117,7 @@ e Clientes.
 
 | Projecto | Vercel | Estado |
 | --- | --- | --- |
-| CRM | `bvseguros-crm` (Root Directory `crm`) | Publicado em `bvseguros-crm.vercel.app`. **Não está ligado ao GitHub**: cada deploy é manual (`npx vercel --prod` dentro de `crm/`) até se ligar o repositório em Settings → Git. |
+| CRM | `bvseguros-crm` na conta Vercel **`bvseguros`** (desde 29/09; Root Directory `crm`) | Publicado em `bvseguros-crm.vercel.app`. **Não está ligado ao GitHub** (falta ligar o GitHub à conta `bvseguros` e autorizar a app da Vercel na organização): cada deploy é manual, com a CLI autenticada na conta `bvseguros` (`npx vercel --prod` dentro de `crm/`). |
 | Site | Ainda sem projecto nesta conta Vercel | Criar com Root Directory `.`, ligar ao GitHub e definir `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. O `vercel.json` da raiz já trata do rewrite das rotas (`/privacy`, `/cookies`, ...). |
 
 Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo corre-se
