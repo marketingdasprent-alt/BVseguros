@@ -26,7 +26,8 @@ export default function Atividades() {
   const { data: atividades, isLoading, error, recarregar, truncado } = useAtividades()
   const { data: leads, isLoading: leadsCarregando } = useLeads()
   const { data: clientes, isLoading: clientesCarregando } = useClientes()
-  const { profile, isAdmin } = useAuth()
+  const { profile, pode } = useAuth()
+  const podeEditar = pode('atividades', 'editar')
   const { toast } = useToast()
   const [aCriar, setACriar] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
@@ -82,7 +83,8 @@ export default function Atividades() {
 
   const filtros = useFiltrosUrl()
   const termo = filtros.ler('q')
-  const situacao = filtros.ler('situacao')
+  // Abre no que está por fazer; "todas" mostra também chamadas, emails e notas.
+  const situacao = filtros.ler('situacao', 'pendentes')
 
   const atividadesFiltradas = useMemo(() => {
     const hoje = dataLocalIso()
@@ -100,9 +102,9 @@ export default function Atividades() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Atividades" description={<> Chamadas, emails, reuniões, tarefas e notas. </>} action={<Button icon={formOpen ? <X /> : <Plus />} onClick={() => setFormOpen(!formOpen)}>{formOpen ? 'Fechar formulário' : 'Nova atividade'}</Button>} />
+      <PageHeader title="Tarefas" description={<> O que está por fazer, e o registo de chamadas, emails, reuniões e notas. </>} action={podeEditar && <Button icon={formOpen ? <X /> : <Plus />} onClick={() => setFormOpen(!formOpen)}>{formOpen ? 'Fechar formulário' : 'Nova atividade'}</Button>} />
 
-      {formOpen && !leadsCarregando && !clientesCarregando && (
+      {formOpen && podeEditar && !leadsCarregando && !clientesCarregando && (
         <NovaAtividadeForm
           leads={leads}
           clientes={clientes}
@@ -116,25 +118,31 @@ export default function Atividades() {
       {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar atividades: {error.message}</p>}
       {!carregando && !error && atividades.length === 0 && (
         <div className="panel">
-          <EmptyState titulo="Sem atividades ainda" descricao="Registe chamadas, reuniões e tarefas para acompanhar cada contacto." action={<Button variant="secondary" onClick={() => setFormOpen(true)}>Registar atividade</Button>} />
+          <EmptyState titulo="Sem atividades ainda" descricao="Registe chamadas, reuniões e tarefas para acompanhar cada contacto." action={podeEditar && <Button variant="secondary" onClick={() => setFormOpen(true)}>Registar atividade</Button>} />
         </div>
       )}
       {!carregando && !error && atividades.length > 0 && (
         <>
         <AvisoTruncado truncado={truncado} />
         <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar atividades" placeholder="Título, notas ou pessoa associada"
-          filtros={<FiltroSelect rotulo="Filtrar por situação" todos="Todas as atividades" valor={situacao}
+          filtros={<FiltroSelect rotulo="Filtrar por situação" todos="Todas as atividades" valor={situacao === 'todas' ? '' : situacao}
             opcoes={[{ valor: 'pendentes', rotulo: 'Tarefas por concluir' }, { valor: 'atrasadas', rotulo: 'Tarefas em atraso' }]}
-            onChange={(v) => filtros.definir('situacao', v)} />} />
-        {atividadesFiltradas.length === 0 ? (
+            onChange={(v) => filtros.definir('situacao', v || 'todas', 'pendentes')} />} />
+        {atividadesFiltradas.length === 0 && !termo && situacao !== 'todas' ? (
+          <div className="panel">
+            <EmptyState titulo={situacao === 'atrasadas' ? 'Nenhuma tarefa em atraso' : 'Nada por fazer'}
+              descricao="As tarefas com prazo que registar nos leads e clientes aparecem aqui."
+              action={<Button variant="secondary" onClick={() => filtros.definir('situacao', 'todas', 'pendentes')}>Ver todas as atividades</Button>} />
+          </div>
+        ) : atividadesFiltradas.length === 0 ? (
           <SemResultados termo={termo} onLimpar={filtros.limpar} />
         ) : (
         <AtividadesTable
           atividades={atividadesFiltradas}
           leads={leads}
           clientes={clientes}
-          onAlternarConcluida={handleAlternarConcluida}
-          onEditar={setAEditar}
+          onAlternarConcluida={podeEditar ? handleAlternarConcluida : undefined}
+          onEditar={podeEditar ? setAEditar : undefined}
         />
         )}
         </>
@@ -150,7 +158,7 @@ export default function Atividades() {
           onCriar={handleCriar}
           onGuardar={(dados) => handleEditar(aEditar, dados)}
           onCancelar={() => setAEditar(null)}
-          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+          onApagar={pode('atividades', 'apagar') ? () => handlePedirApagar(aEditar) : undefined}
         />
       )}
 

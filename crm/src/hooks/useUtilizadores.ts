@@ -42,8 +42,8 @@ async function chamarApiUtilizadores(method: 'GET' | 'POST' | 'DELETE', corpoPed
   return corpo
 }
 
-export async function convidarUtilizador(nome: string, email: string) {
-  return (await chamarApiUtilizadores('POST', { nome, email }, 'Não foi possível enviar o convite.')).message ?? ''
+export async function convidarUtilizador(nome: string, email: string, grupoId: string | null) {
+  return (await chamarApiUtilizadores('POST', { nome, email, grupoId }, 'Não foi possível enviar o convite.')).message ?? ''
 }
 
 export async function reenviarConvite(id: string) {

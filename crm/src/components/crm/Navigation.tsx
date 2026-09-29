@@ -1,21 +1,30 @@
 import { useEffect, useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, CheckSquare, UserCog, FileUp, Building2 } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, CheckSquare, UserCog, FileUp, Building2, KeyRound } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import type { Modulo } from '@/lib/permissoes';
 
-const groups = [
-  { title: 'Visão geral', links: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard }] },
+interface LinkMenu { to: string; label: string; icon: LucideIcon; modulo?: Modulo }
+interface GrupoMenu { title: string; links: LinkMenu[] }
+
+const groups: GrupoMenu[] = [
+  { title: 'Visão geral', links: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard, modulo: 'dashboard' }] },
   { title: 'Comercial', links: [
-    { to: '/leads', label: 'Leads', icon: Users }, { to: '/propostas', label: 'Propostas', icon: FileText }, { to: '/clientes', label: 'Clientes', icon: Contact },
+    { to: '/leads', label: 'Leads', icon: Users, modulo: 'leads' }, { to: '/propostas', label: 'Propostas', icon: FileText, modulo: 'propostas' },
+    { to: '/clientes', label: 'Clientes', icon: Contact, modulo: 'clientes' },
   ] },
   { title: 'Carteira', links: [
-    { to: '/apolices', label: 'Apólices', icon: Shield }, { to: '/renovacoes', label: 'Renovações', icon: RefreshCw }, { to: '/sinistros', label: 'Sinistros', icon: AlertTriangle },
+    { to: '/apolices', label: 'Apólices', icon: Shield, modulo: 'apolices' }, { to: '/renovacoes', label: 'Renovações', icon: RefreshCw, modulo: 'renovacoes' },
+    { to: '/sinistros', label: 'Sinistros', icon: AlertTriangle, modulo: 'sinistros' },
   ] },
-  { title: 'Organização', links: [{ to: '/atividades', label: 'Atividades', icon: CheckSquare }] },
+  { title: 'Organização', links: [{ to: '/atividades', label: 'Tarefas', icon: CheckSquare, modulo: 'atividades' }] },
 ];
 
-const adminGroup = { title: 'Administração', links: [
-  { to: '/utilizadores', label: 'Utilizadores', icon: UserCog }, { to: '/seguradoras', label: 'Seguradoras', icon: Building2 }, { to: '/importar', label: 'Importar', icon: FileUp },
+// Só o administrador; não depende dos grupos, para ninguém ficar sem como gerir o CRM.
+const adminGroup: GrupoMenu = { title: 'Administração', links: [
+  { to: '/utilizadores', label: 'Utilizadores', icon: UserCog }, { to: '/grupos', label: 'Grupos', icon: KeyRound },
+  { to: '/seguradoras', label: 'Seguradoras', icon: Building2 }, { to: '/importar', label: 'Importar', icon: FileUp },
 ] };
 
 interface NavigationProps {
@@ -38,11 +47,13 @@ function lerFechados(): string[] {
 }
 
 export function Navigation({ onNavigate, contagens = {} }: NavigationProps) {
-  const { isAdmin } = useAuth();
+  const { isAdmin, pode } = useAuth();
   const { pathname } = useLocation();
   const idBase = useId(); // Sidebar e drawer montam a navegação em simultâneo; ids têm de ser únicos.
   const [fechados, setFechados] = useState(lerFechados);
-  const visiveis = isAdmin ? [...groups, adminGroup] : groups;
+  const visiveis = (isAdmin ? [...groups, adminGroup] : groups)
+    .map((g) => ({ ...g, links: g.links.filter((l) => !l.modulo || pode(l.modulo, 'ver')) }))
+    .filter((g) => g.links.length > 0);
   const grupoActivo = visiveis.find((g) => g.links.some(({ to }) => (to === '/' ? pathname === '/' : pathname.startsWith(to))))?.title;
 
   const guardar = (novos: string[]) => {

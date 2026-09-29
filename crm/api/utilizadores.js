@@ -118,6 +118,14 @@ export function createHandler({ env = process.env, client = createClient } = {})
       const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
       if (nome.length < 2 || nome.length > 120) return res.status(400).json({ error: 'Indique um nome com 2 a 120 caracteres.' })
       if (!EMAIL_VALIDO.test(email) || email.length > 254) return res.status(400).json({ error: 'Indique um email válido.' })
+      // Grupo opcional: sem ele a conta fica ativa mas sem módulos até o admin escolher um.
+      const grupoId = typeof body?.grupoId === 'string' && body.grupoId ? body.grupoId : null
+      if (grupoId && !UUID_VALIDO.test(grupoId)) return res.status(400).json({ error: 'Grupo inválido.' })
+      if (grupoId) {
+        const { data: grupo, error: grupoError } = await admin.from('grupos').select('id').eq('id', grupoId).maybeSingle()
+        if (grupoError) return res.status(503).json({ error: 'Não foi possível verificar o grupo.' })
+        if (!grupo) return res.status(400).json({ error: 'Esse grupo já não existe. Atualize a página.' })
+      }
 
       const { data: existente, error: existenteError } = await admin
         .from('profiles').select('id').eq('email', email).maybeSingle()
@@ -138,7 +146,7 @@ export function createHandler({ env = process.env, client = createClient } = {})
       // Ativar com a sessão do admin (não com a service role) para o histórico
       // registar quem deu o acesso, pelo trigger auditar_acesso.
       const comoAutor = client(url, serviceKey, { ...opcoes, global: { headers: { Authorization: `Bearer ${token}` } } })
-      const { error: ativarError } = await comoAutor.from('profiles').update({ ativo: true }).eq('id', convite.user.id)
+      const { error: ativarError } = await comoAutor.from('profiles').update(grupoId ? { ativo: true, grupo_id: grupoId } : { ativo: true }).eq('id', convite.user.id)
 
       await admin.from('eventos_acesso').insert({
         perfil_id: convite.user.id, perfil_nome: nome, alteracao: 'convidado',

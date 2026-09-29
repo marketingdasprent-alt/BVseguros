@@ -37,7 +37,7 @@ export default function ClienteFicha() {
   const { nomePorId } = useEquipa()
   const historico = useHistoricoCliente(id)
   const { nomesAtivos: seguradoras } = useSeguradoras()
-  const { isAdmin, profile } = useAuth()
+  const { pode, profile } = useAuth()
   const { toast } = useToast()
   const [aEditar, setAEditar] = useState(false)
   const [formulario, setFormulario] = useState<Formulario>(null)
@@ -97,8 +97,8 @@ export default function ClienteFicha() {
           </span>
         </>}
         action={<>
-          <Button variant="secondary" icon={<Pencil />} onClick={() => setAEditar(true)}>Editar</Button>
-          <Button icon={<Plus />} onClick={() => setFormulario(formulario === 'apolice' ? null : 'apolice')}>Nova apólice</Button>
+          {pode('clientes', 'editar') && <Button variant="secondary" icon={<Pencil />} onClick={() => setAEditar(true)}>Editar</Button>}
+          {pode('apolices', 'editar') && <Button icon={<Plus />} onClick={() => setFormulario(formulario === 'apolice' ? null : 'apolice')}>Nova apólice</Button>}
         </>}
       />
 
@@ -108,16 +108,17 @@ export default function ClienteFicha() {
         <NovoApoliceForm seguradoras={seguradoras} clientes={[cliente]} aCriar={aGuardar}
           onCriar={(dados: ApoliceInsert) => guardar(() => criarApolice(dados), 'Apólice criada', 'Erro ao criar apólice', () => setFormulario(null))} />
       )}
-      <FichaApolices apolices={data.apolices} />
+      {pode('apolices', 'ver') && <FichaApolices apolices={data.apolices} />}
 
-      <FichaPropostasSinistros propostas={data.propostas} sinistros={data.sinistros} numeroApolice={numeroApolice} />
+      <FichaPropostasSinistros propostas={data.propostas} sinistros={data.sinistros} numeroApolice={numeroApolice}
+        mostrarPropostas={pode('propostas', 'ver')} mostrarSinistros={pode('sinistros', 'ver')} />
 
       {formulario === 'atividade' && (
         <NovaAtividadeForm leads={[]} clientes={[cliente]} clienteFixoId={cliente.id} responsavelId={profile?.id ?? null} aCriar={aGuardar}
           onCriar={(dados: AtividadeInsert) => guardar(() => criarAtividade(dados), 'Atividade registada', 'Erro ao registar atividade', () => setFormulario(null))} />
       )}
-      <FichaAtividades atividades={data.atividades}
-        acao={<Button variant="secondary" size="sm" icon={<Plus />} onClick={() => setFormulario(formulario === 'atividade' ? null : 'atividade')}>Registar atividade</Button>} />
+      {pode('atividades', 'ver') && <FichaAtividades atividades={data.atividades}
+        acao={pode('atividades', 'editar') && <Button variant="secondary" size="sm" icon={<Plus />} onClick={() => setFormulario(formulario === 'atividade' ? null : 'atividade')}>Registar atividade</Button>} />}
 
       <HistoricoRegistos entradas={historico.data} isLoading={historico.isLoading} error={historico.error}
         nomePessoa={(pessoa) => nomePorId.get(pessoa)} onTentarNovamente={() => historico.recarregar()} />
@@ -131,7 +132,7 @@ export default function ClienteFicha() {
           aGuardar={aGuardar}
           onFechar={() => setAEditar(false)}
           onGuardar={async (dados: ClienteEdicao) => { await guardar(() => atualizarCliente(cliente.id, dados), 'Cliente atualizado', 'Erro ao guardar cliente', () => setAEditar(false)) }}
-          onApagar={isAdmin ? () => {
+          onApagar={pode('clientes', 'apagar') ? () => {
             setAEditar(false)
             pedirConfirmacao({
               acao: 'Apagar cliente',

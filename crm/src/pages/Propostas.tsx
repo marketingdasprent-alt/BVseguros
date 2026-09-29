@@ -33,7 +33,8 @@ export default function Propostas() {
   const [modalAberto, setModalAberto] = useState(false)
   const [aCriar, setACriar] = useState(false)
   const [aEditar, setAEditar] = useState<Proposta | null>(null)
-  const { isAdmin } = useAuth()
+  const { pode } = useAuth()
+  const podeEditar = pode('propostas', 'editar')
   const { nomesAtivos: seguradoras } = useSeguradoras()
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
@@ -97,7 +98,7 @@ export default function Propostas() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Propostas" description={<> Simulações enviadas a leads e clientes, por estado. </>} action={<Button icon={<Plus />} onClick={() => setModalAberto(true)}>
+      <PageHeader title="Propostas" description={<> Simulações enviadas a leads e clientes, por estado. </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setModalAberto(true)}>
           Nova proposta
         </Button>} />
 
@@ -117,8 +118,8 @@ export default function Propostas() {
           getEstado={(p) => p.estado}
           getAtualizadoEm={(p) => p.atualizado_em}
           getTone={(estado) => TONE_ESTADO_PROPOSTA[estado as EstadoProposta]}
-          onMudarEstado={(id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoProposta, atualizadoEm)}
-          renderCard={(p) => <PropostaCard proposta={p} nomeOrigem={nomeOrigem(p)} onEditar={setAEditar} />}
+          onMudarEstado={podeEditar ? (id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoProposta, atualizadoEm) : undefined}
+          renderCard={(p) => <PropostaCard proposta={p} nomeOrigem={nomeOrigem(p)} onEditar={podeEditar ? setAEditar : undefined} />}
           vazioTexto="Sem propostas"
         />
         )}
@@ -145,7 +146,7 @@ export default function Propostas() {
           onFechar={() => setAEditar(null)}
           onCriar={handleCriar}
           onGuardar={(dados) => handleEditar(aEditar, dados)}
-          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+          onApagar={pode('propostas', 'apagar') ? () => handlePedirApagar(aEditar) : undefined}
         />
       )}
 

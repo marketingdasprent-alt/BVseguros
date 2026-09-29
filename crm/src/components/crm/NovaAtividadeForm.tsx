@@ -18,16 +18,18 @@ interface NovaAtividadeFormProps {
   onApagar?: () => void
   // Na ficha do cliente: a nova atividade começa já associada a ele.
   clienteFixoId?: string
+  // Nas atividades de um lead: fica sempre associada a ele, sem escolher.
+  leadFixoId?: string
 }
 
-export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCriar, inicial, onGuardar, onCancelar, onApagar, clienteFixoId }: NovaAtividadeFormProps) {
+export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCriar, inicial, onGuardar, onCancelar, onApagar, clienteFixoId, leadFixoId }: NovaAtividadeFormProps) {
   const [tipo, setTipo] = useState<TipoAtividade>(inicial?.tipo ?? 'chamada')
   const [titulo, setTitulo] = useState(inicial?.titulo ?? '')
   // Depois de converter, a atividade tem lead e cliente; o cliente é o que conta.
   const [ligadoA, setLigadoA] = useState<'nenhum' | 'lead' | 'cliente'>(
-    inicial?.cliente_id || clienteFixoId ? 'cliente' : inicial?.lead_id ? 'lead' : 'nenhum',
+    inicial?.cliente_id || clienteFixoId ? 'cliente' : inicial?.lead_id || leadFixoId ? 'lead' : 'nenhum',
   )
-  const [ligadoId, setLigadoId] = useState(inicial?.cliente_id ?? inicial?.lead_id ?? clienteFixoId ?? '')
+  const [ligadoId, setLigadoId] = useState(inicial?.cliente_id ?? inicial?.lead_id ?? clienteFixoId ?? leadFixoId ?? '')
   const [dataPrevista, setDataPrevista] = useState(inicial?.data_prevista ?? '')
   const [notas, setNotas] = useState(inicial?.notas ?? '')
 
@@ -48,7 +50,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
     }
     const success = await onCriar({
       tipo,
-      titulo,
+      titulo: titulo.trim(),
       notas: notas.trim() || null,
       lead_id: ligadoA === 'lead' && ligadoId ? ligadoId : null,
       cliente_id: ligadoA === 'cliente' && ligadoId ? ligadoId : null,
@@ -60,8 +62,8 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
     if (!success) return;
     setTitulo('')
     setDataPrevista('')
-    setLigadoA(clienteFixoId ? 'cliente' : 'nenhum')
-    setLigadoId(clienteFixoId ?? '')
+    setLigadoA(clienteFixoId ? 'cliente' : leadFixoId ? 'lead' : 'nenhum')
+    setLigadoId(clienteFixoId ?? leadFixoId ?? '')
     setNotas('')
   }
 
@@ -90,6 +92,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
         />
       </Campo>
 
+      {!leadFixoId && (
       <Campo label="Associação">
         <select
           value={ligadoA}
@@ -104,8 +107,9 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
           <option value="cliente">Associar a cliente</option>
         </select>
       </Campo>
+      )}
 
-      {ligadoA !== 'nenhum' && (
+      {ligadoA !== 'nenhum' && !leadFixoId && (
         <Campo label={ligadoA === 'lead' ? 'Lead' : 'Cliente'}>
           <select
             value={ligadoId}

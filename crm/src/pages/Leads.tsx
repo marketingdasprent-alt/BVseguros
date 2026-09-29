@@ -12,6 +12,9 @@ import { AvisoTruncado } from '@/components/crm/AvisoTruncado'
 import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
 import { corresponde } from '@/lib/pesquisa'
 import { AtribuirResponsavelModal } from '@/components/crm/AtribuirResponsavelModal'
+import { AtividadesLeadModal } from '@/components/crm/AtividadesLeadModal'
+import { useAtividades, criarAtividade, marcarConcluida } from '@/hooks/useAtividades'
+import { resumirAtividadesPorLead } from '@/lib/atividades'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { useLeads, criarLead, atualizarEstadoLead, atribuirLead, atualizarLead, apagarLead, converterLead } from '@/hooks/useLeads'
@@ -20,7 +23,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { ESTADOS_LEAD } from '@/lib/types'
-import type { ClienteEdicao, EstadoLead, Lead, LeadEdicao } from '@/lib/types'
+import type { Atividade, AtividadeInsert, ClienteEdicao, EstadoLead, Lead, LeadEdicao } from '@/lib/types'
 import { TONE_ESTADO_LEAD } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
 import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
@@ -28,7 +31,8 @@ import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
 export default function Leads() {
   const { data: leads, isLoading, error, recarregar, truncado } = useLeads()
   const { ativos, nomePorId } = useEquipa()
-  const { profile, isAdmin } = useAuth()
+  const { profile, pode } = useAuth()
+  const podeEditar = pode('leads', 'editar')
   const { toast } = useToast()
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
   const filtros = useFiltrosUrl()
@@ -37,6 +41,9 @@ export default function Leads() {
   const [aConverter, setAConverter] = useState<Lead | null>(null)
   const [aAtribuir, setAAtribuir] = useState<Lead | null>(null)
   const [aGuardar, setAGuardar] = useState(false)
+  const atividades = useAtividades()
+  const [aVerAtividades, setAVerAtividades] = useState<Lead | null>(null)
+  const resumoAtividades = useMemo(() => resumirAtividadesPorLead(atividades.data), [atividades.data])
 
   const filtro = lerFiltroResponsavel(filtros.ler('responsavel'))
   const termo = filtros.ler('q')
@@ -92,6 +99,30 @@ export default function Leads() {
     guardar(() => atribuirLead(lead.id, responsavelId, lead.atualizado_em),
       responsavelId === profile?.id ? 'Lead assumido' : 'Responsável atualizado', 'Erro ao atribuir lead', () => setAAtribuir(null))
 
+  const handleCriarAtividade = async (dados: AtividadeInsert) => {
+    setAGuardar(true)
+    try {
+      await criarAtividade(dados)
+      await atividades.recarregar()
+      toast({ title: 'Atividade registada' })
+      return true
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao registar atividade', description: mensagemErro(err), variant: 'destructive' })
+      return false
+    } finally {
+      setAGuardar(false)
+    }
+  }
+
+  const handleAlternarConcluida = async (atividade: Atividade) => {
+    try {
+      await marcarConcluida(atividade.id, !atividade.concluida)
+      await atividades.recarregar()
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao atualizar tarefa', description: mensagemErro(err), variant: 'destructive' })
+    }
+  }
+
   const handlePedirApagar = (lead: Lead) => {
     setAEditar(null)
     pedirConfirmacao({
@@ -104,7 +135,7 @@ export default function Leads() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Leads" description={<> Contactos por converter, organizados por etapa. </>} action={<Button icon={<Plus />} onClick={() => setModalAberto(true)}>
+      <PageHeader title="Leads" description={<> Contactos por converter, organizados por etapa. </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setModalAberto(true)}>
           Novo lead
         </Button>} />
 
@@ -125,15 +156,18 @@ export default function Leads() {
             getEstado={(lead) => lead.estado}
             getAtualizadoEm={(lead) => lead.atualizado_em}
             getTone={(estado) => TONE_ESTADO_LEAD[estado as EstadoLead]}
-            onMudarEstado={(id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoLead, atualizadoEm)}
+            onMudarEstado={podeEditar ? (id, estado, atualizadoEm) => handleMudarEstado(id, estado as EstadoLead, atualizadoEm) : undefined}
             renderCard={(lead) => (
               <LeadCard
                 lead={lead}
                 nomeResponsavel={lead.responsavel_id ? nomePorId.get(lead.responsavel_id) ?? null : null}
-                podeAtribuir={isAdmin}
-                onAssumir={(l) => profile && handleAtribuir(l, profile.id)}
+                podeAtribuir={pode('leads', 'atribuir')}
+                onAssumir={podeEditar ? (l) => profile && handleAtribuir(l, profile.id) : undefined}
                 onAtribuir={setAAtribuir}
-                onEditar={setAEditar}
+                onEditar={podeEditar ? setAEditar : undefined}
+                numAtividades={resumoAtividades.get(lead.id)?.total ?? 0}
+                proximaTarefa={resumoAtividades.get(lead.id)?.proximaTarefa ?? null}
+                onAtividades={pode('atividades', 'ver') ? setAVerAtividades : undefined}
               />
             )}
             vazioTexto="Sem leads"
@@ -150,8 +184,8 @@ export default function Leads() {
           aCriar={aGuardar}
           onFechar={() => setAEditar(null)}
           onCriar={(dados) => handleEditar(aEditar, dados)}
-          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
-          onConverter={aEditar.estado !== 'convertido' ? () => { setAConverter(aEditar); setAEditar(null) } : undefined}
+          onApagar={pode('leads', 'apagar') ? () => handlePedirApagar(aEditar) : undefined}
+          onConverter={aEditar.estado !== 'convertido' && pode('clientes', 'editar') ? () => { setAConverter(aEditar); setAEditar(null) } : undefined}
         />
       )}
 
@@ -173,6 +207,19 @@ export default function Leads() {
           aGuardar={aGuardar}
           onFechar={() => setAAtribuir(null)}
           onConfirmar={(responsavelId) => handleAtribuir(aAtribuir, responsavelId)}
+        />
+      )}
+
+      {aVerAtividades && (
+        <AtividadesLeadModal
+          lead={aVerAtividades}
+          atividades={atividades.data.filter((a) => a.lead_id === aVerAtividades.id)}
+          responsavelId={profile?.id ?? null}
+          aGuardar={aGuardar}
+          podeRegistar={pode('atividades', 'editar')}
+          onCriar={handleCriarAtividade}
+          onAlternarConcluida={handleAlternarConcluida}
+          onFechar={() => setAVerAtividades(null)}
         />
       )}
 

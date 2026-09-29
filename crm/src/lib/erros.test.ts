@@ -39,6 +39,13 @@ describe('mensagemErro', () => {
     expect(mensagemErro(telefone)).toBe('Indique um telefone.')
   })
 
+  it('explica os erros dos grupos', () => {
+    const repetido = { message: 'duplicate key value violates unique constraint "grupos_nome_unico"', code: '23505' }
+    expect(mensagemErro(repetido)).toBe('Já existe um grupo com este nome.')
+    const comPessoas = { message: 'update or delete on table "grupos" violates foreign key constraint "profiles_grupo_id_fkey" on table "profiles"', code: '23503' }
+    expect(mensagemErro(comPessoas)).toBe('Este grupo tem pessoas. Mude-as para outro grupo antes de o apagar.')
+  })
+
   it('extrai a mensagem de um conflito de concorrência', () => {
     const erro = new Error('CONFLITO: este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')
     expect(mensagemErro(erro)).toBe('este lead foi alterado por outra pessoa entretanto. Atualize a página e tente novamente.')

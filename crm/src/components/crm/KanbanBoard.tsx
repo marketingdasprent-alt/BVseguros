@@ -11,7 +11,8 @@ interface KanbanBoardProps<T> {
   getId: (item: T) => string; getEstado: (item: T) => string;
   getAtualizadoEm: (item: T) => string;
   getTone: (estado: string) => Tone;
-  onMudarEstado: (id: string, estado: string, atualizadoEm: string) => void;
+  // Sem ele (grupo só com "ver"), os cartões não se arrastam.
+  onMudarEstado?: (id: string, estado: string, atualizadoEm: string) => void;
   renderCard: (item: T) => ReactNode; vazioTexto: string;
   // Controlos extra à direita da barra (ex.: filtro de responsável).
   acoesBarra?: ReactNode;
@@ -20,7 +21,9 @@ interface KanbanBoardProps<T> {
 export function KanbanBoard<T>({ itens, colunas, getId, getEstado, getAtualizadoEm, getTone, onMudarEstado, renderCard, vazioTexto, acoesBarra }: KanbanBoardProps<T>) {
   const ref = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false });
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor));
+  const pointer = useSensor(PointerSensor, { activationConstraint: { distance: 6 } });
+  const keyboard = useSensor(KeyboardSensor);
+  const sensors = useSensors(...(onMudarEstado ? [pointer, keyboard] : []));
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -30,7 +33,7 @@ export function KanbanBoard<T>({ itens, colunas, getId, getEstado, getAtualizado
     return () => { observer.disconnect(); el.removeEventListener('scroll', update); };
   }, [colunas.length]);
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over) return;
+    if (!over || !onMudarEstado) return;
     const state = String(over.id);
     const item = itens.find((entry) => getId(entry) === active.id);
     if (item && colunas.some((column) => column.valor === state) && getEstado(item) !== state) onMudarEstado(getId(item), state, getAtualizadoEm(item));

@@ -69,14 +69,18 @@ function Linha({ icone: Icone, titulo, detalhe, direita }: { icone: LucideIcon; 
   )
 }
 
-export function FichaPropostasSinistros({ propostas, sinistros, numeroApolice }: {
+export function FichaPropostasSinistros({ propostas, sinistros, numeroApolice, mostrarPropostas = true, mostrarSinistros = true }: {
   propostas: Proposta[]
   sinistros: Sinistro[]
   numeroApolice: (id: string) => string
+  // Módulos fora do grupo não aparecem (em vez de parecerem vazios).
+  mostrarPropostas?: boolean
+  mostrarSinistros?: boolean
 }) {
+  if (!mostrarPropostas && !mostrarSinistros) return null
   return (
-    <div className="dashboard-columns">
-      <Secao titulo="Propostas" contagem={propostas.length}>
+    <div className={mostrarPropostas && mostrarSinistros ? 'dashboard-columns' : undefined}>
+      {mostrarPropostas && <Secao titulo="Propostas" contagem={propostas.length}>
         {propostas.length === 0 ? <EmptyState icon={FileText} titulo="Sem propostas" /> : (
           <ul>
             {propostas.map((p) => (
@@ -86,8 +90,8 @@ export function FichaPropostasSinistros({ propostas, sinistros, numeroApolice }:
             ))}
           </ul>
         )}
-      </Secao>
-      <Secao titulo="Sinistros" contagem={sinistros.length}>
+      </Secao>}
+      {mostrarSinistros && <Secao titulo="Sinistros" contagem={sinistros.length}>
         {sinistros.length === 0 ? <EmptyState icon={AlertTriangle} titulo="Sem sinistros" /> : (
           <ul>
             {sinistros.map((s) => (
@@ -97,7 +101,7 @@ export function FichaPropostasSinistros({ propostas, sinistros, numeroApolice }:
             ))}
           </ul>
         )}
-      </Secao>
+      </Secao>}
     </div>
   )
 }
@@ -106,17 +110,36 @@ const ICONE_ATIVIDADE: Record<Atividade['tipo'], LucideIcon> = {
   chamada: Phone, email: Mail, reuniao: Users, tarefa: CheckSquare, nota: StickyNote,
 }
 
-export function FichaAtividades({ atividades, acao }: { atividades: Atividade[]; acao?: ReactNode }) {
+interface FichaAtividadesProps {
+  atividades: Atividade[]
+  acao?: ReactNode
+  descricaoVazio?: string
+  // Se vier, o estado da tarefa passa a botão para a marcar como concluída/pendente.
+  onAlternarConcluida?: (atividade: Atividade) => void
+}
+
+function EstadoTarefa({ atividade, onAlternar }: { atividade: Atividade; onAlternar?: (a: Atividade) => void }) {
+  const badge = <Badge tone={atividade.concluida ? 'success' : 'neutral'}>{atividade.concluida ? 'Concluída' : 'Pendente'}</Badge>
+  if (!onAlternar) return badge
+  return (
+    <button type="button" onClick={() => onAlternar(atividade)} className="shrink-0 rounded-full"
+      aria-label={atividade.concluida ? `Marcar «${atividade.titulo}» como pendente` : `Marcar «${atividade.titulo}» como concluída`}>
+      {badge}
+    </button>
+  )
+}
+
+export function FichaAtividades({ atividades, acao, descricaoVazio, onAlternarConcluida }: FichaAtividadesProps) {
   return (
     <Secao titulo="Atividades" contagem={atividades.length} acao={acao}>
       {atividades.length === 0 ? (
-        <EmptyState icon={MessageSquare} titulo="Sem atividades" descricao="Chamadas, emails, reuniões e tarefas com este cliente aparecem aqui." />
+        <EmptyState icon={MessageSquare} titulo="Sem atividades" descricao={descricaoVazio ?? 'Chamadas, emails, reuniões e tarefas com este cliente aparecem aqui.'} />
       ) : (
         <ul>
           {atividades.map((a) => (
             <Linha key={a.id} icone={ICONE_ATIVIDADE[a.tipo] ?? MessageSquare} titulo={a.titulo}
-              detalhe={<>{rotulo(TIPOS_ATIVIDADE, a.tipo)} · {formatarDataRelativa(a.data_atividade)}{a.notas ? ` · ${a.notas}` : ''}</>}
-              direita={a.tipo === 'tarefa' ? <Badge tone={a.concluida ? 'success' : 'neutral'}>{a.concluida ? 'Concluída' : 'Pendente'}</Badge> : undefined} />
+              detalhe={<>{rotulo(TIPOS_ATIVIDADE, a.tipo)} · {a.data_prevista && !a.concluida ? `prazo ${formatarData(a.data_prevista)}` : formatarDataRelativa(a.data_atividade)}{a.notas ? ` · ${a.notas}` : ''}</>}
+              direita={a.tipo === 'tarefa' ? <EstadoTarefa atividade={a} onAlternar={onAlternarConcluida} /> : undefined} />
           ))}
         </ul>
       )}

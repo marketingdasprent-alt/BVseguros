@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { podeFazer } from '@/lib/permissoes'
+import type { AcaoPermissao, MinhasPermissoes, Modulo } from '@/lib/permissoes'
 import type { Profile } from '@/lib/types'
 
 interface AuthState {
@@ -10,6 +12,9 @@ interface AuthState {
   profileLoading: boolean
   profileError: string | null
   isAdmin: boolean
+  // Permissões do grupo (null para o admin, que pode tudo, ou conta sem grupo).
+  permissoes: MinhasPermissoes | null
+  pode: (modulo: Modulo, acao: AcaoPermissao) => boolean
   refreshProfile: () => Promise<void>
 }
 
@@ -21,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [profileLoading, setProfileLoading] = useState(true)
   const [profileError, setProfileError] = useState<string | null>(null)
+  const [permissoes, setPermissoes] = useState<MinhasPermissoes | null>(null)
   // O Supabase volta a emitir SIGNED_IN/TOKEN_REFRESHED ao recuperar o foco do
   // separador; recarregar o perfil aí trocava a app inteira pelo spinner.
   const userIdCarregado = useRef<string | null>(null)
@@ -35,8 +41,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfileLoading(false)
       return
     }
+    const perfil = data as Profile
+    let perms: MinhasPermissoes | null = null
+    if (perfil.ativo && !perfil.is_admin) {
+      const resposta = await supabase.rpc('minhas_permissoes')
+      if (resposta.error) {
+        setProfileError(resposta.error.message)
+        setProfile(null)
+        setProfileLoading(false)
+        return
+      }
+      perms = resposta.data as MinhasPermissoes | null
+    }
     setProfileError(null)
-    setProfile(data as Profile)
+    setPermissoes(perms)
+    setProfile(perfil)
     setProfileLoading(false)
   }, [])
 
@@ -55,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         userIdCarregado.current = null
         setProfile(null)
+        setPermissoes(null)
         setProfileLoading(false)
       }
     })
@@ -66,9 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (session) await carregarProfile(session.user.id)
   }, [session, carregarProfile])
 
+  const isAdmin = !!profile?.is_admin
+  const pode = useCallback((modulo: Modulo, acao: AcaoPermissao) => podeFazer(isAdmin, permissoes, modulo, acao), [isAdmin, permissoes])
+
   return (
     <AuthContext.Provider
-      value={{ session, profile, loading, profileLoading, profileError, isAdmin: !!profile?.is_admin, refreshProfile }}
+      value={{ session, profile, loading, profileLoading, profileError, isAdmin, permissoes, pode, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

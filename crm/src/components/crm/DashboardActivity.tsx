@@ -11,7 +11,7 @@ interface DashboardActivityProps { atividades: Atividade[]; }
 export function DashboardActivity({ atividades }: DashboardActivityProps) {
   const recent = [...atividades].sort((a, b) => b.criado_em.localeCompare(a.criado_em)).slice(0, 4);
   return <section className="panel">
-    <div className="panel-heading"><div><h2>Atividades recentes</h2><p>Os últimos registos da equipa.</p></div><Link to="/atividades" className="text-link">Ver todas <ArrowUpRight size={14} /></Link></div>
+    <div className="panel-heading"><div><h2>Atividades recentes</h2><p>Os últimos registos da equipa.</p></div><Link to="/atividades?situacao=todas" className="text-link">Ver todas <ArrowUpRight size={14} /></Link></div>
     {recent.length === 0 ? <EmptyState icon={CalendarDays} titulo="A sua atividade começa aqui" descricao="Registe uma chamada, reunião ou tarefa para manter o acompanhamento organizado." action={<Link to="/atividades" className="text-link">Registar atividade <ArrowUpRight size={14} /></Link>} /> : recent.map((item) => <div className="activity-row" key={item.id}>
       <CalendarDays size={18} className="shrink-0 text-muted" strokeWidth={1.6} />
       <div className="min-w-0 flex-1"><strong>{item.titulo}</strong><small>{TIPOS_ATIVIDADE.find((type) => type.valor === item.tipo)?.rotulo} · {formatarData(item.data_atividade.slice(0, 10))}</small></div>

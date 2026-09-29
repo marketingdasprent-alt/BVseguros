@@ -16,9 +16,12 @@ interface RenovacoesTableProps {
   onMarcarContactado: (item: RenovacaoItem) => void
   onAbrirRenovar: (item: RenovacaoItem) => void
   onEditar: (item: RenovacaoItem) => void
+  // Grupo só com "ver" não tem ações; renovar também exige editar apólices.
+  podeEditar: boolean
+  podeRenovar: boolean
 }
 
-export function RenovacoesTable({ itens, clientes, onMarcarContactado, onAbrirRenovar, onEditar }: RenovacoesTableProps) {
+export function RenovacoesTable({ itens, clientes, onMarcarContactado, onAbrirRenovar, onEditar, podeEditar, podeRenovar }: RenovacoesTableProps) {
   const nomeCliente = (id: string) => clientes.find((c) => c.id === id)?.nome ?? '—'
 
   return (
@@ -70,13 +73,13 @@ export function RenovacoesTable({ itens, clientes, onMarcarContactado, onAbrirRe
                   </td>
                   <td className="whitespace-nowrap">
                     {/* Uma ação visível (a próxima lógica); as restantes no menu. */}
-                    <div className="flex items-center justify-end gap-1">
+                    {podeEditar && <div className="flex items-center justify-end gap-1">
                       {estado === 'pendente' && (
                         <Button variant="secondary" size="sm" icon={<Phone />} onClick={() => onMarcarContactado(item)}>
                           Marcar contactado
                         </Button>
                       )}
-                      {(estado === 'contactado' || estado === 'nao_renovada') && (
+                      {podeRenovar && (estado === 'contactado' || estado === 'nao_renovada') && (
                         <Button variant="primary" size="sm" icon={<RefreshCw />} onClick={() => onAbrirRenovar(item)}>
                           Marcar renovada
                         </Button>
@@ -90,14 +93,15 @@ export function RenovacoesTable({ itens, clientes, onMarcarContactado, onAbrirRe
                         <RowActions
                           rotulo={`Mais ações da renovação da apólice ${apolice.numero_apolice}`}
                           acoes={[
-                            ...(estado === 'pendente'
+                            ...(estado === 'pendente' && podeRenovar
                               ? [{ rotulo: 'Marcar renovada', icone: RefreshCw, onSelect: () => onAbrirRenovar(item) }]
                               : []),
                             { rotulo: 'Editar', icone: Pencil, onSelect: () => onEditar(item) },
                           ]}
                         />
                       )}
-                    </div>                  </td>
+                    </div>}
+                  </td>
                 </tr>
               )
             })}

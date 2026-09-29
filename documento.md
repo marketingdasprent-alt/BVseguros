@@ -83,22 +83,25 @@ Já implementado:
 - Responsável por lead e por cliente, com filtro "Os meus" / "Sem responsável"
 - RLS em todas as tabelas desde a primeira migration
 
-Permissões actuais (modelo da Razão Dinâmica, sem o isolamento por carteira):
+Permissões: **grupos configuráveis no próprio CRM** (Administração → Grupos). Cada
+utilizador pertence a um grupo; o administrador tem sempre acesso a tudo e é quem gere
+contas, grupos, seguradoras e importação.
 
-| Acção | Mediador | Admin |
-| --- | --- | --- |
-| Ver e editar leads, clientes, apólices, etc. | Tudo (carteira partilhada) | Tudo |
-| Apagar registos | Não | Sim |
-| Converter lead em cliente | Sim | Sim |
-| Convidar e excluir contas | Não | Sim |
-| Assumir um lead/cliente sem responsável | Sim | Sim |
-| Atribuir ou passar a outro responsável | Não | Sim |
-| Gerir contas e ver o histórico de acessos | Não | Sim |
+Por grupo escolhe-se:
+
+| O quê | Opções |
+| --- | --- |
+| Cada módulo (Dashboard, Leads, Propostas, Clientes, Apólices, Renovações, Sinistros, Tarefas) | Sem acesso / Ver / Ver e editar |
+| Extras de quem edita | Pode apagar; em Leads e Clientes, pode passar a outro responsável |
+| Carteira | Toda a carteira, ou só a sua (os leads/clientes de que é responsável e os sem responsável; apólices, propostas, renovações, sinistros e tarefas seguem o cliente) |
+
+As regras valem na base de dados (RLS + `public.pode()`), não só no ecrã. Os mediadores
+que existiam antes passaram para o grupo **Mediador**, com as permissões de antes (tudo
+exceto apagar e atribuir, carteira toda).
 
 Quem cria um lead ou cliente fica responsável; o cliente herda o responsável do lead
-de origem; os leads do site entram sem responsável. Se o cliente escolher carteiras
-separadas, basta trocar as políticas `_ler`/`_editar` para filtrar por
-`responsavel_id`: a coluna e as regras de atribuição já existem.
+de origem; os leads do site entram sem responsável. Converter um lead exige editar Leads
+e Clientes.
 
 ## 3. Stack tecnológico
 
@@ -133,9 +136,8 @@ alfabética. `npm run test:db` (em `crm/`) mostra a ordem e testa-as antes de as
 - [ ] IDs reais de GA4 e Meta Pixel (`index.html`)
 - [ ] Política de privacidade: indicar que os pedidos de contacto ficam guardados no CRM
       (Supabase, subcontratante)
-- [ ] Carteira partilhada ou própria (o mediador vê só os seus clientes ou tudo?),
-      ações só para admin (apagar, cancelar, mexer em valores) e quem trata os
-      pedidos do site. Ver a tabela de permissões na secção 2.
+- [ ] Que grupos criar (ex.: comercial com carteira própria, backoffice só a ver) e quem
+      trata os pedidos do site. Já se configura no CRM, em Administração → Grupos.
 - [ ] Integração WhatsApp no CRM agora ou na fase 2
 - [ ] Seguradoras parceiras (integração ou só registo manual)
 
@@ -151,4 +153,4 @@ O plano completo de entrega está em [`crm/PROMPT-ENTREGA.md`](crm/PROMPT-ENTREG
 
 ---
 
-_Última actualização: 2026-09-28._
+_Última actualização: 2026-09-29._

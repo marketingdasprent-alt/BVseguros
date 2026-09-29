@@ -29,7 +29,8 @@ export default function Apolices() {
   const [aMostrarForm, setAMostrarForm] = useState(false)
   const [aCriar, setACriar] = useState(false)
   const [aEditar, setAEditar] = useState<Apolice | null>(null)
-  const { isAdmin } = useAuth()
+  const { pode } = useAuth()
+  const podeEditar = pode('apolices', 'editar')
   const { nomesAtivos: seguradoras } = useSeguradoras()
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
   const filtros = useFiltrosUrl()
@@ -88,7 +89,7 @@ export default function Apolices() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Apólices" description={<> {apolices.length} {apolices.length === 1 ? 'apólice registada' : 'apólices registadas'} </>} action={<Button icon={<Plus />} onClick={() => setAMostrarForm((v) => !v)}>
+      <PageHeader title="Apólices" description={<> {apolices.length} {apolices.length === 1 ? 'apólice registada' : 'apólices registadas'} </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setAMostrarForm((v) => !v)}>
           Nova apólice
         </Button>} />
 
@@ -115,7 +116,7 @@ export default function Apolices() {
           {apolicesFiltradas.length === 0 ? (
             <SemResultados termo={termo} onLimpar={filtros.limpar} />
           ) : (
-            <ApolicesTable apolices={apolicesFiltradas} clientes={clientes} onEditar={setAEditar} />
+            <ApolicesTable apolices={apolicesFiltradas} clientes={clientes} onEditar={podeEditar ? setAEditar : undefined} />
           )}
         </>
       )}
@@ -127,7 +128,7 @@ export default function Apolices() {
           aCriar={aCriar}
           onCriar={(dados) => handleEditar(aEditar, dados)}
           onCancelar={() => setAEditar(null)}
-          onApagar={isAdmin ? () => handlePedirApagar(aEditar) : undefined}
+          onApagar={pode('apolices', 'apagar') ? () => handlePedirApagar(aEditar) : undefined}
         />
       )}
 
