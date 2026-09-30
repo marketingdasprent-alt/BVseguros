@@ -74,6 +74,29 @@ content stays aligned via a nested `<Container />`.
 <Section variant="compact" | "normal" (default) | "spacious" | "immersive" surface={boolean}>
 ```
 
+### `<CardGrid />` / `.card-grid` (sets of boxes)
+
+`src/components/layout/CardGrid.tsx` + `src/styles/layout.css`. **Rule:
+every repeated set of boxes (cards, tiles, channels, coverages) uses
+`<CardGrid>`.** It counts its children and balances the rows
+(`src/utils/colunasEquilibradas.ts`): an even count fills equal rows
+(4 as 2+2, 6 as 3+3, 8 as 4+4); an odd count keeps a centred last row,
+the "V" (5 as 3+2, 7 as 4+3), never a lone box when it can be avoided
+and never a row hanging left. When it uses fewer columns than asked,
+the grid narrows and centres so each box keeps its usual width.
+`<CardGrid as="ul" cols={4} colsTablet={2}>`. Columns: `--cols` (desktop, default 3), `--cols-tablet` (< 1024px,
+default 2), `--cols-mobile` (< 640px, default 1); gap: `--gap`. Boxes in
+the same row stretch to the same height. Forms and prose never use it.
+
+
+Below 1024px, buttons in a `.cluster` share the row or each fill it
+when they wrap, for the same reason.
+
+`npm run qa:layout` (dev server running) checks the rule in a real
+browser on every page at 375/768/1024/1280/1440px: no horizontal scroll,
+last row centred, even counts in equal rows, equal heights per row. `--shots=<dir>` also saves a
+full-page screenshot of each page and width.
+
 ## Global centering
 
 Adopted as a deliberate Level 1 rule (`DECISIONS.md`), not a default
@@ -323,7 +346,7 @@ Project-specific (Level 2), see `DECISIONS.md` 2026-09-29.
   top passed 35% of the viewport (scroll + rAF, `useSecaoAtiva`); marked
   with `aria-current="true"` and scrolled into view when the bar
   overflows horizontally.
-- **ContactoForm por ramo** (`src/sections/ContactoForm.tsx` +
+- **ContactoForm por ramo** (rendered inside ModalProposta; `src/sections/ContactoForm.tsx` +
   `src/components/forms/CamposRamo.tsx`): with `ramoFixo` the ramo select
   disappears and the fields of `FORMULARIOS[ramo]` render in a 2-column
   `.form-grid` (`largura: "meia"`); single choices are radio pills in a
@@ -336,6 +359,16 @@ Project-specific (Level 2), see `DECISIONS.md` 2026-09-29.
 - **MapaGoogle** (`src/components/ui/MapaGoogle.tsx`): three states:
   no confirmed address (placeholder card, no request), address without
   Marketing consent (card + "Mostrar mapa"), loaded iframe.
+- **ModalProposta** (`src/components/feedback/ModalProposta.tsx`): the
+  only place the site forms render, in two modes: proposal
+  (`abrirProposta(ramo | null)`, ContactoForm) and claim
+  (`abrirSinistro(ramo | null)`, SinistroForm), from `src/app/proposta.ts`.
+  Without a fixed ramo, both forms start with the insurance type and show
+  that ramo's questions below it (SeletorRamo, announced via aria-live); closes on the
+  X, Escape, a backdrop click or "Fechar" after sending, and returns
+  focus to the button that opened it. Centred card on desktop,
+  full-height sheet with a sticky header below 640px. Page scroll is
+  locked (`html.has-modal-open`) while open.
 - **LineIcon** (`src/components/ui/LineIcon.tsx`): stroke icons shared by
   sections, same drawing rules as `RamoIcon`.
 

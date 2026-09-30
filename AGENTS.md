@@ -69,11 +69,14 @@ Construído sobre o [Web Blueprint](BLUEPRINT.md): design tokens, `Container`/
 Checklist completo em `docs/agent-protocol.md`. Resumo:
 
 1. `npm run check` (lint + typecheck + build) passa.
-2. `npm run qa` passa: entre outras coisas, procura travessões (U+2014) em `src`, `*.md`
+2. `npm run qa:layout` passa (com o `npm run dev` a correr): todas as páginas em 5
+   larguras, sem scroll horizontal e com qualquer conjunto de caixas em `.card-grid`
+   (última linha centrada, padrão V; mesma altura por linha).
+3. `npm run qa` passa: entre outras coisas, procura travessões (U+2014) em `src`, `*.md`
    e `docs`, fora dos exemplos do próprio `docs/content-style.md`.
-3. Testar no browser: os 3 estados relevantes, responsivo (mobile + desktop),
+4. Testar no browser: os 3 estados relevantes, responsivo (mobile + desktop),
    teclado/foco visível em qualquer coisa interactiva.
-4. Sem `console.log` esquecido, sem dados reais inventados.
+5. Sem `console.log` esquecido, sem dados reais inventados.
 
 ---
 

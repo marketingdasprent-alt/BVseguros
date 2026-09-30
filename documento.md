@@ -118,12 +118,19 @@ e Clientes.
 | Projecto | Vercel | Estado |
 | --- | --- | --- |
 | CRM | `bvseguros-crm` na conta Vercel **`bvseguros`** (desde 29/09; Root Directory `crm`) | Publicado em `bvseguros-crm.vercel.app`. **Não está ligado ao GitHub** (falta ligar o GitHub à conta `bvseguros` e autorizar a app da Vercel na organização): cada deploy é manual, com a CLI autenticada na conta `bvseguros` (`npx vercel --prod` dentro de `crm/`). |
-| Site | Ainda sem projecto nesta conta Vercel | Criar com Root Directory `.`, ligar ao GitHub e definir `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. O `vercel.json` da raiz já trata do rewrite das rotas (`/privacy`, `/cookies`, ...). |
+| Site | `bvseguros-site` na conta Vercel **`bvseguros`** (Root Directory `.`) | Publicado em `bvseguros-site.vercel.app`, com `noindex` até ao lançamento. **Não está ligado ao GitHub**: deploy manual com `npx vercel --prod` na raiz. |
 
 Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo corre-se
 `crm/supabase/schema.sql`; num projecto existente, as migrações de
 `crm/supabase/migrations/` pela ordem que cada cabeçalho indica ("depois de …"), não a
 alfabética. `npm run test:db` (em `crm/`) mostra a ordem e testa-as antes de as correr.
+
+**Pedidos de sinistro do site (30/09):** a migração
+`crm/supabase/migrations/2026-09-30_pedidos_sinistro.sql` tem de ser corrida no SQL Editor
+**antes** de publicar o site e o CRM com esta funcionalidade; sem ela o formulário de
+sinistro do site falha. Fluxo: o visitante participa em `/sinistros`; o pedido entra no CRM
+em Sinistros → Pedidos do site (separado dos leads); a equipa liga-o ao cliente e à apólice e
+cria o sinistro. Os pedidos ficam todos guardados (decisão do cliente).
 
 ## 5. Por decidir / por confirmar com o cliente
 
@@ -134,8 +141,9 @@ alfabética. `npm run test:db` (em `crm/`) mostra a ordem e testa-as antes de as
       secção 3)
 - [ ] Nome de domínio definitivo (o site assume `bvseguros.pt`)
 - [ ] IDs reais de GA4 e Meta Pixel (`index.html`)
-- [ ] Política de privacidade: indicar que os pedidos de contacto ficam guardados no CRM
-      (Supabase, subcontratante)
+- [ ] Política de privacidade: indicar que os pedidos de contacto e de sinistro ficam
+      guardados no CRM (Supabase, subcontratante), e por quanto tempo (por agora, sem prazo)
+- [ ] Linhas de assistência 24 horas das seguradoras parceiras (página `/sinistros`)
 - [ ] Que grupos criar (ex.: comercial com carteira própria, backoffice só a ver) e quem
       trata os pedidos do site. Já se configura no CRM, em Administração → Grupos.
 - [ ] Integração WhatsApp no CRM agora ou na fase 2
@@ -153,4 +161,4 @@ O plano completo de entrega está em [`crm/PROMPT-ENTREGA.md`](crm/PROMPT-ENTREG
 
 ---
 
-_Última actualização: 2026-09-29._
+_Última actualização: 2026-09-30._
