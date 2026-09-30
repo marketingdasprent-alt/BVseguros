@@ -320,6 +320,57 @@ async function senhas(db, c) {
   eventos ? ok(`${p} o histórico aceita "conta criada" e "senha definida"`) : falha(`${p} eventos novos recusados`)
 }
 
+// Pedidos de sinistro do site: só entram pela função pública; quem tem Sinistros trata e converte.
+async function pedidosSinistro(db, c) {
+  const p = `[${c}] pedidos de sinistro:`
+  const novo = async (email) => (await db.query(`insert into auth.users (email, raw_user_meta_data) values ($1, '{"nome":"Conta Teste"}') returning id`, [email])).rows[0].id
+  const [admin, med, semGrupo] = [await novo('adm3@bv.pt'), await novo('med3@bv.pt'), await novo('sg@bv.pt')]
+  await db.query(`update public.profiles set ativo = true, is_admin = true where id = $1`, [admin])
+  await db.query(`update public.profiles set ativo = true, grupo_id = (select id from public.grupos where nome = 'Mediador') where id = $1`, [med])
+  await db.query(`update public.profiles set ativo = true where id = $1`, [semGrupo])
+  let apolice
+  await como(db, admin, async () => {
+    const cli = (await db.query(`insert into public.clientes (nome, telefone) values ('Cliente Sinistro', '915000000') returning id`)).rows[0].id
+    apolice = (await db.query(`insert into public.apolices (cliente_id, numero_apolice, seguradora, ramo, data_inicio) values ($1, 'AP-SIN', 'Fidelidade', 'auto', '2026-01-01') returning id`, [cli])).rows[0].id
+  })
+
+  const pedir = (over = {}) => {
+    const v = { nome: 'Rita Site', email: 'rita@ex.pt', telefone: '916 000 000', ramo: 'auto', apolice: 'AP-SIN', seguradora: '', data: 'current_date - 1', local: 'Lisboa', descricao: 'Colisão num cruzamento, sem feridos.', detalhes: '{"matricula":"AA-00-AA"}', consentimento: 'true', ...over }
+    return db.query(`select public.criar_pedido_sinistro_site($1, $2, $3, $4, $5, $6, ${v.data}, $7, $8, $9::jsonb, ${v.consentimento})`, [v.nome, v.email, v.telefone, v.ramo, v.apolice, v.seguradora, v.local, v.descricao, v.detalhes])
+  }
+  await como(db, 'anon', async () => {
+    await espera(`${p} site cria o pedido`, pedir())
+    await espera(`${p} recusa sem consentimento`, pedir({ consentimento: 'false' }), true, /consentimento/)
+    await espera(`${p} recusa data no futuro`, pedir({ data: 'current_date + 1' }), true, /dados_invalidos/)
+    await espera(`${p} recusa descrição demasiado curta`, pedir({ descricao: 'curta' }), true, /dados_invalidos/)
+    await espera(`${p} recusa ramo inexistente`, pedir({ ramo: 'barcos' }), true, /dados_invalidos/)
+    await espera(`${p} recusa detalhes que não são texto simples`, pedir({ detalhes: '{"x":{"y":1}}' }), true, /dados_invalidos/)
+    await espera(`${p} anónimo não lê pedidos`, semLinhas(db.query(`select * from public.pedidos_sinistro`)))
+    await espera(`${p} anónimo não insere diretamente`, db.query(`insert into public.pedidos_sinistro (nome, email, telefone, ramo, data_ocorrencia, descricao, consentimento_em) values ('X', 'x@x.pt', '912345678', 'auto', current_date, 'descrição longa', now())`), true)
+    await pedir(); await pedir()
+    await espera(`${p} bloqueia o 4.º pedido do mesmo contacto na hora`, pedir(), true, /limite/)
+    await espera(`${p} anónimo não converte pedidos`, db.query(`select public.converter_pedido_sinistro(gen_random_uuid(), gen_random_uuid(), '')`), true)
+  })
+  const pedido = (await db.query(`select * from public.pedidos_sinistro order by criado_em limit 1`)).rows[0]
+  pedido?.estado === 'novo' && pedido.telefone === '916000000' && pedido.detalhes?.matricula === 'AA-00-AA'
+    ? ok(`${p} entra como novo, telefone limpo, detalhes guardados`) : falha(`${p} pedido mal gravado: ${JSON.stringify(pedido)}`)
+
+  await como(db, semGrupo, () => espera(`${p} conta sem o módulo Sinistros não vê pedidos`, semLinhas(db.query(`select * from public.pedidos_sinistro`))))
+  await como(db, med, async () => {
+    const n = (await db.query(`select count(*)::int n from public.pedidos_sinistro`)).rows[0].n
+    n === 3 ? ok(`${p} mediador vê os pedidos`) : falha(`${p} mediador vê ${n} pedidos`)
+    await espera(`${p} mediador marca em tratamento`, db.query(`update public.pedidos_sinistro set estado = 'em_tratamento', tratado_por = $2 where id = $1`, [pedido.id, med]))
+    const r = await espera(`${p} mediador converte em sinistro`, db.query(`select public.converter_pedido_sinistro($1, $2, '') id`, [pedido.id, apolice]))
+    const sin = r?.rows?.[0]?.id && (await db.query(`select apolice_id, estado, descricao from public.sinistros where id = $1`, [r.rows[0].id])).rows[0]
+    sin?.apolice_id === apolice && sin.estado === 'participado' && sin.descricao === pedido.descricao
+      ? ok(`${p} sinistro criado na apólice, participado, com a descrição do pedido`) : falha(`${p} sinistro errado: ${JSON.stringify(sin)}`)
+    const depois = (await db.query(`select estado, cliente_id, sinistro_id from public.pedidos_sinistro where id = $1`, [pedido.id])).rows[0]
+    depois.estado === 'convertido' && depois.cliente_id && depois.sinistro_id ? ok(`${p} pedido fica convertido e ligado ao cliente`) : falha(`${p} pedido depois: ${JSON.stringify(depois)}`)
+    await espera(`${p} não converte duas vezes`, db.query(`select public.converter_pedido_sinistro($1, $2, '')`, [pedido.id, apolice]), true, /já foi convertido/)
+    await espera(`${p} mediador não apaga pedidos`, semLinhas(db.query(`delete from public.pedidos_sinistro where id = '${pedido.id}' returning id`)))
+  })
+}
+
 try {
   const ordem = ordemMigracoes()
   ok(`ordem das migrações: ${ordem.join(' → ')}`)
@@ -342,6 +393,8 @@ try {
   await grupos(await novaBase(producao), 'B')
   await senhas(await novaBase(schema), 'A')
   await senhas(await novaBase(producao), 'B')
+  await pedidosSinistro(await novaBase(schema), 'A')
+  await pedidosSinistro(await novaBase(producao), 'B')
 } catch (e) {
   falha(e.message)
 }

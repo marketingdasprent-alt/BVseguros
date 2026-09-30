@@ -4,14 +4,16 @@ import { CircleHelp, LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from 'luci
 import { Navigation } from '@/components/crm/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useLeadsPorTratar } from '@/hooks/useLeadsPorTratar';
+import { usePedidosSinistroNovos } from '@/hooks/usePedidosSinistro';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import { iniciais } from '@/components/ui/Pessoa';
 
 export default function Layout() {
-  const { profile } = useAuth();
+  const { profile, pode } = useAuth();
   const leadsPorTratar = useLeadsPorTratar();
-  const contagens = { '/leads': leadsPorTratar };
+  const pedidosSinistro = usePedidosSinistroNovos(pode('sinistros', 'ver'));
+  const contagens = { '/leads': leadsPorTratar, '/sinistros': pedidosSinistro };
   const { toast } = useToast();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);

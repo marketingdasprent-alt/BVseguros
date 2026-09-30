@@ -1,4 +1,4 @@
-import type { EstadoApolice, EstadoLead, EstadoProposta, EstadoRenovacao, EstadoSinistro } from './types'
+import type { EstadoApolice, EstadoLead, EstadoPedidoSinistro, EstadoProposta, EstadoRenovacao, EstadoSinistro } from './types'
 
 export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 
@@ -37,6 +37,13 @@ export const TONE_ESTADO_SINISTRO: Record<EstadoSinistro, Tone> = {
   aprovado: 'success',
   recusado: 'danger',
   pago: 'success',
+}
+
+export const TONE_ESTADO_PEDIDO_SINISTRO: Record<EstadoPedidoSinistro, Tone> = {
+  novo: 'warning',
+  em_tratamento: 'info',
+  convertido: 'success',
+  arquivado: 'neutral',
 }
 
 export const TONE_BAR_CLASS: Record<Tone, string> = {

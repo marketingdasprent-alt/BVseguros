@@ -237,6 +237,41 @@ export type SinistroInsert = Omit<Sinistro, 'id' | 'criado_em' | 'atualizado_em'
 
 export type SinistroEdicao = Omit<SinistroInsert, 'apolice_id' | 'estado'>
 
+// Pedido de ajuda com um sinistro feito no site (pedidos_sinistro). Vira um Sinistro
+// quando a equipa o liga a uma apólice (converter_pedido_sinistro).
+export type EstadoPedidoSinistro = 'novo' | 'em_tratamento' | 'convertido' | 'arquivado'
+
+export const ESTADOS_PEDIDO_SINISTRO: { valor: EstadoPedidoSinistro; rotulo: string }[] = [
+  { valor: 'novo', rotulo: 'Novo' },
+  { valor: 'em_tratamento', rotulo: 'Em tratamento' },
+  { valor: 'convertido', rotulo: 'Convertido em sinistro' },
+  { valor: 'arquivado', rotulo: 'Arquivado' },
+]
+
+export interface PedidoSinistro {
+  id: string
+  criado_em: string
+  atualizado_em: string
+  nome: string
+  email: string
+  telefone: string
+  ramo: Ramo
+  numero_apolice: string | null
+  seguradora: string | null
+  data_ocorrencia: string
+  local: string | null
+  descricao: string
+  detalhes: Record<string, string>
+  consentimento_em: string
+  estado: EstadoPedidoSinistro
+  cliente_id: string | null
+  sinistro_id: string | null
+  tratado_por: string | null
+  notas: string | null
+}
+
+export type PedidoSinistroEdicao = Partial<Pick<PedidoSinistro, 'estado' | 'notas' | 'tratado_por'>>
+
 export type TipoAtividade = 'chamada' | 'email' | 'reuniao' | 'tarefa' | 'nota'
 
 export const TIPOS_ATIVIDADE: { valor: TipoAtividade; rotulo: string }[] = [
