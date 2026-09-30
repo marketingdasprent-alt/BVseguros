@@ -1,4 +1,5 @@
 import Input from "./Input";
+import InputValidado from "./InputValidado";
 import type { Campo } from "../../data/formularios";
 
 /** Prefixo nos `name` para nunca colidir com os campos base (nome, email, o honeypot "empresa"). */
@@ -61,22 +62,21 @@ function CampoRamo({ campo }: { campo: Campo }) {
     );
   }
 
-  return (
-    <Input
-      id={id}
-      className={classe}
-      label={campo.rotulo}
-      name={name}
-      type={campo.tipo === "numero" ? "number" : campo.tipo === "data" ? "date" : "text"}
-      inputMode={campo.inputMode}
-      min={campo.min}
-      max={campo.max}
-      maxLength={campo.maxLength}
-      placeholder={campo.placeholder}
-      autoComplete={campo.autoComplete ?? "off"}
-      required={campo.obrigatorio}
-    />
-  );
+  const props = {
+    id,
+    className: classe,
+    label: campo.rotulo,
+    name,
+    type: campo.tipo === "numero" ? "number" : campo.tipo === "data" ? "date" : "text",
+    inputMode: campo.inputMode,
+    min: campo.min,
+    max: campo.max,
+    maxLength: campo.maxLength,
+    placeholder: campo.placeholder,
+    autoComplete: campo.autoComplete ?? "off",
+    required: campo.obrigatorio,
+  };
+  return campo.validar ? <InputValidado {...props} validar={campo.validar} formatar={campo.formatar} /> : <Input {...props} />;
 }
 
 export default function CamposRamo({ campos }: { campos: Campo[] }) {

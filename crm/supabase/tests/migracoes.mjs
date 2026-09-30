@@ -88,8 +88,10 @@ function comparar(a, b) {
   if (iguais) ok('schema.sql e produção+migrações dão a mesma estrutura')
 }
 
+// 'anon' = visitante com a anon key; 'service' = função /api/pedido do site (service_role); resto = conta autenticada.
 async function como(db, uid, fn) {
-  await db.exec(`set role ${uid === 'anon' ? 'anon' : 'authenticated'}; select set_config('request.jwt.claim.sub', '${uid === 'anon' ? '' : uid}', false);`)
+  const papel = uid === 'anon' ? 'anon' : uid === 'service' ? 'service_role' : 'authenticated'
+  await db.exec(`set role ${papel}; select set_config('request.jwt.claim.sub', '${papel === 'authenticated' ? uid : ''}', false);`)
   try { return await fn() } finally { await db.exec(`reset role; select set_config('request.jwt.claim.sub', '', false);`) }
 }
 
@@ -109,6 +111,11 @@ async function espera(rotulo, promessa, deveFalhar = false, padrao) {
 // Consultas que não podem devolver linhas (a RLS esconde, não dá erro).
 const semLinhas = (q) => q.then((r) => { if (r.rows.length) throw new Error(`devolveu ${r.rows.length} linha(s)`) })
 
+// O IP chega cifrado da função do site (sha256 = 64 hex).
+const IP = 'a'.repeat(64)
+const leadSite = (db, nome, email, tel, ramo, msg, consent, ip = IP) =>
+  db.query(`select public.criar_lead_site($1, $2, $3, $4, $5, ${consent}, $6)`, [nome, email, tel, ramo, msg, ip])
+
 async function comportamento(db, c) {
   const p = `[${c}]`
   const ids = {}
@@ -123,17 +130,28 @@ async function comportamento(db, c) {
   await como(db, 'anon', async () => {
     await espera(`${p} site: anónimo não lê leads`, semLinhas(db.query(`select * from public.leads`)))
     await espera(`${p} site: anónimo não insere leads diretamente`, db.query(`insert into public.leads (nome, telefone, ramo_interesse) values ('Xy', '912345678', 'auto')`), true)
-    await espera(`${p} site: formulário cria lead`, db.query(`select public.criar_lead_site('Joana Site', 'joana@ex.pt', '912 345 678', 'auto', 'Quero um seguro', true)`))
-    await espera(`${p} site: recusa sem consentimento`, db.query(`select public.criar_lead_site('Joana', 'j@ex.pt', '912345678', 'auto', '', false)`), true, /consentimento/)
-    await espera(`${p} site: recusa email inválido`, db.query(`select public.criar_lead_site('Joana', 'nao-e-email', '912345678', 'auto', '', true)`), true, /dados_invalidos/)
-    await espera(`${p} site: recusa ramo inexistente`, db.query(`select public.criar_lead_site('Joana', 'j@ex.pt', '912345678', 'barcos', '', true)`), true, /dados_invalidos/)
-    await db.query(`select public.criar_lead_site('Joana Site', 'joana@ex.pt', '912345678', 'auto', '', true)`)
-    await db.query(`select public.criar_lead_site('Joana Site', 'joana@ex.pt', '912345678', 'auto', '', true)`)
-    await espera(`${p} site: bloqueia o 4.º pedido do mesmo contacto na hora`, db.query(`select public.criar_lead_site('Joana Site', 'joana@ex.pt', '912345678', 'auto', '', true)`), true, /limite/)
+    await espera(`${p} site: anónimo não chama a função do site diretamente (saltava o Turnstile)`, leadSite(db, 'Joana Site', 'joana@ex.pt', '912345678', 'auto', '', true), true, /permission denied/)
+    await espera(`${p} site: anónimo não lê os limites por IP`, db.query(`select * from public.limites_pedidos_site`), true, /permission denied/)
     await espera(`${p} site: anónimo não converte leads`, db.query(`select public.converter_lead(gen_random_uuid(), now(), 'a', 'b', 'c', 'd', 'e')`), true)
     await espera(`${p} site: anónimo não lê perfis`, semLinhas(db.query(`select * from public.profiles`)))
   })
-  const siteLead = (await db.query(`select * from public.leads where origem = 'site' limit 1`)).rows[0]
+  await como(db, 'service', async () => {
+    await espera(`${p} site: formulário cria lead`, leadSite(db, 'Joana Site', 'joana@ex.pt', '912 345 678', 'auto', 'Quero um seguro', true))
+    await espera(`${p} site: recusa sem consentimento`, leadSite(db, 'Joana', 'j@ex.pt', '912345678', 'auto', '', false), true, /consentimento/)
+    await espera(`${p} site: recusa email inválido`, leadSite(db, 'Joana', 'nao-e-email', '912345678', 'auto', '', true), true, /dados_invalidos/)
+    await espera(`${p} site: recusa ramo inexistente`, leadSite(db, 'Joana', 'j@ex.pt', '912345678', 'barcos', '', true), true, /dados_invalidos/)
+    await espera(`${p} site: recusa pedido sem IP cifrado`, leadSite(db, 'Joana', 'j@ex.pt', '912345678', 'auto', '', true, '1.2.3.4'), true, /dados_invalidos/)
+    await leadSite(db, 'Joana Site', 'joana@ex.pt', '912345678', 'auto', '', true)
+    await leadSite(db, 'Joana Site', 'joana@ex.pt', '912345678', 'auto', '', true)
+    await espera(`${p} site: bloqueia o 4.º pedido do mesmo contacto na hora`, leadSite(db, 'Joana Site', 'joana@ex.pt', '912345678', 'auto', '', true), true, /limite/)
+    const outroIp = 'b'.repeat(64)
+    for (let i = 0; i < 5; i++) await leadSite(db, `Pessoa ${i}`, `p${i}@ex.pt`, `91000000${i}`, 'auto', '', true, outroIp)
+    await espera(`${p} site: bloqueia o 6.º pedido do mesmo IP na hora, mesmo com contactos diferentes`, leadSite(db, 'Pessoa Seis', 'p6@ex.pt', '910000006', 'auto', '', true, outroIp), true, /limite/)
+    await espera(`${p} site: outro IP continua a conseguir enviar (quem ataca não bloqueia os outros)`, leadSite(db, 'Pessoa Nova', 'nova@ex.pt', '910000009', 'auto', '', true, 'c'.repeat(64)))
+    const guardados = (await db.query(`select ip_hash from public.limites_pedidos_site`)).rows
+    guardados.every((l) => /^[0-9a-f]{64}$/.test(l.ip_hash)) ? ok(`${p} site: só se guarda o IP cifrado`) : falha(`${p} site: IP guardado em claro`)
+  })
+  const siteLead = (await db.query(`select * from public.leads where origem = 'site' order by criado_em, nome limit 1`)).rows[0]
   siteLead?.responsavel_id == null && siteLead?.estado === 'novo' && siteLead?.telefone === '912345678'
     ? ok(`${p} site: lead entra sem responsável, estado novo, telefone limpo`) : falha(`${p} lead do site mal gravado: ${JSON.stringify(siteLead)}`)
 
@@ -336,20 +354,24 @@ async function pedidosSinistro(db, c) {
 
   const pedir = (over = {}) => {
     const v = { nome: 'Rita Site', email: 'rita@ex.pt', telefone: '916 000 000', ramo: 'auto', apolice: 'AP-SIN', seguradora: '', data: 'current_date - 1', local: 'Lisboa', descricao: 'Colisão num cruzamento, sem feridos.', detalhes: '{"matricula":"AA-00-AA"}', consentimento: 'true', ...over }
-    return db.query(`select public.criar_pedido_sinistro_site($1, $2, $3, $4, $5, $6, ${v.data}, $7, $8, $9::jsonb, ${v.consentimento})`, [v.nome, v.email, v.telefone, v.ramo, v.apolice, v.seguradora, v.local, v.descricao, v.detalhes])
+    return db.query(`select public.criar_pedido_sinistro_site($1, $2, $3, $4, $5, $6, ${v.data}, $7, $8, $9::jsonb, ${v.consentimento}, $10)`, [v.nome, v.email, v.telefone, v.ramo, v.apolice, v.seguradora, v.local, v.descricao, v.detalhes, IP])
   }
   await como(db, 'anon', async () => {
+    await espera(`${p} anónimo não chama a função do site diretamente`, pedir(), true, /permission denied/)
+    await espera(`${p} anónimo não lê pedidos`, semLinhas(db.query(`select * from public.pedidos_sinistro`)))
+    await espera(`${p} anónimo não insere diretamente`, db.query(`insert into public.pedidos_sinistro (nome, email, telefone, ramo, data_ocorrencia, descricao, consentimento_em) values ('X', 'x@x.pt', '912345678', 'auto', current_date, 'descrição longa', now())`), true)
+    await espera(`${p} anónimo não converte pedidos`, db.query(`select public.converter_pedido_sinistro(gen_random_uuid(), gen_random_uuid(), '')`), true)
+  })
+  await como(db, med, () => espera(`${p} conta do CRM não chama a função do site (saltava o Turnstile)`, pedir(), true, /permission denied/))
+  await como(db, 'service', async () => {
     await espera(`${p} site cria o pedido`, pedir())
     await espera(`${p} recusa sem consentimento`, pedir({ consentimento: 'false' }), true, /consentimento/)
     await espera(`${p} recusa data no futuro`, pedir({ data: 'current_date + 1' }), true, /dados_invalidos/)
     await espera(`${p} recusa descrição demasiado curta`, pedir({ descricao: 'curta' }), true, /dados_invalidos/)
     await espera(`${p} recusa ramo inexistente`, pedir({ ramo: 'barcos' }), true, /dados_invalidos/)
     await espera(`${p} recusa detalhes que não são texto simples`, pedir({ detalhes: '{"x":{"y":1}}' }), true, /dados_invalidos/)
-    await espera(`${p} anónimo não lê pedidos`, semLinhas(db.query(`select * from public.pedidos_sinistro`)))
-    await espera(`${p} anónimo não insere diretamente`, db.query(`insert into public.pedidos_sinistro (nome, email, telefone, ramo, data_ocorrencia, descricao, consentimento_em) values ('X', 'x@x.pt', '912345678', 'auto', current_date, 'descrição longa', now())`), true)
     await pedir(); await pedir()
     await espera(`${p} bloqueia o 4.º pedido do mesmo contacto na hora`, pedir(), true, /limite/)
-    await espera(`${p} anónimo não converte pedidos`, db.query(`select public.converter_pedido_sinistro(gen_random_uuid(), gen_random_uuid(), '')`), true)
   })
   const pedido = (await db.query(`select * from public.pedidos_sinistro order by criado_em limit 1`)).rows[0]
   pedido?.estado === 'novo' && pedido.telefone === '916000000' && pedido.detalhes?.matricula === 'AA-00-AA'

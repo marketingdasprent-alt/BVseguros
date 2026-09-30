@@ -1,11 +1,14 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Button from "../components/ui/Button";
+import CaixaVerificacao from "../components/forms/VerificacaoHumana";
+import { useVerificacaoHumana } from "../components/forms/useVerificacaoHumana";
 import CamposRamo, { PREFIXO_CAMPO } from "../components/forms/CamposRamo";
 import { CamposContacto, CamposFecho, SeletorRamo } from "../components/forms/CamposBase";
 import { enviarContacto, EnvioContactoError, MENSAGEM_ERRO } from "../utils/enviarContacto";
 import { montarMensagem } from "../utils/montarMensagem";
 import { anuncioPerguntas } from "../utils/anuncioPerguntas";
+import { normalizarTelefone, validarCartaVsNascimento } from "../utils/validacoes";
 import type { ErroContacto, RamoCrm } from "../utils/enviarContacto";
 import { FORMULARIOS } from "../data/formularios";
 import type { FormularioRamo } from "../data/formularios";
@@ -35,6 +38,7 @@ export default function ContactoForm({ ramos, ramoFixo, contexto = [], semCartao
   const cartao = semCartao ? "" : " contact-form-card";
   const [estado, setEstado] = useState<Estado>("inicial");
   const [erro, setErro] = useState<ErroContacto | null>(null);
+  const verificacao = useVerificacaoHumana();
   const [ramoEscolhido, setRamoEscolhido] = useState<RamoCrm | "">("");
 
   const seguro = ramoFixo ? undefined : seguroDoRamo(ramoEscolhido);
@@ -53,27 +57,45 @@ export default function ContactoForm({ ramos, ramoFixo, contexto = [], semCartao
       return;
     }
 
+    // Regra entre dois campos (auto): o browser só valida cada campo sozinho.
+    const erroCarta = validarCartaVsNascimento(
+      String(dados.get(PREFIXO_CAMPO + "ano_carta") ?? ""),
+      String(dados.get(PREFIXO_CAMPO + "nascimento_condutor") ?? "")
+    );
+    const campoCarta = form.elements.namedItem(PREFIXO_CAMPO + "ano_carta");
+    if (erroCarta && campoCarta instanceof HTMLInputElement) {
+      campoCarta.setCustomValidity(erroCarta);
+      campoCarta.addEventListener("input", () => campoCarta.setCustomValidity(""), { once: true });
+      campoCarta.reportValidity();
+      return;
+    }
+
+    const nif = String(dados.get("nif") ?? "").replace(/\D/g, "");
+
     setEstado("a_enviar");
     try {
+      const token = await verificacao.obterToken();
       await enviarContacto({
-        nome: String(dados.get("nome") ?? ""),
-        email: String(dados.get("email") ?? ""),
-        telefone: String(dados.get("telefone") ?? ""),
+        nome: String(dados.get("nome") ?? "").trim(),
+        email: String(dados.get("email") ?? "").trim(),
+        telefone: normalizarTelefone(String(dados.get("telefone") ?? "")),
         ramo: (ramoFixo?.valor ?? (ramoEscolhido || "outro")) as RamoCrm,
         mensagem: montarMensagem(
           campos,
           Object.fromEntries(campos.map((c) => [c.nome, String(dados.get(PREFIXO_CAMPO + c.nome) ?? "")])),
           String(dados.get("mensagem") ?? ""),
-          contexto
+          nif ? [`NIF: ${nif}`, ...contexto] : contexto
         ),
         consentimento: dados.get("consentimento") === "sim",
-      });
+      }, token);
       form.reset();
       setRamoEscolhido("");
       setEstado("enviado");
     } catch (error: unknown) {
       setErro(error instanceof EnvioContactoError ? error.motivo : "falha_envio");
       setEstado("inicial");
+    } finally {
+      verificacao.reiniciar();
     }
   };
 
@@ -128,6 +150,7 @@ export default function ContactoForm({ ramos, ramoFixo, contexto = [], semCartao
       )}
 
       <CamposFecho finalidade="responder ao meu pedido" />
+      <CaixaVerificacao verificacao={verificacao} />
 
       {erro && (
         <p className="contact-form-error" role="alert">

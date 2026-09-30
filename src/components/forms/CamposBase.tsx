@@ -1,34 +1,56 @@
-import Input from "./Input";
+import InputValidado from "./InputValidado";
+import { validarEmail, validarNif, validarNome, validarTelefone } from "../../utils/validacoes";
 import Link from "../../app/Link";
 import type { RamoCrm } from "../../utils/enviarContacto";
 
-/** Nome, email e telefone: iguais no pedido de proposta e no de sinistro. */
+/** Nome, NIF, email e telefone: iguais no pedido de proposta e no de sinistro. */
 export function CamposContacto() {
   return (
-    <>
-      <Input label="Nome" name="nome" type="text" autoComplete="name" required minLength={2} maxLength={120} />
-      <div className="form-grid">
-        <Input
-          className="form-grid__half"
-          label="Email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          maxLength={254}
-        />
-        <Input
-          className="form-grid__half"
-          label="Telefone"
-          name="telefone"
-          type="tel"
-          autoComplete="tel"
-          required
-          pattern="\+?[0-9 ]{9,20}"
-          title="Indique um número com pelo menos 9 dígitos."
-        />
-      </div>
-    </>
+    <div className="form-grid">
+      <InputValidado
+        className="form-grid__half"
+        label="Nome"
+        name="nome"
+        type="text"
+        autoComplete="name"
+        required
+        minLength={2}
+        maxLength={120}
+        validar={validarNome}
+        formatar={(v) => v.trim().replace(/\s+/g, " ")}
+      />
+      <InputValidado
+        className="form-grid__half"
+        label="NIF (opcional)"
+        name="nif"
+        inputMode="numeric"
+        autoComplete="off"
+        maxLength={11}
+        validar={validarNif}
+        formatar={(v) => v.replace(/\D/g, "")}
+      />
+      <InputValidado
+        className="form-grid__half"
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        required
+        maxLength={254}
+        validar={validarEmail}
+        formatar={(v) => v.trim()}
+      />
+      <InputValidado
+        className="form-grid__half"
+        label="Telefone"
+        name="telefone"
+        type="tel"
+        autoComplete="tel"
+        required
+        maxLength={20}
+        validar={validarTelefone}
+      />
+    </div>
   );
 }
 

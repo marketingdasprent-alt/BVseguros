@@ -1,4 +1,13 @@
 import type { RamoKey } from "./seguros";
+import {
+  formatarCodigoPostal,
+  formatarMatricula,
+  validarCodigoPostal,
+  validarIdades,
+  validarMatricula,
+  validarNascimentoCondutor,
+} from "../utils/validacoes";
+import type { Validador } from "../utils/validacoes";
 
 export type Campo = {
   nome: string;
@@ -12,6 +21,10 @@ export type Campo = {
   min?: number;
   max?: number;
   maxLength?: number;
+  /** Validação própria do campo (src/utils/validacoes.ts), além de required/min/max. */
+  validar?: Validador;
+  /** Arruma o valor ao sair do campo (ex.: matrícula em maiúsculas com hífenes). */
+  formatar?: (valor: string) => string;
   /** "meia": ocupa uma de duas colunas em desktop. */
   largura?: "meia" | "inteira";
 };
@@ -39,10 +52,10 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
     titulo: "Peça uma proposta de seguro automóvel.",
     texto: "Tenha à mão os dados do carro e do condutor habitual. O que não souber, deixe em branco.",
     campos: [
-      { nome: "matricula", rotulo: "Matrícula", tipo: "texto", placeholder: "AA-00-AA", maxLength: 12, largura: "meia" },
+      { nome: "matricula", rotulo: "Matrícula", tipo: "texto", placeholder: "AA-00-AA", maxLength: 12, largura: "meia", validar: validarMatricula, formatar: formatarMatricula },
       { nome: "marca_modelo", rotulo: "Marca e modelo", tipo: "texto", placeholder: "Ex.: Renault Clio", maxLength: 80, largura: "meia" },
       { nome: "ano_veiculo", rotulo: "Ano do veículo", tipo: "numero", inputMode: "numeric", min: 1950, max: ANO_ATUAL + 1, largura: "meia" },
-      { nome: "nascimento_condutor", rotulo: "Data de nascimento do condutor habitual", tipo: "data", largura: "meia" },
+      { nome: "nascimento_condutor", rotulo: "Data de nascimento do condutor habitual", tipo: "data", largura: "meia", validar: validarNascimentoCondutor },
       { nome: "ano_carta", rotulo: "Ano da carta de condução", tipo: "numero", inputMode: "numeric", min: 1950, max: ANO_ATUAL, largura: "meia" },
       { nome: "seguradora_atual", rotulo: "Seguradora atual, se tiver", tipo: "texto", maxLength: 80, largura: "meia" },
       { nome: "coberturas", rotulo: "Que proteção procura?", tipo: "radio", opcoes: ["Contra terceiros", "Com danos próprios", NAO_SEI] },
@@ -55,7 +68,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       { nome: "finalidade", rotulo: "Para que é o seguro?", tipo: "radio", opcoes: ["Crédito habitação", "Proteção da família", "Outro"] },
       { nome: "capital", rotulo: "Capital pretendido (€)", tipo: "numero", inputMode: "numeric", min: 0, largura: "meia" },
       { nome: "pessoas", rotulo: "Nº de pessoas a segurar", tipo: "numero", inputMode: "numeric", min: 1, max: 10, largura: "meia" },
-      { nome: "idades", rotulo: "Idade de cada pessoa", tipo: "texto", placeholder: "Ex.: 38, 36", maxLength: 60, largura: "meia" },
+      { nome: "idades", rotulo: "Idade de cada pessoa", tipo: "texto", placeholder: "Ex.: 38, 36", maxLength: 60, largura: "meia", validar: validarIdades },
       { nome: "banco", rotulo: "Banco do crédito, se houver", tipo: "texto", maxLength: 80, largura: "meia" },
     ],
   },
@@ -65,7 +78,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
     campos: [
       { nome: "para_quem", rotulo: "Para quem é o seguro?", tipo: "radio", opcoes: ["Só para mim", "Para a família", "Para a empresa"] },
       { nome: "pessoas", rotulo: "Nº de pessoas", tipo: "numero", inputMode: "numeric", min: 1, max: 500, largura: "meia" },
-      { nome: "idades", rotulo: "Idades", tipo: "texto", placeholder: "Ex.: 40, 38, 9", maxLength: 80, largura: "meia" },
+      { nome: "idades", rotulo: "Idades", tipo: "texto", placeholder: "Ex.: 40, 38, 9", maxLength: 80, largura: "meia", validar: validarIdades },
       { nome: "preferencia", rotulo: "Preferência", tipo: "radio", opcoes: ["Rede convencionada", "Reembolso", NAO_SEI] },
     ],
   },
@@ -77,7 +90,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       { nome: "situacao", rotulo: "Situação", tipo: "radio", opcoes: ["Proprietário", "Arrendatário"] },
       { nome: "credito", rotulo: "Tem crédito habitação?", tipo: "radio", opcoes: ["Sim", "Não"] },
       { nome: "segurar", rotulo: "O que quer segurar?", tipo: "radio", opcoes: ["Edifício", "Recheio", "Ambos", NAO_SEI] },
-      { nome: "codigo_postal", rotulo: "Código postal", tipo: "texto", placeholder: "0000-000", autoComplete: "postal-code", maxLength: 8, largura: "meia" },
+      { nome: "codigo_postal", rotulo: "Código postal", tipo: "texto", placeholder: "0000-000", autoComplete: "postal-code", maxLength: 8, largura: "meia", validar: validarCodigoPostal, formatar: formatarCodigoPostal },
       { nome: "area", rotulo: "Área aproximada (m²)", tipo: "numero", inputMode: "numeric", min: 10, max: 5000, largura: "meia" },
       { nome: "ano_construcao", rotulo: "Ano de construção", tipo: "numero", inputMode: "numeric", min: 1800, max: ANO_ATUAL, largura: "meia" },
     ],
