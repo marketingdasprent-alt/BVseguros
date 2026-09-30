@@ -1,36 +1,45 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Button from "../components/ui/Button";
-import Input from "../components/forms/Input";
-import Link from "../app/Link";
 import CamposRamo, { PREFIXO_CAMPO } from "../components/forms/CamposRamo";
-import { enviarContacto, EnvioContactoError } from "../utils/enviarContacto";
+import { CamposContacto, CamposFecho, SeletorRamo } from "../components/forms/CamposBase";
+import { enviarContacto, EnvioContactoError, MENSAGEM_ERRO } from "../utils/enviarContacto";
 import { montarMensagem } from "../utils/montarMensagem";
+import { anuncioPerguntas } from "../utils/anuncioPerguntas";
 import type { ErroContacto, RamoCrm } from "../utils/enviarContacto";
+import { FORMULARIOS } from "../data/formularios";
 import type { FormularioRamo } from "../data/formularios";
+import { SEGUROS } from "../data/seguros";
 
 type Estado = "inicial" | "a_enviar" | "enviado";
 
-const MENSAGEM_ERRO: Record<ErroContacto, string> = {
-  dados_invalidos: "Verifique os dados do formulário e tente novamente.",
-  limite_excedido:
-    "Já recebemos vários pedidos deste contacto. Tente novamente mais tarde.",
-  falha_envio:
-    "Não foi possível enviar o pedido. Verifique a ligação e tente novamente, ou escreva-nos para geral@bvseguros.pt.",
-};
 
 export type ContactoFormProps = {
   ramos: { valor: RamoCrm; nome: string }[];
   /**
-   * Página de um ramo: o ramo é fixo (sem o select) e o formulário
-   * mostra os campos próprios desse ramo.
+   * Página de um ramo: o ramo é fixo (sem o select). Sem ele, o tipo de
+   * seguro é o primeiro campo e as perguntas desse ramo aparecem ao escolhê-lo.
    */
   ramoFixo?: { valor: RamoCrm; formulario: FormularioRamo };
+  /** Linhas já escolhidas na página (ex.: o nível de proteção), no topo da mensagem do lead. */
+  contexto?: string[];
+  /** Dentro do pop-up: sem o cartão à volta (o modal já é a superfície). */
+  semCartao?: boolean;
+  /** Dentro do pop-up: o ecrã de sucesso mostra "Fechar" em vez de outro pedido. */
+  onConcluido?: () => void;
 };
 
-export default function ContactoForm({ ramos, ramoFixo }: ContactoFormProps) {
+const seguroDoRamo = (ramo: RamoCrm | "") => SEGUROS.find((s) => s.ramoCrm === ramo);
+
+export default function ContactoForm({ ramos, ramoFixo, contexto = [], semCartao = false, onConcluido }: ContactoFormProps) {
+  const cartao = semCartao ? "" : " contact-form-card";
   const [estado, setEstado] = useState<Estado>("inicial");
   const [erro, setErro] = useState<ErroContacto | null>(null);
+  const [ramoEscolhido, setRamoEscolhido] = useState<RamoCrm | "">("");
+
+  const seguro = ramoFixo ? undefined : seguroDoRamo(ramoEscolhido);
+  const formulario = ramoFixo?.formulario ?? (seguro ? FORMULARIOS[seguro.key] : undefined);
+  const campos = formulario?.campos ?? [];
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -50,43 +59,36 @@ export default function ContactoForm({ ramos, ramoFixo }: ContactoFormProps) {
         nome: String(dados.get("nome") ?? ""),
         email: String(dados.get("email") ?? ""),
         telefone: String(dados.get("telefone") ?? ""),
-        ramo: (ramoFixo?.valor ??
-          String(dados.get("ramo") ?? "outro")) as RamoCrm,
-        mensagem: ramoFixo
-          ? montarMensagem(
-              ramoFixo.formulario.campos,
-              Object.fromEntries(
-                ramoFixo.formulario.campos.map((c) => [
-                  c.nome,
-                  String(dados.get(PREFIXO_CAMPO + c.nome) ?? ""),
-                ]),
-              ),
-              String(dados.get("mensagem") ?? ""),
-            )
-          : String(dados.get("mensagem") ?? ""),
+        ramo: (ramoFixo?.valor ?? (ramoEscolhido || "outro")) as RamoCrm,
+        mensagem: montarMensagem(
+          campos,
+          Object.fromEntries(campos.map((c) => [c.nome, String(dados.get(PREFIXO_CAMPO + c.nome) ?? "")])),
+          String(dados.get("mensagem") ?? ""),
+          contexto
+        ),
         consentimento: dados.get("consentimento") === "sim",
       });
       form.reset();
+      setRamoEscolhido("");
       setEstado("enviado");
     } catch (error: unknown) {
-      setErro(
-        error instanceof EnvioContactoError ? error.motivo : "falha_envio",
-      );
+      setErro(error instanceof EnvioContactoError ? error.motivo : "falha_envio");
       setEstado("inicial");
     }
   };
 
   if (estado === "enviado") {
     return (
-      <div className="contact-form-card contact-form-done" role="status">
+      <div className={`contact-form-done${cartao}`} role="status">
         <h3>Pedido enviado.</h3>
-        <p className="text-secondary">
-          Obrigado pelo contacto. Um mediador da BV Seguros vai falar consigo em
-          breve.
-        </p>
-        <Button variant="secondary" onClick={() => setEstado("inicial")}>
-          Enviar outro pedido
-        </Button>
+        <p className="text-secondary">Obrigado pelo contacto. Um mediador da BV Seguros vai falar consigo em breve.</p>
+        {onConcluido ? (
+          <Button onClick={onConcluido}>Fechar</Button>
+        ) : (
+          <Button variant="secondary" onClick={() => setEstado("inicial")}>
+            Enviar outro pedido
+          </Button>
+        )}
       </div>
     );
   }
@@ -94,92 +96,38 @@ export default function ContactoForm({ ramos, ramoFixo }: ContactoFormProps) {
   const isEnviando = estado === "a_enviar";
 
   return (
-    <form onSubmit={handleSubmit} className="stack contact-form-card">
-      {ramoFixo && <p className="form-section-title">Os seus dados</p>}
-      <Input
-        label="Nome"
-        name="nome"
-        type="text"
-        autoComplete="name"
-        required
-        minLength={2}
-        maxLength={120}
-      />
-      <div className="form-grid">
-        <Input
-          className="form-grid__half"
-          label="Email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          maxLength={254}
+    <form onSubmit={handleSubmit} className={`stack${cartao}`}>
+      {!ramoFixo && (
+        <SeletorRamo
+          rotulo="Em que seguro está interessado?"
+          ramos={ramos}
+          valor={ramoEscolhido}
+          onChange={setRamoEscolhido}
+          anuncio={anuncioPerguntas(campos.length, seguro)}
         />
-        <Input
-          className="form-grid__half"
-          label="Telefone"
-          name="telefone"
-          type="tel"
-          autoComplete="tel"
-          required
-          pattern="\+?[0-9 ]{9,20}"
-          title="Indique um número com pelo menos 9 dígitos."
-        />
-      </div>
+      )}
 
-      {ramoFixo ? (
+      {campos.length > 0 && <p className="form-section-title">Os seus dados</p>}
+      <CamposContacto />
+
+      {campos.length > 0 && (
         <>
           <p className="form-section-title">Sobre o seguro</p>
-          <CamposRamo campos={ramoFixo.formulario.campos} />
+          {/* key: mudar de ramo limpa as respostas do ramo anterior. */}
+          <CamposRamo key={seguro?.key ?? ramoFixo?.valor} campos={campos} />
         </>
-      ) : (
-        <div className="field">
-          <label className="field__label" htmlFor="ramo">
-            Em que seguro está interessado?
-          </label>
-          <select id="ramo" name="ramo" className="field__control">
-            {ramos.map((ramo) => (
-              <option key={ramo.valor} value={ramo.valor}>
-                {ramo.nome}
-              </option>
-            ))}
-          </select>
-        </div>
       )}
 
-      {!ramoFixo?.formulario.semMensagemLivre && (
+      {!formulario?.semMensagemLivre && (
         <div className="field">
           <label className="field__label" htmlFor="mensagem">
-            {ramoFixo ? "Algo mais que devamos saber?" : "Mensagem"}
+            {formulario ? "Algo mais que devamos saber?" : "Mensagem"}
           </label>
-          <textarea
-            id="mensagem"
-            name="mensagem"
-            rows={ramoFixo ? 3 : 4}
-            maxLength={2000}
-            className="field__control"
-          />
+          <textarea id="mensagem" name="mensagem" rows={formulario ? 3 : 4} maxLength={2000} className="field__control" />
         </div>
       )}
 
-      <div className="contact-honeypot" aria-hidden="true">
-        <label htmlFor="empresa">Empresa</label>
-        <input
-          id="empresa"
-          name="empresa"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-        />
-      </div>
-
-      <label className="contact-consent">
-        <input type="checkbox" name="consentimento" value="sim" required />
-        <span>
-          Aceito que a BV Seguros use estes dados para responder ao meu pedido,
-          nos termos da <Link href="/privacy">política de privacidade</Link>.
-        </span>
-      </label>
+      <CamposFecho finalidade="responder ao meu pedido" />
 
       {erro && (
         <p className="contact-form-error" role="alert">

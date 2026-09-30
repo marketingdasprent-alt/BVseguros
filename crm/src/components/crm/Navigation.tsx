@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, CheckSquare, UserCog, FileUp, Building2, KeyRound } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, UserCog, FileUp, Building2, KeyRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import type { Modulo } from '@/lib/permissoes';
@@ -18,7 +18,6 @@ const groups: GrupoMenu[] = [
     { to: '/apolices', label: 'Apólices', icon: Shield, modulo: 'apolices' }, { to: '/renovacoes', label: 'Renovações', icon: RefreshCw, modulo: 'renovacoes' },
     { to: '/sinistros', label: 'Sinistros', icon: AlertTriangle, modulo: 'sinistros' },
   ] },
-  { title: 'Organização', links: [{ to: '/atividades', label: 'Tarefas', icon: CheckSquare, modulo: 'atividades' }] },
 ];
 
 // Só o administrador; não depende dos grupos, para ninguém ficar sem como gerir o CRM.

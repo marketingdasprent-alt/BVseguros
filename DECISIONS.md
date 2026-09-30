@@ -1836,3 +1836,203 @@ named "empresa", so ramo fields are prefixed "d_" to never collide.
 DATE:
 2026-09-30
 ```
+
+---
+
+```
+DECISION:
+BV Seguros, client review round 3: the proposal form leaves the pages
+and opens in a pop-up (ModalProposta, one native <dialog> mounted in
+App, opened through src/app/proposta.ts). Every "Pedir proposta" /
+"Simular" / header "Pedir contacto" opens it: with the ramo form on a
+ramo page or from a ramo card, the generic form elsewhere. Seguro cards
+drop "Ver coberturas" for two actions, "Simular" (pop-up) and "Ver
+detalhes" (ramo page). Pages end with a short call to action
+(ContactoSecao, still id="contacto") instead of the inline form.
+
+REASON:
+Client request: the inline form broke the reading of the page. A
+native dialog with showModal() gives focus containment, Escape and an
+inert background without a library; state lives in a module store
+(useSyncExternalStore), same pattern as useCookieConsent, not a new
+Context. Cards stop being one big link because they now hold two
+different actions (no interactive element inside a link); photo and
+title still link to the ramo page.
+
+SCOPE:
+src/app/proposta.ts, src/components/feedback/ModalProposta.tsx, App,
+Header (CTA can be an action), SegurosGrid, PedirPropostaPara,
+AcessosRapidos, ContactoSecao, ContactoPainel, SeguroPagina,
+ComparacaoNiveis, PageSubnav (optional action button), Sinistros,
+ContactoForm (semCartao, onConcluido), components.css.
+
+LEVEL:
+Level 2 (project-specific). The dialog needs margin:auto because the
+global reset zeroes margins, which otherwise pins it to the top-left.
+
+DATE:
+2026-09-30
+```
+
+---
+
+```
+DECISION:
+Global layout rule for sets of boxes: .card-grid (layout.css), flex-wrap
+with a fixed basis, so an incomplete last row is always centred under
+the row above (the "V": 3 over 2, 2 over 1). Every card set on the site
+moved to it (seguro cards, coverages, claims by ramo, channels, reasons,
+steps, the Home "três coisas" and "três passos"). Wrapped button pairs
+in a .cluster share or fill the row below 1024px. Enforced by
+scripts/qa-layout.mjs (npm run qa:layout), a real-browser check of every
+page at 5 widths: no horizontal scroll, V rule, equal heights per row.
+The decorative lines gained edge variants (FlowLines variante/espelhado)
+and now run on every content section, filling the side margins.
+
+REASON:
+Client review: /sinistros showed 3+2 cards with the last row hanging
+left, the Home ramo picker left empty space on both sides, and several
+sections had none of the blue lines used elsewhere. Per-component fixes
+had already been made twice; a single primitive plus an automated check
+stops it recurring. Variants run in the margins because lines crossing
+body copy were rejected before (contact section, 2026-09-29).
+
+SCOPE:
+layout.css (.card-grid, .cluster rule), components.css (old grid rules
+removed, picker as full-width tiles), responsive.css (.grid--services
+removed), FlowLines.tsx, Home, SeguroPagina, Seguros, Sinistros,
+SegurosGrid, ApoioSecao, ContactoPainel, PedirPropostaPara,
+scripts/qa-layout.mjs, package.json, AGENTS.md, docs/design-system.md.
+
+LEVEL:
+Level 1 layout primitive (applies to any future card set). No new token.
+
+DATE:
+2026-09-30
+```
+
+---
+
+```
+DECISION:
+Refinement of the card rule: <CardGrid> (components/layout) counts its
+boxes and balances the rows. Even counts fill equal rows (4 as 2+2, not
+3+1); odd counts keep the centred "V" and avoid a lone last box when a
+neighbouring column count allows it (5 as 3+2, 7 as 4+3). With fewer
+columns than asked, the grid narrows so boxes keep their usual width.
+qa:layout also fails on an even count in unequal rows.
+
+REASON:
+Client review: the Empresas filter (4 cards) showed 3 over 1. The V is
+right for odd counts only.
+
+SCOPE:
+src/components/layout/CardGrid.tsx, src/utils/colunasEquilibradas.ts,
+layout.css, every former .card-grid usage, scripts/qa-layout.mjs,
+docs/design-system.md.
+
+LEVEL:
+Level 1 layout primitive.
+
+DATE:
+2026-09-30
+```
+
+---
+
+```
+DECISION:
+BV Seguros: claim requests from the site (option B, PROMPT-MASTER-SINISTROS.md).
+New table pedidos_sinistro in the CRM database, filled only through
+criar_pedido_sinistro_site (security definer, validation, anti-spam,
+consent), separate from leads. The CRM Sinistros page gains a "Pedidos
+do site" tab with a menu counter; a request is linked to a client and a
+policy and converted in one step (converter_pedido_sinistro, invoker
+rights). On the site, the pop-up has a claim mode (abrirSinistro): the
+insurance type is the first field and the questions of that ramo appear
+below. The generic proposal form (no fixed ramo) now works the same way.
+
+REASON:
+The /sinistros pop-up was the proposal form, which is the wrong flow: a
+claim concerns an existing policy. A CRM sinistro requires a policy the
+visitor cannot pick, so the request is a separate record the team
+triages. Health data is never asked (art. 9 GDPR). By client decision,
+every request is kept: no automatic deletion, only the admin can delete.
+
+SCOPE:
+crm/supabase/migrations/2026-09-30_pedidos_sinistro.sql + schema.sql +
+tests; crm: usePedidosSinistro, pedidosSinistro.ts (+ tests),
+PedidosSinistro page, PedidosSinistroTabela, PedidoSinistroModal,
+ConverterPedidoForm, Sinistros tabs, Layout counter, manual. Site:
+formulariosSinistro.ts, SinistroForm, CamposBase, enviarPedidoSinistro,
+proposta.ts (modes), ModalProposta, ContactoForm (dynamic), ContactoSecao,
+ContactoPainel, Sinistros page.
+
+LEVEL:
+Level 2 (project-specific), both projects. Deploy order: migration in the
+Supabase SQL Editor first, then CRM, then site.
+
+DATE:
+2026-09-30
+```
+
+---
+
+```
+DECISION:
+CRM: the "Organização > Tarefas" page (/atividades) is removed. Activities
+stay where they are used: the Atividades button on each lead card, the
+Atividades section of the client sheet, and "Atividades recentes" on the
+Dashboard. The Dashboard "Tarefas em atraso" row and the links to the
+page are gone; the permission module keeps controlling activities, now
+labelled "Atividades" and without a page of its own (rotaInicial skips it).
+
+REASON:
+Client request, scoped to the page only (asked and confirmed 2026-09-30).
+Editing or deleting an existing activity was only possible on that page;
+the helpers (atualizarAtividade, apagarAtividade, NovaAtividadeForm edit
+mode) are kept so those actions can be added to the lead/client views.
+The atividades table and its data are untouched.
+
+SCOPE:
+crm: pages/Atividades.tsx and components/crm/AtividadesTable.tsx removed;
+App.tsx, Navigation.tsx, Dashboard.tsx, DashboardPriorities.tsx,
+DashboardActivity.tsx, lib/permissoes.ts (+ test), public/manual.html.
+
+LEVEL:
+CRM, project-specific.
+
+DATE:
+2026-09-30
+```
+
+---
+
+```
+DECISION:
+(1) CRM: activity lists (lead Atividades modal, client sheet) get an
+"Editar" button per row; the edit form keeps "Apagar" for who has that
+permission (useEditarAtividade, same pattern as useConfirmarApagar).
+(2) Site: the "Quero pedir proposta para" picker moves into the Home
+hero (first screen) as a white card; the four quick-action tiles fold
+into a row of shortcuts inside it ("Pedir proposta" dropped, the picker
+is that action). On phones the hero photo is hidden so the picker sits
+under the buttons.
+
+REASON:
+(1) Editing and deleting activities only existed on the removed Tarefas
+page. (2) Client request: the picker on the first screen, with the hero.
+Checked at 1440x900 (whole card visible), 1366x768 (the six ramos
+visible) and 375x812.
+
+SCOPE:
+crm: FichaSecoes, AtividadesLeadModal, Leads, ClienteFicha,
+hooks/useEditarAtividade.tsx, manual. Site: Home, PedirPropostaPara,
+data/apoio.ts, components.css; sections/AcessosRapidos.tsx removed.
+
+LEVEL:
+Project-specific.
+
+DATE:
+2026-09-30
+```

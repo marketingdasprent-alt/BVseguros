@@ -18,6 +18,7 @@ import { useFichaCliente } from '@/hooks/useFichaCliente'
 import { atualizarCliente, apagarCliente } from '@/hooks/useClientes'
 import { criarApolice } from '@/hooks/useApolices'
 import { criarAtividade } from '@/hooks/useAtividades'
+import { useEditarAtividade } from '@/hooks/useEditarAtividade'
 import { useEquipa } from '@/hooks/useEquipa'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
@@ -43,6 +44,11 @@ export default function ClienteFicha() {
   const [formulario, setFormulario] = useState<Formulario>(null)
   const [aGuardar, setAGuardar] = useState(false)
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(() => navigate('/clientes'))
+  const edicaoAtividade = useEditarAtividade({
+    leads: [],
+    clientes: data ? [data.cliente] : [],
+    onAlterado: () => Promise.all([recarregar(), historico.recarregar()]),
+  })
 
   const resumo = useMemo(() => data && resumirCliente(data.apolices, data.sinistros, dataLocalIso()), [data])
 
@@ -117,7 +123,7 @@ export default function ClienteFicha() {
         <NovaAtividadeForm leads={[]} clientes={[cliente]} clienteFixoId={cliente.id} responsavelId={profile?.id ?? null} aCriar={aGuardar}
           onCriar={(dados: AtividadeInsert) => guardar(() => criarAtividade(dados), 'Atividade registada', 'Erro ao registar atividade', () => setFormulario(null))} />
       )}
-      {pode('atividades', 'ver') && <FichaAtividades atividades={data.atividades}
+      {pode('atividades', 'ver') && <FichaAtividades atividades={data.atividades} onEditar={edicaoAtividade.editar}
         acao={pode('atividades', 'editar') && <Button variant="secondary" size="sm" icon={<Plus />} onClick={() => setFormulario(formulario === 'atividade' ? null : 'atividade')}>Registar atividade</Button>} />}
 
       <HistoricoRegistos entradas={historico.data} isLoading={historico.isLoading} error={historico.error}
@@ -143,6 +149,7 @@ export default function ClienteFicha() {
           } : undefined}
         />
       )}
+      {edicaoAtividade.modal}
       {modalApagar}
     </div>
   )

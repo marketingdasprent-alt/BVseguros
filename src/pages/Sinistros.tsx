@@ -1,9 +1,12 @@
 import Container from "../components/layout/Container";
+import CardGrid from "../components/layout/CardGrid";
 import Section from "../components/layout/Section";
+import FlowLines from "../components/ui/FlowLines";
 import Button from "../components/ui/Button";
 import PorConfirmar from "../components/ui/PorConfirmar";
 import RamoIcon from "../components/ui/RamoIcon";
 import Breadcrumb from "../components/navigation/Breadcrumb";
+import { abrirSinistro } from "../app/proposta";
 import ApoioSecao from "../sections/ApoioSecao";
 import ContactoSecao from "../sections/ContactoSecao";
 import type { Pergunta } from "../data/apoio";
@@ -103,8 +106,8 @@ export default function Sinistros() {
               à seguradora consigo e acompanhamos o processo até ao fim.
             </p>
             <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
-              <Button as="a" href="#contacto">
-                Pedir ajuda com um sinistro
+              <Button onClick={() => abrirSinistro()}>
+                Participar sinistro
               </Button>
               <Button as="a" href="#por-ramo" variant="secondary">
                 O que fazer por tipo de seguro
@@ -114,10 +117,11 @@ export default function Sinistros() {
         </Container>
       </Section>
 
-      <Section variant="compact">
+      <Section variant="compact" className="section-decor">
+        <FlowLines variante="bordas" />
         <Container>
           <h2 className="reasons__title">Nas primeiras horas</h2>
-          <ol className="reasons" role="list">
+          <CardGrid as="ol" className="reasons" role="list" cols={4}>
             {PRIMEIROS_PASSOS.map((p, i) => (
               <li key={p.titulo} className="reasons__item">
                 <span className="reasons__number">{String(i + 1).padStart(2, "0")}</span>
@@ -125,11 +129,12 @@ export default function Sinistros() {
                 <p className="text-secondary">{p.descricao}</p>
               </li>
             ))}
-          </ol>
+          </CardGrid>
         </Container>
       </Section>
 
-      <Section id="por-ramo" surface className="section-anchor">
+      <Section id="por-ramo" surface className="section-anchor section-decor">
+        <FlowLines variante="laterais" />
         <Container>
           <div className="section-intro section-intro--wide">
             <h2>O que fazer, por tipo de seguro.</h2>
@@ -138,7 +143,7 @@ export default function Sinistros() {
               do contrato, e confirmamos consigo.
             </p>
           </div>
-          <ul className="claim-grid" role="list">
+          <CardGrid as="ul" className="claim-grid" role="list">
             {POR_RAMO.map((r) => (
               <li key={r.key} className="claim-card">
                 <span className="claim-card__icon">
@@ -152,7 +157,7 @@ export default function Sinistros() {
                 </ul>
               </li>
             ))}
-          </ul>
+          </CardGrid>
           <p className="text-caption" style={{ marginTop: "var(--space-lg)", textAlign: "center" }}>
             <PorConfirmar>
               Por confirmar: linhas de assistência 24 horas das seguradoras com
@@ -164,7 +169,7 @@ export default function Sinistros() {
 
       <ApoioSecao perguntas={PERGUNTAS_SINISTRO} titulo="Perguntas sobre sinistros." />
 
-      <ContactoSecao titulo="Conte-nos o que aconteceu." />
+      <ContactoSecao titulo="Conte-nos o que aconteceu." sinistro />
     </>
   );
 }

@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { CalendarDays, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -28,7 +27,7 @@ export default function Dashboard() {
         <DashboardPipeline leads={leads.data} />
         <DashboardPriorities propostas={resumo.data?.propostas_em_aberto ?? 0}
           sinistros={resumo.data?.sinistros_em_aberto ?? 0}
-          renovacoes={resumo.data?.renovacoes_30_dias ?? 0} tarefas={atividades.data.filter((item) => item.tipo === 'tarefa' && !item.concluida && !!item.data_prevista && item.data_prevista < format(today, 'yyyy-MM-dd')).length} />
+          renovacoes={resumo.data?.renovacoes_30_dias ?? 0} />
       </div>
       <DashboardActivity atividades={atividades.data} />
       <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted"><span>Informação da carteira atual.</span><Link to="/renovacoes" className="text-link">Consultar renovações a 60 dias <ArrowUpRight size={13} /></Link></p>

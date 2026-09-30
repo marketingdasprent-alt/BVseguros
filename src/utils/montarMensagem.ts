@@ -13,15 +13,24 @@ function formatarValor(campo: Campo, valor: string): string {
 }
 
 /**
- * Junta os campos do ramo num bloco "Rótulo: valor" legível no CRM,
- * seguido da mensagem livre. Se passar do limite, corta a mensagem livre
+ * Junta o contexto já escolhido na página (ex.: nível de proteção) e os
+ * campos do ramo num bloco "Rótulo: valor" legível no CRM, seguido da
+ * mensagem livre. Se passar do limite, corta a mensagem livre
  * (os campos do ramo são o que a BV precisa para pedir propostas).
  */
-export function montarMensagem(campos: Campo[], valores: Record<string, string>, livre: string): string {
-  const linhas = campos
-    .map((c) => ({ c, v: (valores[c.nome] ?? "").trim() }))
-    .filter(({ v }) => v !== "")
-    .map(({ c, v }) => `${c.rotulo}: ${formatarValor(c, v)}`);
+export function montarMensagem(
+  campos: Campo[],
+  valores: Record<string, string>,
+  livre: string,
+  contexto: string[] = []
+): string {
+  const linhas = [
+    ...contexto,
+    ...campos
+      .map((c) => ({ c, v: (valores[c.nome] ?? "").trim() }))
+      .filter(({ v }) => v !== "")
+      .map(({ c, v }) => `${c.rotulo}: ${formatarValor(c, v)}`),
+  ];
   const detalhes = linhas.join("\n");
   const texto = livre.trim();
   if (!texto) return detalhes.slice(0, MAX_MENSAGEM);

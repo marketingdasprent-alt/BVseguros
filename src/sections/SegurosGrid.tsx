@@ -1,5 +1,8 @@
 import { useState } from "react";
 import Link from "../app/Link";
+import CardGrid from "../components/layout/CardGrid";
+import Button from "../components/ui/Button";
+import { abrirProposta } from "../app/proposta";
 import RamoIcon from "../components/ui/RamoIcon";
 import LineIcon from "../components/ui/LineIcon";
 import SegmentTabs from "../components/navigation/SegmentTabs";
@@ -31,42 +34,57 @@ export default function SegurosGrid({
       <div className="segment-tabs-wrap">
         <SegmentTabs id="seguros" label="Filtrar seguros" tabs={TABS} ativo={filtro} onChange={setFiltro} />
       </div>
-      <div
+      <CardGrid
         id="seguros-painel"
         role="tabpanel"
         aria-labelledby={`seguros-tab-${filtro}`}
-        className="grid grid--services"
-        style={{ gap: "var(--space-lg)", marginTop: "var(--space-lg)" }}
+        style={{ marginTop: "var(--space-lg)" }}
       >
         {visiveis.map((seguro) => (
-          <Link
+          <article
             key={seguro.key}
-            href={hrefSeguro(seguro)}
-            className="media-card media-card--interactive media-card--link"
-            style={{ gridColumn: "span 4" }}
+            className="media-card media-card--interactive"
           >
-            <img
-              src={seguro.imagem}
-              alt=""
-              className="media-card__media"
-              loading="lazy"
-              style={{ objectPosition: seguro.imagemFoco }}
-            />
+            {/* Foto e título levam à página do ramo; os botões são as duas ações do cartão. */}
+            <Link href={hrefSeguro(seguro)} tabIndex={-1} aria-hidden="true" className="media-card__media-link">
+              <img
+                src={seguro.imagem}
+                alt=""
+                className="media-card__media"
+                loading="lazy"
+                style={{ objectPosition: seguro.imagemFoco }}
+              />
+            </Link>
             <div className="media-card__body">
               <div className="media-card__icon-chip">
                 <RamoIcon tipo={seguro.key} />
               </div>
               {mostrarPublico && <p className="text-label text-muted">{seguro.publico}</p>}
-              <Heading className="media-card__title">{seguro.nome}</Heading>
+              <Heading className="media-card__title">
+                <Link href={hrefSeguro(seguro)} className="media-card__title-link">
+                  {seguro.nome}
+                </Link>
+              </Heading>
               <p className="text-secondary">{seguro.descricao}</p>
-              <span className="media-card__more" aria-hidden="true">
-                Ver coberturas
-                <LineIcon nome="seta" size={16} />
-              </span>
+              <div className="media-card__actions">
+                <Button size="sm" onClick={() => abrirProposta(seguro.key)} aria-label={`Simular seguro ${seguro.nome.toLowerCase()}`}>
+                  Simular
+                </Button>
+                <Button
+                  as={Link}
+                  href={hrefSeguro(seguro)}
+                  size="sm"
+                  variant="secondary"
+                  aria-label={`Ver detalhes: ${seguro.nome}`}
+                >
+                  Ver detalhes
+                  <LineIcon nome="seta" size={16} />
+                </Button>
+              </div>
             </div>
-          </Link>
+          </article>
         ))}
-      </div>
+      </CardGrid>
     </>
   );
 }

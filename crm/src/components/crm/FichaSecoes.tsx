@@ -1,7 +1,8 @@
-import { AlertTriangle, CheckSquare, FileText, Mail, MessageSquare, Phone, Shield, StickyNote, Users } from 'lucide-react'
+import { AlertTriangle, CheckSquare, FileText, Mail, MessageSquare, Pencil, Phone, Shield, StickyNote, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatarData, formatarDataRelativa, formatarMoeda } from '@/lib/format'
 import { ESTADOS_APOLICE, ESTADOS_PROPOSTA, ESTADOS_SINISTRO, RAMOS, TIPOS_ATIVIDADE } from '@/lib/types'
@@ -116,6 +117,8 @@ interface FichaAtividadesProps {
   descricaoVazio?: string
   // Se vier, o estado da tarefa passa a botão para a marcar como concluída/pendente.
   onAlternarConcluida?: (atividade: Atividade) => void
+  // Se vier, cada linha tem "Editar" (o "Apagar" está dentro do formulário de edição).
+  onEditar?: (atividade: Atividade) => void
 }
 
 function EstadoTarefa({ atividade, onAlternar }: { atividade: Atividade; onAlternar?: (a: Atividade) => void }) {
@@ -129,7 +132,7 @@ function EstadoTarefa({ atividade, onAlternar }: { atividade: Atividade; onAlter
   )
 }
 
-export function FichaAtividades({ atividades, acao, descricaoVazio, onAlternarConcluida }: FichaAtividadesProps) {
+export function FichaAtividades({ atividades, acao, descricaoVazio, onAlternarConcluida, onEditar }: FichaAtividadesProps) {
   return (
     <Secao titulo="Atividades" contagem={atividades.length} acao={acao}>
       {atividades.length === 0 ? (
@@ -139,7 +142,16 @@ export function FichaAtividades({ atividades, acao, descricaoVazio, onAlternarCo
           {atividades.map((a) => (
             <Linha key={a.id} icone={ICONE_ATIVIDADE[a.tipo] ?? MessageSquare} titulo={a.titulo}
               detalhe={<>{rotulo(TIPOS_ATIVIDADE, a.tipo)} · {a.data_prevista && !a.concluida ? `prazo ${formatarData(a.data_prevista)}` : formatarDataRelativa(a.data_atividade)}{a.notas ? ` · ${a.notas}` : ''}</>}
-              direita={a.tipo === 'tarefa' ? <EstadoTarefa atividade={a} onAlternar={onAlternarConcluida} /> : undefined} />
+              direita={(a.tipo === 'tarefa' || onEditar) && (
+                <span className="flex shrink-0 items-center gap-1">
+                  {a.tipo === 'tarefa' && <EstadoTarefa atividade={a} onAlternar={onAlternarConcluida} />}
+                  {onEditar && (
+                    <Button size="sm" variant="ghost" icon={<Pencil />} onClick={() => onEditar(a)} aria-label={`Editar «${a.titulo}»`}>
+                      Editar
+                    </Button>
+                  )}
+                </span>
+              )} />
           ))}
         </ul>
       )}

@@ -1,6 +1,7 @@
-import type { CSSProperties } from "react";
 import Container from "../components/layout/Container";
+import CardGrid from "../components/layout/CardGrid";
 import Section from "../components/layout/Section";
+import FlowLines from "../components/ui/FlowLines";
 import Button from "../components/ui/Button";
 import Link from "../app/Link";
 import PorConfirmar from "../components/ui/PorConfirmar";
@@ -8,6 +9,7 @@ import RamoIcon from "../components/ui/RamoIcon";
 import ComparacaoNiveis from "../components/ui/ComparacaoNiveis";
 import Breadcrumb from "../components/navigation/Breadcrumb";
 import PageSubnav from "../components/navigation/PageSubnav";
+import { abrirProposta } from "../app/proposta";
 import ApoioSecao from "../sections/ApoioSecao";
 import ContactoSecao from "../sections/ContactoSecao";
 import SeguradorasFaixa from "../sections/SeguradorasFaixa";
@@ -37,7 +39,6 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
     { id: "coberturas", label: "Coberturas" },
     { id: "como-funciona", label: "Como funciona" },
     { id: "perguntas", label: "Perguntas frequentes" },
-    { id: "contacto", label: "Pedir proposta" },
   ];
 
   return (
@@ -59,7 +60,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
                 {seguro.intro}
               </p>
               <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
-                <Button as="a" href="#contacto">
+                <Button onClick={() => abrirProposta(seguro.key)}>
                   Pedir proposta
                 </Button>
                 <Button as="a" href={seguro.niveis ? "#niveis" : "#coberturas"} variant="secondary">
@@ -74,14 +75,15 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
         </Container>
       </Section>
 
-      <PageSubnav itens={subnav} />
+      <PageSubnav itens={subnav} acao={{ label: "Simular", onClick: () => abrirProposta(seguro.key) }} />
 
-      <Section variant="compact">
+      <Section variant="compact" className="section-decor">
+        <FlowLines variante="bordas" />
         <Container>
           <h2 className="reasons__title">
             Porquê tratar do seu {seguro.key === "outros" ? "seguro" : nomeSeguro} connosco
           </h2>
-          <ul className="reasons" role="list">
+          <CardGrid as="ul" className="reasons" role="list">
             {RAZOES.map((r, i) => (
               <li key={r.titulo} className="reasons__item">
                 <span className="reasons__number">{String(i + 1).padStart(2, "0")}</span>
@@ -89,12 +91,13 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
                 <p className="text-secondary">{r.descricao}</p>
               </li>
             ))}
-          </ul>
+          </CardGrid>
         </Container>
       </Section>
 
       {seguro.niveis && (
-        <Section id="niveis" surface className="section-anchor">
+        <Section id="niveis" surface className="section-anchor section-decor">
+          <FlowLines variante="laterais" />
           <Container>
             <div className="section-intro section-intro--wide">
               <h2>Escolha o nível de proteção.</h2>
@@ -103,12 +106,13 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
                 aproxima mais do que procura e comparamos as propostas.
               </p>
             </div>
-            <ComparacaoNiveis dados={seguro.niveis} />
+            <ComparacaoNiveis dados={seguro.niveis} onPedirProposta={(nivel) => abrirProposta(seguro.key, [`Nível de proteção pretendido: ${nivel}`])} />
           </Container>
         </Section>
       )}
 
-      <Section id="coberturas" className="section-anchor">
+      <Section id="coberturas" className="section-anchor section-decor">
+        <FlowLines variante="lateraisAbertas" espelhado />
         <Container>
           <div className="section-intro section-intro--wide">
             <h2>O que pode ficar coberto.</h2>
@@ -117,12 +121,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
               à sua maneira: dizemos-lhe quais fazem sentido no seu caso.
             </p>
           </div>
-          <ul
-            className="coverage-grid"
-            role="list"
-            // 4 ou 8 coberturas ficam em linhas de 4; o resto em linhas de 3.
-            style={{ "--colunas": seguro.coberturas.length % 4 === 0 ? 4 : 3 } as CSSProperties}
-          >
+          <CardGrid as="ul" className="coverage-grid" role="list">
             {seguro.coberturas.map((c) => (
               <li key={c.titulo} className="coverage-item">
                 <svg className="coverage-item__icon" viewBox="0 0 20 20" aria-hidden="true">
@@ -134,7 +133,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
                 </div>
               </li>
             ))}
-          </ul>
+          </CardGrid>
           <p className="text-caption" style={{ marginTop: "var(--space-lg)", textAlign: "center" }}>
             <PorConfirmar>
               Por confirmar: seguradoras com quem a BV trabalha neste ramo e
@@ -165,11 +164,12 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
         </Section>
       )}
 
-      <Section id="como-funciona" variant="compact" className="section-anchor">
+      <Section id="como-funciona" variant="compact" className="section-anchor section-decor">
+        <FlowLines variante="laterais" espelhado />
         <Container>
           <div className="como-funciona-box">
             <h2>Como pedimos a sua proposta.</h2>
-            <ol className="steps-list" role="list">
+            <CardGrid as="ol" className="steps-list" role="list">
               {PASSOS.map((passo, i) => (
                 <li key={passo.titulo} className="steps-list__item">
                   <span className="text-display steps-list__number">{i + 1}</span>
@@ -177,7 +177,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
                   <p className="text-secondary">{passo.descricao}</p>
                 </li>
               ))}
-            </ol>
+            </CardGrid>
           </div>
         </Container>
       </Section>
@@ -188,7 +188,8 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
         <ApoioSecao perguntas={seguro.perguntas} titulo="Perguntas frequentes." />
       </div>
 
-      <Section variant="compact" surface>
+      <Section variant="compact" surface className="section-decor">
+        <FlowLines variante="bordas" espelhado />
         <Container>
           <h2 className="related-heading">Outros seguros</h2>
           <ul className="related-list" role="list">

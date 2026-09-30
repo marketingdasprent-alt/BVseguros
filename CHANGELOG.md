@@ -17,6 +17,9 @@ Format: `MAJOR.MINOR.PATCH`: see `BLUEPRINT.md#versioning`.
   na mensagem do lead); painel de contacto da Home com mapa do Google
   Maps sujeito a consentimento.
 
+- Pop-up "Pedir proposta": o formulário abre num modal em vez de estar
+  na página. Cartões dos seguros com "Simular" e "Ver detalhes".
+
 ### Changed
 
 - A Home deixa de ter formulário. Subnavegação encosta ao header em

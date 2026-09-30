@@ -1,5 +1,6 @@
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
+import FlowLines from "../components/ui/FlowLines";
 import Breadcrumb from "../components/navigation/Breadcrumb";
 import ApoioSecao from "../sections/ApoioSecao";
 import ContactoSecao from "../sections/ContactoSecao";
@@ -29,7 +30,8 @@ export default function Seguros() {
         </Container>
       </Section>
 
-      <Section>
+      <Section className="section-decor">
+        <FlowLines variante="lateraisAbertas" espelhado />
         <Container>
           <SegurosGrid headingLevel="h2" mostrarPublico />
         </Container>

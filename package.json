@@ -10,7 +10,8 @@
     "check": "npm run lint && npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "qa": "node scripts/qa-audit.mjs"
+    "qa": "node scripts/qa-audit.mjs",
+    "qa:layout": "node scripts/qa-layout.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

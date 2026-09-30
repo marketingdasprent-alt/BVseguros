@@ -1052,6 +1052,10 @@ body.has-footer-visible .back-to-top {
   pointer-events: none;
 }
 
+.section-lines--mirror {
+  transform: scaleX(-1);
+}
+
 .section-lines path {
   fill: none;
   stroke: color-mix(in srgb, var(--color-accent) 55%, white);
@@ -1067,46 +1071,39 @@ body.has-footer-visible .back-to-top {
 /* coverages, FAQ, related, contact). Existing tokens only.          */
 /* ---------------------------------------------------------------- */
 
-.media-card--link {
-  color: inherit;
-  text-decoration: none;
-}
-
-.media-card--link:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 3px;
-}
-
 .media-card__title {
   font-size: var(--font-size-h4);
 }
 
-/* Visual button only: the whole card is the link. margin-top:auto pins
-   it to the bottom, so every button in a row sits at the same height. */
-.media-card__more {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: var(--space-2xs);
+/* Card actions: "Simular" opens the proposal pop-up, "Ver detalhes"
+   goes to the ramo page. margin-top:auto pins them to the bottom, so
+   the buttons of every card in a row sit at the same height. */
+.media-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
   margin-top: auto;
-  padding: var(--space-2xs) var(--space-md);
-  border: var(--border-width-thin) solid var(--color-accent);
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-size-body-small);
-  font-weight: var(--font-weight-semibold);
-  transition: background-color var(--duration-fast) var(--easing-standard),
-    gap var(--duration-fast) var(--easing-standard);
+}
+
+.media-card__actions .btn {
+  gap: var(--space-2xs);
 }
 
 .media-card__body > .text-secondary {
   margin-bottom: var(--space-md);
 }
 
-.media-card--link:hover .media-card__more {
-  background-color: var(--color-primary-hover);
-  gap: var(--space-xs);
+.media-card__media-link {
+  display: block;
+  overflow: hidden;
+}
+
+.media-card__title-link {
+  color: inherit;
+}
+
+.media-card__title-link:hover {
+  color: var(--color-primary);
 }
 
 .breadcrumb__list {
@@ -1173,32 +1170,8 @@ body.has-footer-visible .back-to-top {
   scroll-margin-top: calc(var(--header-offset, 77px) + 3.5rem);
 }
 
-/* Flex + fixed basis: an incomplete last row sits centred instead of
-   hanging left. --colunas comes from the page (3 or 4). */
 .coverage-grid {
-  --colunas: 3;
-  --gap: var(--space-md);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--gap);
   margin-top: var(--space-xl);
-}
-
-.coverage-grid > * {
-  flex: 0 1 calc((100% - (var(--colunas) - 1) * var(--gap)) / var(--colunas));
-}
-
-@media (max-width: 1023px) {
-  .coverage-grid > * {
-    flex-basis: calc((100% - var(--gap)) / 2);
-  }
-}
-
-@media (max-width: 639px) {
-  .coverage-grid > * {
-    flex-basis: 100%;
-  }
 }
 
 .coverage-item {
@@ -1231,8 +1204,6 @@ body.has-footer-visible .back-to-top {
 }
 
 .steps-list {
-  display: grid;
-  gap: var(--space-lg);
   margin-top: var(--space-lg);
 }
 
@@ -1293,11 +1264,13 @@ body.has-footer-visible .back-to-top {
 
 .related-heading {
   font-size: var(--font-size-h4);
+  text-align: center;
 }
 
 .related-list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-sm);
   margin-top: var(--space-md);
 }
@@ -1492,64 +1465,11 @@ body.has-footer-visible .back-to-top {
   font-weight: var(--font-weight-semibold);
 }
 
-/* Quick actions: white tiles on the navy hero. */
-.quick-actions {
-  margin-top: var(--space-xl);
-}
-
-.quick-actions__list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-sm);
-}
-
-.quick-actions__item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  height: 100%;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-  transition: transform var(--duration-fast) var(--easing-standard),
-    box-shadow var(--duration-fast) var(--easing-standard);
-}
-
-.quick-actions__item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.quick-actions__item:focus-visible {
-  outline: 2px solid var(--color-text-on-dark);
-  outline-offset: 3px;
-}
-
-.quick-actions__icon {
-  display: inline-flex;
-  padding: var(--space-2xs);
-  border-radius: var(--radius-md);
-  color: var(--color-accent);
-  background-color: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
-}
-
-.quick-actions__label {
-  display: block;
-  font-weight: var(--font-weight-semibold);
-}
-
-.quick-actions__sub {
-  display: block;
-  font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
-}
-
-/* "Quero pedir proposta para": centred title over centred pills, in a
-   contained box instead of a full-width one that left half of it empty. */
+/* "Quero pedir proposta para": centred title over the 6 ramos, the box
+   as wide as the content column so no side of it is left empty. */
 .ramo-picker {
-  max-width: var(--measure-intro-wide);
-  margin-inline: auto;
+  position: relative;
+  background-color: var(--color-surface);
   padding: var(--space-lg);
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-xl);
@@ -1561,23 +1481,30 @@ body.has-footer-visible .back-to-top {
   font-size: var(--font-size-h4);
 }
 
-/* 6 ramos: 3x2 of equal buttons on desktop, 2x3 on phones. */
+/* 6 ramos: one row of 6 on desktop, 3x2 on tablet, 2x3 on phones. */
 .ramo-picker__list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--space-xs);
   margin-top: var(--space-md);
 }
 
-.ramo-picker__option {
+/* The button fills its grid cell, so every tile in a row has the same height. */
+.ramo-picker__list > li {
   display: flex;
+}
+
+.ramo-picker__option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-2xs);
-  min-height: 2.75rem;
-  padding: var(--space-2xs) var(--space-md);
+  min-height: 5.5rem;
+  padding: var(--space-sm) var(--space-xs);
   border: var(--border-width-thin) solid var(--color-border-strong);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   font-size: var(--font-size-body-small);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
@@ -1595,8 +1522,19 @@ body.has-footer-visible .back-to-top {
 .ramo-picker__icon {
   display: inline-flex;
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
+  color: var(--color-accent);
+}
+
+.ramo-picker__option:hover .ramo-picker__icon {
+  color: inherit;
+}
+
+@media (max-width: 1023px) {
+  .ramo-picker__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 /* Phones: 2 equal columns instead of a ragged wrap. */
@@ -1610,8 +1548,7 @@ body.has-footer-visible .back-to-top {
   }
 
   .ramo-picker__option {
-    padding-inline: var(--space-xs);
-    text-align: left;
+    min-height: 4.75rem;
   }
 }
 
@@ -1666,22 +1603,8 @@ body.has-footer-visible .back-to-top {
 }
 
 .channels {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-md);
+  --gap: var(--space-md);
   margin-top: var(--space-lg);
-}
-
-@media (max-width: 1023px) {
-  .channels {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 479px) {
-  .channels {
-    grid-template-columns: 1fr;
-  }
 }
 
 .channel-card {
@@ -1744,22 +1667,57 @@ body.has-footer-visible .back-to-top {
   align-items: flex-start;
   gap: var(--space-2xs);
   padding: var(--space-lg);
-  border: var(--border-width-thin) solid var(--color-border);
+  /* Thick border from the start, so choosing a level doesn't shift the layout. */
+  border: var(--border-width-thick) solid var(--color-border);
   border-radius: var(--radius-lg);
   background-color: var(--color-surface);
-}
-
-.level-card p.text-secondary {
-  margin-bottom: var(--space-sm);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
 }
 
 .level-card .btn {
   margin-top: auto;
 }
 
-.level-card--featured {
-  border: var(--border-width-thick) solid var(--color-primary);
+/* Selected level: the radio inside is checked. */
+
+.level-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.level-card--featured,
+.level-card--featured:hover {
+  border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
+}
+
+.level-card:has(.level-card__radio:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.level-picker {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.level-card__pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+  cursor: pointer;
+}
+
+.level-card__name {
+  font-family: var(--font-display);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  color: var(--color-text-primary);
 }
 
 .level-card__step {
@@ -1850,8 +1808,6 @@ body.has-footer-visible .back-to-top {
 }
 
 .reasons {
-  display: grid;
-  gap: var(--space-lg);
   margin-top: var(--space-lg);
 }
 
@@ -1919,9 +1875,7 @@ body.has-footer-visible .back-to-top {
 
 /* Claims by ramo. */
 .claim-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-  gap: var(--space-md);
+  --gap: var(--space-md);
   margin-top: var(--space-xl);
 }
 
@@ -1953,69 +1907,17 @@ body.has-footer-visible .back-to-top {
   color: var(--color-text-secondary);
 }
 
-.contact-promises {
-  display: grid;
-  gap: var(--space-xs);
-  margin-top: var(--space-lg);
-}
-
-.contact-promises li {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-weight: var(--font-weight-medium);
-}
-
-.contact-promises svg {
-  color: var(--color-accent);
-}
-
 .page-subnav__link[aria-current="true"] {
   color: var(--color-text-primary);
   border-bottom-color: var(--color-primary);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .quick-actions__item:hover {
-    transform: none;
-  }
-}
-
-/* Rows of 3-4 items: one column on phones, then all in one row, so a
-   count that doesn't divide evenly never leaves a ragged last row
-   (same reasoning as .grid--services in responsive.css). */
+/* Protection levels (always 3): one row from 640px; on phones the
+   swipeable row below. Other box sets use .card-grid (layout.css). */
 @media (min-width: 640px) {
-  .level-cards,
-  .reasons,
-  .steps-list {
+  .level-cards {
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 1fr);
-  }
-
-}
-
-@media (min-width: 1024px) {
-  .quick-actions__list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* Phones: the hero floating card hangs below the photo, so the quick
-   actions start further down; tiles go icon-over-label to fit 2x2. */
-@media (max-width: 767px) {
-  .quick-actions {
-    margin-top: calc(var(--space-xl) + var(--space-lg));
-  }
-
-  .quick-actions__item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2xs);
-    padding: var(--space-sm);
-  }
-
-  .quick-actions__sub {
-    display: none;
   }
 }
 
@@ -2325,4 +2227,267 @@ body:has(.page-subnav) .header--scrolled {
   width: 100%;
   height: 22rem;
   border: 0;
+}
+
+/* ---------------------------------------------------------------- */
+/* PROPOSAL POP-UP: project-specific, BV Seguros (DECISIONS.md       */
+/* 2026-09-30, round 3). The form opens in a native dialog instead   */
+/* of living on the page; pages end with a short call to action.    */
+/* ---------------------------------------------------------------- */
+
+html.has-modal-open {
+  overflow: hidden;
+}
+
+/* No padding on the dialog itself: a click that lands on the dialog
+   element (not on .proposal-dialog__inner) is a click on the backdrop. */
+.proposal-dialog {
+  /* margin:auto centres the modal dialog; the global reset zeroes it. */
+  margin: auto;
+  width: min(40rem, calc(100% - 2 * var(--space-md)));
+  max-height: calc(100dvh - 2 * var(--space-lg));
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  /* Anchor for the pinned close button. */
+  position: fixed;
+}
+
+.proposal-dialog::backdrop {
+  background-color: rgb(2 6 23 / 55%);
+}
+
+.proposal-dialog[open] {
+  animation: proposal-in var(--duration-normal) var(--easing-emphasized);
+}
+
+@keyframes proposal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+.proposal-dialog__inner {
+  max-height: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-lg);
+}
+
+.proposal-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-right: var(--space-xl);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.proposal-dialog__context {
+  display: inline-block;
+  margin-top: var(--space-2xs);
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.proposal-dialog__title {
+  font-size: var(--font-size-h3);
+  color: var(--color-primary);
+  margin-bottom: var(--space-3xs);
+}
+
+/* Pinned to the dialog (not to the scrolling inner), so it never scrolls away. */
+.proposal-dialog__close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  /* Above the sticky header of the phone layout. */
+  z-index: var(--z-overlay);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.proposal-dialog__close:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-primary);
+}
+
+/* Phones: a bottom sheet that uses the whole height. */
+@media (max-width: 639px) {
+  .proposal-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: 100dvh;
+    height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .proposal-dialog__inner {
+    height: 100%;
+    padding: var(--space-md);
+  }
+
+  .proposal-dialog__header {
+    position: sticky;
+    top: calc(-1 * var(--space-md));
+    z-index: var(--z-sticky);
+    margin: calc(-1 * var(--space-md)) calc(-1 * var(--space-md)) var(--space-md);
+    padding: var(--space-md);
+    background-color: var(--color-surface);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proposal-dialog[open] {
+    animation: none;
+  }
+}
+
+/* End-of-page call to action that opens the pop-up. */
+.proposal-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: var(--measure-intro-wide);
+  margin-inline: auto;
+  padding: var(--space-xl) var(--space-lg);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.proposal-cta__promises {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2xs) var(--space-lg);
+  margin-block: var(--space-2xs) var(--space-xs);
+}
+
+.proposal-cta__promises li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+}
+
+.proposal-cta__promises svg {
+  color: var(--color-accent);
+}
+
+/* "Simular" at the end of the in-page subnav. */
+.page-subnav__action {
+  flex: none;
+  align-self: center;
+  margin-left: auto;
+  padding: var(--space-2xs) var(--space-md);
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.page-subnav__action:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.page-subnav__action:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* The picker options are buttons (they open the pop-up). */
+button.ramo-picker__option {
+  width: 100%;
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+button.ramo-picker__option {
+  background-color: var(--color-surface);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Claim form: the 112 / "not the official claim" notice on top. */
+.claim-notice {
+  display: grid;
+  gap: var(--space-3xs);
+  padding: var(--space-sm) var(--space-md);
+  border-left: var(--border-width-thick) solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background-color: var(--color-warning-surface);
+  color: var(--color-text-primary);
+}
+
+/* Home: the ramo picker sits inside the navy hero, so it is on the first
+   screen. White card on navy, shortcuts to the rest of the site below. */
+.ramo-picker--hero {
+  margin-top: var(--space-lg);
+  border: none;
+  box-shadow: var(--shadow-xl);
+}
+
+.ramo-picker__shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs) var(--space-xl);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: var(--border-width-thin) solid var(--color-border);
+}
+
+.ramo-picker__shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.ramo-picker__shortcut svg {
+  color: var(--color-accent);
+}
+
+.ramo-picker__shortcut:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Phones: the Home hero photo is hidden so the picker sits right under
+   the buttons, on the first screen (the same photo is in the contact
+   panel further down). */
+@media (max-width: 767px) {
+  .hero-media {
+    display: none;
+  }
 }

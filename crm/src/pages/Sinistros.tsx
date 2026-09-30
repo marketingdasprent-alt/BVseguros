@@ -12,6 +12,8 @@ import { NovoSinistroModal } from '@/components/crm/NovoSinistroModal'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { useSinistros, criarSinistro, atualizarEstadoSinistro, atualizarSinistro, apagarSinistro } from '@/hooks/useSinistros'
+import { usePedidosSinistroNovos } from '@/hooks/usePedidosSinistro'
+import PedidosSinistro from '@/pages/PedidosSinistro'
 import { useAuth } from '@/hooks/useAuth'
 import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { useApolices } from '@/hooks/useApolices'
@@ -32,6 +34,10 @@ export default function Sinistros() {
   const [aEditar, setAEditar] = useState<Sinistro | null>(null)
   const { pode } = useAuth()
   const podeEditar = pode('sinistros', 'editar')
+  // Dois separadores: os processos (quadro) e a caixa de entrada dos pedidos feitos no site.
+  const vista = filtros.ler('vista', 'processos')
+  const pedidosNovos = usePedidosSinistroNovos(true)
+  const mudarVista = (v: string) => { filtros.limpar(); filtros.definir('vista', v, 'processos') }
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const numeroApolice = (sinistro: Sinistro) =>
@@ -88,13 +94,22 @@ export default function Sinistros() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Sinistros" description={<> Acompanhamento de processos, da participação ao pagamento. </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setModalAberto(true)}>
+      <PageHeader title="Sinistros" description={<> Acompanhamento de processos, da participação ao pagamento. </>} action={podeEditar && vista === 'processos' && <Button icon={<Plus />} onClick={() => setModalAberto(true)}>
           Novo sinistro
         </Button>} />
 
-      {carregando && <Spinner />}
-      {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar sinistros: {error.message}</p>}
-      {!carregando && !error && (
+      <div role="group" aria-label="O que ver" className="segmented">
+        <button type="button" aria-pressed={vista === 'processos'} onClick={() => mudarVista('processos')}>Processos</button>
+        <button type="button" aria-pressed={vista === 'pedidos'} onClick={() => mudarVista('pedidos')}>
+          Pedidos do site{pedidosNovos > 0 && <span className="ml-1.5 rounded-full bg-warning-bg px-1.5 text-warning-text">{pedidosNovos}</span>}
+        </button>
+      </div>
+
+      {vista === 'pedidos' && <PedidosSinistro onConvertido={recarregar} />}
+
+      {vista === 'processos' && carregando && <Spinner />}
+      {vista === 'processos' && error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar sinistros: {error.message}</p>}
+      {vista === 'processos' && !carregando && !error && (
         <>
         <AvisoTruncado truncado={truncado} />
         <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar sinistros" placeholder="Nº de apólice, nº de sinistro ou descrição" />
