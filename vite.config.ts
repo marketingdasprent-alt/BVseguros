@@ -6,5 +6,6 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
-  server: { port: 5190 },
+  // 5190 por omissão; PORT deixa correr um segundo servidor (ex.: preview do Claude) sem conflito.
+  server: { port: Number(process.env.PORT) || 5190 },
 })
