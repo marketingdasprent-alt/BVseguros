@@ -14,3 +14,8 @@ DECISIONS.md
 CHANGELOG.md
 docs
 brand
+
+# Ficheiros de ambiente locais (chaves): nunca no envio do deploy. As variáveis vêm da Vercel.
+.env
+.env.*
+!.env.example
