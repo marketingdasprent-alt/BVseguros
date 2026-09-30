@@ -33,7 +33,7 @@ export function LeadCard({ lead, nomeResponsavel, podeAtribuir, onAssumir, onAtr
         {lead.origem === 'site' && <Badge tone="success">Site</Badge>}
       </div>
       {lead.mensagem && (
-        <p className="text-xs text-muted line-clamp-3" title={lead.mensagem}>
+        <p className="text-xs text-muted line-clamp-3 whitespace-pre-line" title={lead.mensagem}>
           “{lead.mensagem}”
         </p>
       )}

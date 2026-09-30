@@ -14,6 +14,7 @@ import { corresponde } from '@/lib/pesquisa'
 import { AtribuirResponsavelModal } from '@/components/crm/AtribuirResponsavelModal'
 import { AtividadesLeadModal } from '@/components/crm/AtividadesLeadModal'
 import { useAtividades, criarAtividade, marcarConcluida } from '@/hooks/useAtividades'
+import { useEditarAtividade } from '@/hooks/useEditarAtividade'
 import { resumirAtividadesPorLead } from '@/lib/atividades'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
@@ -44,6 +45,7 @@ export default function Leads() {
   const atividades = useAtividades()
   const [aVerAtividades, setAVerAtividades] = useState<Lead | null>(null)
   const resumoAtividades = useMemo(() => resumirAtividadesPorLead(atividades.data), [atividades.data])
+  const edicaoAtividade = useEditarAtividade({ leads: aVerAtividades ? [aVerAtividades] : [], clientes: [], onAlterado: atividades.recarregar })
 
   const filtro = lerFiltroResponsavel(filtros.ler('responsavel'))
   const termo = filtros.ler('q')
@@ -219,9 +221,11 @@ export default function Leads() {
           podeRegistar={pode('atividades', 'editar')}
           onCriar={handleCriarAtividade}
           onAlternarConcluida={handleAlternarConcluida}
+          onEditar={edicaoAtividade.editar}
           onFechar={() => setAVerAtividades(null)}
         />
       )}
+      {edicaoAtividade.modal}
 
       {modalApagar}
     </div>

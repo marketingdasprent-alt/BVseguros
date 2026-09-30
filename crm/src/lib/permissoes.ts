@@ -20,7 +20,8 @@ export interface MinhasPermissoes {
 export interface DefinicaoModulo {
   id: Modulo
   rotulo: string
-  rota: string
+  // Sem rota: o módulo não tem página própria (as atividades vivem nos leads e na ficha do cliente).
+  rota?: string
   descricao: string
   // Dashboard só se vê; não há nada para editar.
   soVer?: boolean
@@ -36,7 +37,7 @@ export const MODULOS: DefinicaoModulo[] = [
   { id: 'apolices', rotulo: 'Apólices', rota: '/apolices', descricao: 'Contratos, prémios e datas.' },
   { id: 'renovacoes', rotulo: 'Renovações', rota: '/renovacoes', descricao: 'Apólices a chegar ao fim e o seu seguimento.' },
   { id: 'sinistros', rotulo: 'Sinistros', rota: '/sinistros', descricao: 'Participações e o seu estado.' },
-  { id: 'atividades', rotulo: 'Tarefas', rota: '/atividades', descricao: 'Tarefas, chamadas, emails, reuniões e notas.' },
+  { id: 'atividades', rotulo: 'Atividades', descricao: 'Chamadas, emails, reuniões, tarefas e notas, nos leads e na ficha do cliente.' },
 ]
 
 export const SEM_PERMISSAO: PermissaoModulo = { nivel: 'nenhum', apagar: false, atribuir: false }
@@ -53,7 +54,7 @@ export function podeFazer(isAdmin: boolean, permissoes: MinhasPermissoes | null,
 
 // Para onde vai quem não tem Dashboard: o primeiro módulo que pode ver.
 export function rotaInicial(pode: (modulo: Modulo, acao: AcaoPermissao) => boolean): string | null {
-  return MODULOS.find((m) => pode(m.id, 'ver'))?.rota ?? null
+  return MODULOS.find((m) => m.rota && pode(m.id, 'ver'))?.rota ?? null
 }
 
 // Mantém as regras da base de dados: extras só com "editar", "atribuir" só onde existe.

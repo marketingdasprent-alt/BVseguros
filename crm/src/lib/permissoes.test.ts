@@ -39,6 +39,8 @@ describe('rotaInicial', () => {
   it('vai para o primeiro módulo que a pessoa pode ver', () => {
     expect(rotaInicial((m) => m === 'clientes' || m === 'sinistros')).toBe('/clientes')
     expect(rotaInicial(() => false)).toBeNull()
+    // Atividades não tem página: sozinho não dá rota inicial.
+    expect(rotaInicial((m) => m === 'atividades')).toBeNull()
   })
 })
 
