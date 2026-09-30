@@ -49,6 +49,12 @@ export function cifrarIp(ip: string, segredo: string): string {
   return createHash("sha256").update(`${segredo}:${ip}`).digest("hex");
 }
 
+/** As funções devolvem void: o PostgREST responde 204, ou 200 com JSON. Uma página HTML não conta. */
+export function respostaDoPostgrest(r: Response): boolean {
+  if (!r.ok) return false;
+  return !(r.headers.get("content-type") ?? "").includes("text/html");
+}
+
 export function createHandler({ env = process.env as Env, fetchImpl = fetch }: { env?: Env; fetchImpl?: typeof fetch } = {}) {
   return async function handler(req: Pedido, res: Resposta) {
     res.setHeader("Cache-Control", "no-store");
@@ -109,9 +115,15 @@ export function createHandler({ env = process.env as Env, fetchImpl = fetch }: {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: chave, Authorization: `Bearer ${chave}` },
       body: JSON.stringify(parametros),
+      redirect: "manual",
     }).catch(() => null);
     if (!resposta) return res.status(502).json({ erro: "falha_envio" });
-    if (resposta.ok) return res.status(200).json({ ok: true });
+    if (respostaDoPostgrest(resposta)) return res.status(200).json({ ok: true });
+    if (resposta.status < 400) {
+      // Um 2xx/3xx que não vem da API (ex.: SUPABASE_URL com o endereço do painel) seria um falso sucesso.
+      console.error(`api/pedido: ${funcao.nome} respondeu ${resposta.status} sem ser da API do Supabase; confirmar SUPABASE_URL.`);
+      return res.status(502).json({ erro: "falha_envio" });
+    }
 
     const erro = (await resposta.json().catch(() => null)) as { message?: string } | null;
     const motivo = erro?.message && MOTIVOS.has(erro.message) ? erro.message : null;
