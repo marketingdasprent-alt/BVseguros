@@ -152,6 +152,32 @@ automatically.
 **States implemented:** default, hover, focus, error, success, disabled.
 ("Filled" is a browser-native visual state: no extra class needed.)
 
+### InputValidado: `src/components/forms/InputValidado.tsx`
+
+`Input` plus a validator from `src/utils/validacoes.ts` (NIF with the
+mod-11 check digit, Portuguese phone, email, name, postal code, number
+plate, dates). The validator's message goes into `setCustomValidity`, so
+the browser blocks the submit; the same message shows as the `error`
+state only after blur or a submit attempt, never while typing. An
+optional `formatar` tidies the value on blur (`aa00aa` becomes
+`AA-00-AA`, `1000001` becomes `1000-001`). Form fields in
+`src/data/formularios*.ts` opt in with `validar` / `formatar`. Rules
+that need two fields (driving licence year vs. date of birth) run in the
+form's submit handler. Tests: `npm test`.
+
+### CaixaVerificacao: `src/components/forms/VerificacaoHumana.tsx`
+
+Cloudflare Turnstile in `interaction-only` mode, placed after the
+consent checkbox in every site form. Invisible unless Cloudflare needs
+the visitor to click; a negative top margin cancels the `.stack` gap so
+the invisible widget leaves no empty row. The form keeps the token
+through `useVerificacaoHumana()`, waits for it on submit (button in its
+loading state) and asks for a new one after every attempt, because
+tokens are single use. The token is checked on the server by
+`api/pedido.ts`, which also applies the per-IP limit before calling
+Supabase. Without `VITE_TURNSTILE_SITE_KEY`, development uses
+Cloudflare's always-pass test key.
+
 ### Card: `src/components/ui/Card.tsx`
 
 A generic content surface. `interactive` adds hover/focus elevation and

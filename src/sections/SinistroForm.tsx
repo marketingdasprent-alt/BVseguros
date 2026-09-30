@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Button from "../components/ui/Button";
+import CaixaVerificacao from "../components/forms/VerificacaoHumana";
+import { useVerificacaoHumana } from "../components/forms/useVerificacaoHumana";
 import Input from "../components/forms/Input";
 import CamposRamo, { PREFIXO_CAMPO } from "../components/forms/CamposRamo";
 import { CamposContacto, CamposFecho, SeletorRamo } from "../components/forms/CamposBase";
@@ -8,6 +10,7 @@ import { EnvioContactoError, MENSAGEM_ERRO } from "../utils/enviarContacto";
 import type { ErroContacto, RamoCrm } from "../utils/enviarContacto";
 import { enviarPedidoSinistro } from "../utils/enviarPedidoSinistro";
 import { anuncioPerguntas } from "../utils/anuncioPerguntas";
+import { normalizarTelefone } from "../utils/validacoes";
 import { CAMPOS_SINISTRO } from "../data/formulariosSinistro";
 import { SEGUROS, SEGUROS_FORMULARIO } from "../data/seguros";
 import type { RamoKey } from "../data/seguros";
@@ -25,6 +28,7 @@ const iso = (d: Date) =>
 export default function SinistroForm({ ramoInicial, onConcluido }: { ramoInicial?: RamoKey; onConcluido?: () => void }) {
   const [estado, setEstado] = useState<Estado>("inicial");
   const [erro, setErro] = useState<ErroContacto | null>(null);
+  const verificacao = useVerificacaoHumana();
   const [ramo, setRamo] = useState<RamoCrm | "">(SEGUROS.find((s) => s.key === ramoInicial)?.ramoCrm ?? "");
 
   const seguro = SEGUROS.find((s) => s.ramoCrm === ramo);
@@ -47,26 +51,32 @@ export default function SinistroForm({ ramoInicial, onConcluido }: { ramoInicial
 
     setEstado("a_enviar");
     try {
+      const token = await verificacao.obterToken();
       await enviarPedidoSinistro({
         nome: texto("nome"),
         email: texto("email"),
-        telefone: texto("telefone"),
+        telefone: normalizarTelefone(texto("telefone")),
         ramo: ramo as RamoCrm,
         numeroApolice: texto("numero_apolice"),
         seguradora: texto("seguradora"),
         dataOcorrencia: texto("data_ocorrencia"),
         local: texto("local"),
         descricao: texto("descricao"),
+        // O NIF segue nos detalhes: ajuda a equipa a encontrar o cliente no CRM.
         detalhes: Object.fromEntries(
-          campos.map((c) => [c.nome, texto(PREFIXO_CAMPO + c.nome)]).filter(([, v]) => v !== "")
+          [["nif", texto("nif").replace(/\D/g, "")], ...campos.map((c) => [c.nome, texto(PREFIXO_CAMPO + c.nome)])].filter(
+            ([, v]) => v !== ""
+          )
         ),
         consentimento: dados.get("consentimento") === "sim",
-      });
+      }, token);
       form.reset();
       setEstado("enviado");
     } catch (error: unknown) {
       setErro(error instanceof EnvioContactoError ? error.motivo : "falha_envio");
       setEstado("inicial");
+    } finally {
+      verificacao.reiniciar();
     }
   };
 
@@ -152,6 +162,7 @@ export default function SinistroForm({ ramoInicial, onConcluido }: { ramoInicial
       )}
 
       <CamposFecho finalidade="tratar este pedido de sinistro" />
+      <CaixaVerificacao verificacao={verificacao} />
 
       {erro && (
         <p className="contact-form-error" role="alert">

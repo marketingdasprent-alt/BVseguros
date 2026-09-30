@@ -890,6 +890,12 @@ body.has-footer-visible .back-to-top {
   text-decoration: underline;
 }
 
+/* Turnstile em "interaction-only": o widget vive num shadow DOM fechado e fica com altura 0
+   quando não há desafio. A margem negativa anula o gap do .stack para não sobrar um vazio. */
+.stack > .human-check {
+  margin-block-start: calc(-1 * var(--space-sm));
+}
+
 .contact-form-error {
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-md);

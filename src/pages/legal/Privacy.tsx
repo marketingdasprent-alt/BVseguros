@@ -13,7 +13,7 @@ import PorConfirmar from "../../components/ui/PorConfirmar";
  */
 export default function Privacy() {
   return (
-    <LegalLayout title="Política de Privacidade" updatedAt="22 de setembro de 2026">
+    <LegalLayout title="Política de Privacidade" updatedAt="30 de setembro de 2026">
       <p>
         Esta Política de Privacidade descreve como a{" "}
         <strong>BV Seguros</strong> (&quot;nós&quot;) recolhe, usa e protege
@@ -35,12 +35,20 @@ export default function Privacy() {
       <ul>
         <li>
           <strong>Dados de identificação e contacto:</strong> nome, número de
-          telefone, endereço de email.
+          telefone, endereço de email e, se o indicar (é opcional nos
+          formulários), o NIF.
         </li>
         <li>
           <strong>Dados relativos ao seguro:</strong> dados necessários para
           preparar uma proposta ou gerir uma apólice (ex.: dados do veículo,
-          da habitação ou de saúde relevantes para o ramo contratado).
+          da habitação ou de saúde relevantes para o ramo contratado). Os
+          formulários deste site não pedem dados de saúde.
+        </li>
+        <li>
+          <strong>Dados de um sinistro:</strong> quando nos pede ajuda com um
+          sinistro, a data e o local da ocorrência, a descrição do que
+          aconteceu e as respostas sobre o seguro em causa (ex.: matrícula,
+          tipo de dano).
         </li>
         <li>
           <strong>Dados de navegação:</strong> endereço IP, tipo de
@@ -60,6 +68,16 @@ export default function Privacy() {
         <li>
           <strong>Responder a pedidos de informação</strong>, diligências
           pré-contratuais a seu pedido.
+        </li>
+        <li>
+          <strong>Tratar pedidos de ajuda com um sinistro</strong> e
+          acompanhá-los junto da seguradora, execução do contrato de seguro
+          (RGPD Art. 6.º, n.º 1, al. b)).
+        </li>
+        <li>
+          <strong>Proteger os formulários contra robôs e abusos</strong>,
+          interesse legítimo (RGPD Art. 6.º, n.º 1, al. f)): verificação
+          anti-robô e limite de pedidos por endereço IP (ver a secção 5).
         </li>
         <li>
           <strong>Obrigações legais e fiscais</strong> (RGPD Art. 6.º, n.º 1,
@@ -82,14 +100,31 @@ export default function Privacy() {
         [X] anos para registos fiscais/de mediação de seguros, nos termos da
         legislação aplicável).
       </p>
+      <p>
+        Os pedidos de contacto, de proposta e de sinistro enviados por este
+        site ficam registados no nosso sistema de gestão de clientes (CRM),
+        para lhes darmos seguimento. Não têm um prazo fixo de eliminação:
+        são conservados enquanto forem necessários para acompanhar o seu
+        pedido e a sua relação connosco como cliente ou potencial cliente.
+        Pode pedir a sua eliminação a qualquer momento (ver a secção 7).
+      </p>
 
       <h2>5. Partilha com terceiros</h2>
       <p>
         Não vendemos dados pessoais. Podemos partilhar dados estritamente
         necessários com seguradoras parceiras (para emissão e gestão de
-        apólices), subcontratantes que atuam em nosso nome (ex.:
-        alojamento, faturação) ou autoridades públicas quando legalmente
-        exigido.
+        apólices), subcontratantes que atuam em nosso nome (ex.: alojamento
+        do site, na Vercel, e a base de dados do nosso CRM, no Supabase) ou
+        autoridades públicas quando legalmente exigido. O mapa da nossa
+        localização é fornecido pela Google e só é carregado com o seu
+        consentimento (ver a <a href="/cookies">Política de Cookies</a>).
+      </p>
+      <p>
+        Os formulários usam o Cloudflare Turnstile, um serviço de verificação
+        anti-robô que não usa cookies de rastreio. Para limitar o número de
+        pedidos, o endereço IP de quem envia um formulário é guardado apenas
+        de forma cifrada (um código irreversível, nunca o IP em claro) e
+        apagado ao fim de 24 horas.
       </p>
 
       <h2>6. Transferências internacionais</h2>

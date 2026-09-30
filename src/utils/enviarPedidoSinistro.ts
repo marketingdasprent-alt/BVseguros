@@ -1,4 +1,4 @@
-import { chamarFuncaoPublica } from "./enviarContacto";
+import { enviarPedidoSite } from "./enviarContacto";
 import type { RamoCrm } from "./enviarContacto";
 
 export type PedidoSinistro = {
@@ -18,8 +18,8 @@ export type PedidoSinistro = {
 };
 
 /** Pedido de sinistro para o CRM (tabela pedidos_sinistro), não um lead. */
-export async function enviarPedidoSinistro(p: PedidoSinistro): Promise<void> {
-  await chamarFuncaoPublica("criar_pedido_sinistro_site", {
+export async function enviarPedidoSinistro(p: PedidoSinistro, token: string | null): Promise<void> {
+  await enviarPedidoSite("sinistro", {
     p_nome: p.nome,
     p_email: p.email,
     p_telefone: p.telefone,
@@ -31,5 +31,5 @@ export async function enviarPedidoSinistro(p: PedidoSinistro): Promise<void> {
     p_descricao: p.descricao,
     p_detalhes: p.detalhes,
     p_consentimento: p.consentimento,
-  });
+  }, token);
 }

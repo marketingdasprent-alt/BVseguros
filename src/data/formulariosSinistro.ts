@@ -1,5 +1,6 @@
 import type { Campo } from "./formularios";
 import type { RamoKey } from "./seguros";
+import { formatarMatricula, validarMatricula } from "../utils/validacoes";
 
 const SIM_NAO = ["Sim", "Não"];
 
@@ -12,7 +13,7 @@ const SIM_NAO = ["Sim", "Não"];
  */
 export const CAMPOS_SINISTRO: Record<RamoKey, Campo[]> = {
   auto: [
-    { nome: "matricula", rotulo: "Matrícula do seu veículo", tipo: "texto", placeholder: "AA-00-AA", maxLength: 12, largura: "meia" },
+    { nome: "matricula", rotulo: "Matrícula do seu veículo", tipo: "texto", placeholder: "AA-00-AA", maxLength: 12, largura: "meia", validar: validarMatricula, formatar: formatarMatricula },
     { nome: "outro_veiculo", rotulo: "Houve outro veículo envolvido?", tipo: "radio", opcoes: SIM_NAO, largura: "meia" },
     { nome: "declaracao_amigavel", rotulo: "Preencheu a Declaração Amigável?", tipo: "radio", opcoes: SIM_NAO, largura: "meia" },
     { nome: "feridos", rotulo: "Houve feridos?", tipo: "radio", opcoes: SIM_NAO, largura: "meia" },

@@ -1,40 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Placeholder: <loc> must be absolute (https://dominio-real/...) antes do deploy. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://example.com/</loc>
+    <loc>https://bvseguros.pt/</loc>
   </url>
   <url>
-    <loc>https://example.com/seguros</loc>
+    <loc>https://bvseguros.pt/seguros</loc>
   </url>
   <url>
-    <loc>https://example.com/seguros/automovel</loc>
+    <loc>https://bvseguros.pt/seguros/automovel</loc>
   </url>
   <url>
-    <loc>https://example.com/seguros/vida</loc>
+    <loc>https://bvseguros.pt/seguros/vida</loc>
   </url>
   <url>
-    <loc>https://example.com/seguros/saude</loc>
+    <loc>https://bvseguros.pt/seguros/saude</loc>
   </url>
   <url>
-    <loc>https://example.com/seguros/multirriscos-habitacao</loc>
+    <loc>https://bvseguros.pt/seguros/multirriscos-habitacao</loc>
   </url>
   <url>
-    <loc>https://example.com/seguros/acidentes-de-trabalho</loc>
+    <loc>https://bvseguros.pt/seguros/acidentes-de-trabalho</loc>
   </url>
   <url>
-    <loc>https://example.com/seguros/outros-seguros</loc>
+    <loc>https://bvseguros.pt/seguros/outros-seguros</loc>
   </url>
   <url>
-    <loc>https://example.com/sinistros</loc>
+    <loc>https://bvseguros.pt/sinistros</loc>
   </url>
   <url>
-    <loc>https://example.com/privacy</loc>
+    <loc>https://bvseguros.pt/privacy</loc>
   </url>
   <url>
-    <loc>https://example.com/terms</loc>
+    <loc>https://bvseguros.pt/terms</loc>
   </url>
   <url>
-    <loc>https://example.com/cookies</loc>
+    <loc>https://bvseguros.pt/cookies</loc>
   </url>
 </urlset>

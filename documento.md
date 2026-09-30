@@ -117,8 +117,17 @@ e Clientes.
 
 | Projecto | Vercel | Estado |
 | --- | --- | --- |
-| CRM | `bvseguros-crm` na conta Vercel **`bvseguros`** (desde 29/09; Root Directory `crm`) | Publicado em `bvseguros-crm.vercel.app`. **Não está ligado ao GitHub** (falta ligar o GitHub à conta `bvseguros` e autorizar a app da Vercel na organização): cada deploy é manual, com a CLI autenticada na conta `bvseguros` (`npx vercel --prod` dentro de `crm/`). |
-| Site | `bvseguros-site` na conta Vercel **`bvseguros`** (Root Directory `.`) | Publicado em `bvseguros-site.vercel.app`, com `noindex` até ao lançamento. **Não está ligado ao GitHub**: deploy manual com `npx vercel --prod` na raiz. |
+| CRM | `bvseguros-crm` na conta **`bvseguros`** | Em `https://crm.bvseguros.pt` (e `bvseguros-crm.vercel.app`). |
+| Site | `bvseguros-site` na conta **`bvseguros`** | Em `https://bvseguros.pt` (`www` redireciona para aqui). `noindex` até ao lançamento. |
+
+DNS no cPanel (registos A e CNAME a apontar para a Vercel); os domínios estão associados
+aos dois projectos. **Sem ligação ao GitHub, por decisão (30/09): o deploy é sempre
+manual**, com a CLI autenticada na conta `bvseguros`: `npx vercel --prod` na raiz para o
+site e dentro de `crm/` para o CRM. Fazer o deploy a partir de uma cópia limpa do `main`
+(`git worktree add`), para não enviar alterações locais por commitar.
+
+**Lançamento do site:** apagar a segunda regra de `headers` do `vercel.json` da raiz (a que
+não tem `missing`). A primeira mantém o `noindex` nos endereços `vercel.app`.
 
 Supabase: o CRM e o formulário do site usam o mesmo projecto. Num projecto novo corre-se
 `crm/supabase/schema.sql`; num projecto existente, as migrações de
