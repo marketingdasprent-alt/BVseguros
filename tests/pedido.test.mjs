@@ -90,6 +90,31 @@ test("erro técnico do Supabase não passa para o visitante", async () => {
   assert.deepEqual(r.dados, { erro: "falha_envio" });
 });
 
+test("SUPABASE_URL errado (página HTML ou redirecionamento) não conta como enviado", async () => {
+  const casos = [
+    new Response("<!doctype html><title>Supabase</title>", { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }),
+    new Response(null, { status: 307, headers: { location: "https://supabase.com/dashboard/sign-in" } }),
+  ];
+  for (const falsa of casos) {
+    const chamadas = [];
+    const impl = async (url, opcoes) => {
+      chamadas.push({ url: String(url), opcoes });
+      return String(url).includes("turnstile") ? new Response(JSON.stringify({ success: true }), { status: 200 }) : falsa;
+    };
+    const r = resposta();
+    const erros = console.error;
+    console.error = () => {};
+    try {
+      await createHandler({ env: { ...ENV, SUPABASE_URL: "https://supabase.com/dashboard/project/x" }, fetchImpl: impl })(pedido({ tipo: "lead", token: "tok", parametros: LEAD }), r);
+    } finally {
+      console.error = erros;
+    }
+    assert.equal(r.codigo, 502);
+    assert.deepEqual(r.dados, { erro: "falha_envio" });
+    assert.equal(chamadas[1].opcoes.redirect, "manual", "não segue redirecionamentos");
+  }
+});
+
 test("recusa método, tipo e corpo inválidos, e falta de configuração", async () => {
   const f = falsoFetch();
   const h = createHandler({ env: ENV, fetchImpl: f.impl });
