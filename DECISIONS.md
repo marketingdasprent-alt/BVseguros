@@ -1719,3 +1719,120 @@ contradict what was already there.
 DATE:
 2026-09-18
 ```
+
+---
+
+```
+DECISION:
+BV Seguros: site restructured on the navigation and page patterns of
+an insurer site (fidelidade.pt), adapted to a broker. New routes
+/seguros (hub), /seguros/<slug> (one page per ramo) and /sinistros.
+Header nav reduced to Início + Seguros (with a mega-menu grouped by
+Particulares/Empresas) + the Pedir contacto CTA. Home gains quick
+actions in the hero, a "Quero pedir proposta para" ramo picker,
+Particulares/Empresas tabs on the ramo grid, and a "Dúvidas? Nós
+ajudamos" block (FAQ + contact channels). Ramo pages gain three
+illustrative protection levels with a comparison table, a feature
+band and an active in-page subnav.
+
+REASON:
+Explicit client request (whiteboard notes, 2026-09-29): navbar
+Início/Seguros/Contacto, one page per insurance type, and replicate
+the Fidelidade experience. Only structure is taken: no text, images,
+product names or visual identity from that site. Levels are labelled
+as illustrative on the page because a broker has no single product;
+insurers, channels and testimonials stay PorConfirmar or behind empty
+arrays (src/data/seguradoras.ts) that render nothing.
+
+SCOPE:
+src/data/seguros.ts (single source for ramos, segments, levels),
+src/data/apoio.ts, src/data/seguradoras.ts, src/data/navigation.ts,
+new sections in src/sections/, new components (MegaMenu, SegmentTabs,
+Breadcrumb, Accordion, ComparacaoNiveis, LineIcon), the
+"SEGURO PAGES" and "FIDELIDADE-INSPIRED STRUCTURE" blocks in
+components.css, and router.ts: a hash that also changes page now
+scrolls after the new page commits (useScrollToHashOnNavigate), since
+scrolling in navigate() could hit the same id on the outgoing page.
+
+LEVEL:
+Level 2 (project-specific). No token added; rows of 3 to 4 items use
+explicit columns instead of auto-fit, same reasoning as .grid--services.
+
+DATE:
+2026-09-29
+```
+
+---
+
+```
+DECISION:
+BV Seguros design pass on the new structure: footer becomes a grid
+(brand + 4 columns / brand over 2x2 / stacked); support block puts the
+FAQ in a reading column with the 4 contact channels in a row below;
+coverages use 3 or 4 columns by count with a centred last row; on
+phones the protection table shows one level at a time via tabs and the
+level cards scroll-snap; the in-page subnav tracks the active section
+by scroll position; decorative lines in the contact section moved to
+the section edges.
+
+REASON:
+Visual audit at desktop and 375px found: a ragged second footer row
+after going from 2 to 4 columns, a tall channel column dwarfing the
+FAQ, 3+3+2 coverage grids, a 382px table in a 326px viewport, a subnav
+mark that stuck between sections, and decorative lines crossing body
+copy in the contact column.
+
+SCOPE:
+components.css (FOOTER, SEGURO PAGES, FIDELIDADE-INSPIRED STRUCTURE),
+responsive.css (footer), ApoioSecao, ComparacaoNiveis, PageSubnav (new),
+useSecaoAtiva, SeguroPagina, SegurosGrid (segment label only on the
+hub), ContactoSecao, navigation.ts (footer headings).
+
+LEVEL:
+Level 2 (project-specific). No new token.
+
+DATE:
+2026-09-29
+```
+
+---
+
+```
+DECISION:
+BV Seguros client review, round 2 (PROMPT-MASTER-AJUSTES-V2.md):
+each ramo page has its own form (fields in src/data/formularios.ts,
+rendered by CamposRamo, ramo fixed so no ramo select); the ramo fields
+reach the CRM inside the existing lead message as "Rótulo: valor"
+lines (option A, approved by the client), capped at the 2000-char limit
+of criar_lead_site by trimming the free message first. The Home loses
+its form for a contact panel composed like the BoomService email
+signature (photo cut by a diagonal stripe, contacts in icon circles)
+plus a Google Maps panel. The map loads only with Marketing consent or
+after "Mostrar mapa", and not at all until MORADA_CONFIRMADA is set.
+The header publishes its measured height as --header-offset.
+
+REASON:
+Client asked for forms specific to each insurance, no form on the Home,
+a map, and fixes to the ramo picker alignment, cropped card photos,
+misaligned "Ver coberturas" and a broken subnav. The subnav was pinned
+at a fixed 77px while the header is 69px from 1024px up (77px below),
+leaving an 8px gap. Option A avoids a CRM migration for now; option B
+(a detalhes jsonb column shown in the lead sheet) stays open. Health
+conditions are never asked (special category data, art. 9 GDPR). The
+Maps embed sets Google cookies used for ads, so it maps to the
+Marketing category; the cookie policy gained a section for it.
+
+SCOPE:
+src/data/formularios.ts, src/utils/montarMensagem.ts,
+src/components/forms/CamposRamo.tsx, ContactoForm, ContactoSecao,
+src/sections/ContactoPainel.tsx, src/components/ui/MapaGoogle.tsx,
+src/data/apoio.ts (MORADA_CONFIRMADA), Home, Header, SegurosGrid,
+seguros.ts (imagemFoco), pages/legal/Cookies.tsx, components.css.
+
+LEVEL:
+Level 2 (project-specific). No new token. Honeypot field is still
+named "empresa", so ramo fields are prefixed "d_" to never collide.
+
+DATE:
+2026-09-30
+```

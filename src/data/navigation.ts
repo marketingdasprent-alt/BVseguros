@@ -3,33 +3,42 @@
  * project can redefine its nav in one place instead of two.
  */
 
+import { hrefSeguro, SEGMENTOS, segurosDoSegmento } from "./seguros";
+
 export type NavigationLink = { label: string; href: string };
+export type NavigationGroup = { heading: string; links: NavigationLink[] };
+/** `submenu` abre o mega-menu no desktop e um acordeão no menu móvel. */
+export type PrimaryNavItem = NavigationLink & { submenu?: NavigationGroup[] };
 export type LegalLink =
   | (NavigationLink & { action?: never })
   | { label: string; action: "cookie-preferences"; href?: never };
 
-export const primaryNav: NavigationLink[] = [
-  { label: "Sobre", href: "#sobre" },
-  { label: "Seguros", href: "#servicos" },
-  { label: "Porquê a BV", href: "#porque" },
+const gruposSeguros: NavigationGroup[] = SEGMENTOS.map((segmento) => ({
+  heading: segmento.nome,
+  links: segurosDoSegmento(segmento.valor).map((s) => ({ label: s.nome, href: hrefSeguro(s) })),
+}));
+
+export const primaryNav: PrimaryNavItem[] = [
+  { label: "Início", href: "/" },
+  { label: "Seguros", href: "/seguros", submenu: gruposSeguros },
 ];
 
-export const footerNav = {
-  seguros: {
-    heading: "Seguros",
+export const footerNav: Record<string, NavigationGroup> = {
+  particulares: { heading: "Particulares", links: gruposSeguros[0].links },
+  empresas: { heading: "Empresas", links: gruposSeguros[1].links },
+  apoio: {
+    heading: "Apoio",
     links: [
-      { label: "Automóvel", href: "#servicos" },
-      { label: "Vida", href: "#servicos" },
-      { label: "Saúde", href: "#servicos" },
-      { label: "Multirriscos habitação", href: "#servicos" },
+      { label: "Participar sinistro", href: "/sinistros" },
+      { label: "Perguntas frequentes", href: "/#apoio" },
+      { label: "Contacto", href: "/#contacto" },
     ],
   },
   empresa: {
     heading: "Empresa",
     links: [
-      { label: "Sobre a BV Seguros", href: "#sobre" },
-      { label: "Porquê a BV", href: "#porque" },
-      { label: "Contacto", href: "#contacto" },
+      { label: "Sobre a BV Seguros", href: "/#sobre" },
+      { label: "Porquê a BV", href: "/#porque" },
     ],
   },
 };

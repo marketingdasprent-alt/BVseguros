@@ -15,14 +15,10 @@
  */
 
 /* Header: mobile menu collapses into the toggle below 1024px.
-   Footer: brand + the 2 nav columns fit one row from 1024px up, so
-   .footer__grid spreads them space-between (flush with the same
-   container edges as the rest of the page). Below that they wrap
-   to 2 rows (brand+first column, then the second column alone); if
-   both stayed space-between, that lone second row would hug the
-   left edge instead of sitting under the row above, so below 1024px
-   .footer__grid centers instead, giving a symmetric "V" (see
-   DECISIONS.md, BV Seguros) instead of a left-heavy stagger. */
+   Footer: brand + 4 nav columns in one row from 1024px; brand on its
+   own row over a 2x2 of columns on tablet; one column on phones. A
+   grid instead of the earlier flex-wrap, which left a ragged second
+   row once the footer went from 2 to 4 columns (DECISIONS.md). */
 @media (min-width: 1024px) {
   .header__nav {
     display: flex;
@@ -45,15 +41,21 @@
   }
 
   .footer__grid {
-    justify-content: space-between;
+    grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr));
   }
 }
 
-/* Footer: .footer__grid is flex + flex-wrap (components.css), so
-   brand and nav columns reflow from stacked to a row on their own as
-   width allows, no breakpoint needed here (see DECISIONS.md, BV
-   Seguros). Only the bottom bar (copyright/legal) needs an explicit
-   switch from stacked to a row. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .footer__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer__brand {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Footer bottom bar (copyright/legal): stacked, then a row. */
 @media (min-width: 768px) {
   .footer__bottom {
     flex-direction: row;

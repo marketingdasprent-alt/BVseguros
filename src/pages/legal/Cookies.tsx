@@ -12,7 +12,7 @@ import { OPEN_PREFERENCES_EVENT } from "../../hooks/useCookieConsent";
  */
 export default function Cookies() {
   return (
-    <LegalLayout title="Política de Cookies" updatedAt="22 de setembro de 2026">
+    <LegalLayout title="Política de Cookies" updatedAt="30 de setembro de 2026">
       <p>
         Esta Política de Cookies explica o que são cookies, quais os que
         este site usa, e como pode gerir as suas preferências. Complementa
@@ -49,7 +49,17 @@ export default function Cookies() {
         </li>
       </ul>
 
-      <h2>3. Google Consent Mode v2</h2>
+      <h2>3. Mapa incorporado (Google Maps)</h2>
+      <p>
+        A página inicial pode mostrar a nossa localização num mapa do
+        Google Maps. O mapa é fornecido pela Google, que pode definir os
+        seus próprios cookies, incluindo para fins publicitários. Por isso
+        só o carregamos se tiver aceitado a categoria Marketing e
+        publicidade, ou se carregar em &ldquo;Mostrar mapa&rdquo; nesse momento. Sem
+        isso, não é feito nenhum pedido à Google.
+      </p>
+
+      <h2>4. Google Consent Mode v2</h2>
       <p>
         Implementamos o <em>Google Consent Mode v2</em>. Por predefinição,
         todos os sinais de consentimento (<code>ad_storage</code>,{" "}
@@ -62,7 +72,7 @@ export default function Cookies() {
         Marketing e publicidade, nunca pela categoria Análise sozinha.
       </p>
 
-      <h2>4. Gerir as suas preferências</h2>
+      <h2>5. Gerir as suas preferências</h2>
       <p>
         Pode aceitar, recusar ou alterar as suas preferências a qualquer
         momento. Reabra o painel de preferências aqui:
@@ -88,14 +98,14 @@ export default function Cookies() {
         do site.
       </p>
 
-      <h2>5. Conservação</h2>
+      <h2>6. Conservação</h2>
       <p>
         A sua escolha fica guardada no armazenamento local deste browser
         (<code>localStorage</code>) até a alterar ou limpar os dados do
         browser.
       </p>
 
-      <h2>6. Atualizações</h2>
+      <h2>7. Atualizações</h2>
       <p>
         Esta política pode ser revista. A data da última atualização está
         indicada no topo desta página.

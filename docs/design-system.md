@@ -293,10 +293,56 @@ structure (nested inside a `Container` there for QA convenience, since
 breaking out of the Laboratory's own page container would look broken on a
 docs/QA page rather than demonstrate the pattern).
 
+## BV Seguros: navigation and page components
+
+Project-specific (Level 2), see `DECISIONS.md` 2026-09-29.
+
+- **MegaMenu** (`src/components/navigation/MegaMenu.tsx`): the nav link
+  still navigates; a separate chevron button (`aria-expanded`,
+  `aria-controls`) opens the panel for keyboard and touch, mouse hover
+  opens it too. Escape closes and returns focus to the button; click
+  outside, focus leaving the menu and route changes close it. Hidden
+  below 1024px, where the mobile panel shows the same groups in a
+  native `<details>`. Fed by `primaryNav[].submenu`.
+- **SegmentTabs** (`src/components/navigation/SegmentTabs.tsx`): ARIA
+  tabs with roving tabindex, arrows/Home/End, automatic activation.
+  The caller owns the panel (`id="<id>-painel"`, `role="tabpanel"`).
+- **Breadcrumb** (`src/components/navigation/Breadcrumb.tsx`): `<nav
+  aria-label="Caminho">` + `<ol>`; last item is `aria-current="page"`.
+- **Accordion** (`src/components/ui/Accordion.tsx`): FAQ on native
+  `<details>/<summary>`; answers flagged `porConfirmar` render inside
+  `PorConfirmar`.
+- **ComparacaoNiveis** (`src/components/ui/ComparacaoNiveis.tsx`): level
+  cards + a real `<table>` (`th scope`, hidden caption) in a focusable
+  region. Below 640px the cards become a scroll-snap row and the table
+  shows one level at a time, picked with `SegmentTabs` (hidden columns
+  are `display: none`, so screen readers get the same single level).
+  Always shows the "níveis ilustrativos" note.
+- **PageSubnav** (`src/components/navigation/PageSubnav.tsx`): sticky
+  anchor bar under the header. The active section is the last one whose
+  top passed 35% of the viewport (scroll + rAF, `useSecaoAtiva`); marked
+  with `aria-current="true"` and scrolled into view when the bar
+  overflows horizontally.
+- **ContactoForm por ramo** (`src/sections/ContactoForm.tsx` +
+  `src/components/forms/CamposRamo.tsx`): with `ramoFixo` the ramo select
+  disappears and the fields of `FORMULARIOS[ramo]` render in a 2-column
+  `.form-grid` (`largura: "meia"`); single choices are radio pills in a
+  `fieldset`/`legend`. Field names carry the `d_` prefix. On submit the
+  values go into the lead message via `montarMensagem`.
+- **ContactoPainel** (`src/sections/ContactoPainel.tsx`): Home contact
+  block, `id="contacto"`. Photo clipped by a diagonal with a navy/accent
+  stripe (`clip-path`, turns horizontal below 768px), contacts from
+  `CANAIS`, CTAs to `/seguros` and `/sinistros`.
+- **MapaGoogle** (`src/components/ui/MapaGoogle.tsx`): three states:
+  no confirmed address (placeholder card, no request), address without
+  Marketing consent (card + "Mostrar mapa"), loaded iframe.
+- **LineIcon** (`src/components/ui/LineIcon.tsx`): stroke icons shared by
+  sections, same drawing rules as `RamoIcon`.
+
 ## Not yet implemented
 
-Select, Checkbox, Radio, Accordion, Modal, Tabs, Carousel, Breadcrumb,
-Alert, Tooltip, Badge. Per `MASTER-PROMPT.md` §14/§36, v1.0.0 proves the
+Select, Checkbox, Radio, Modal, Carousel, Alert, Tooltip, Badge
+(Accordion, Tabs and Breadcrumb now exist for BV Seguros, above). Per `MASTER-PROMPT.md` §14/§36, v1.0.0 proves the
 architecture rather than pre-building every component. Add one when a
 real page needs it: reuse the token set and the state-contract pattern
 above (default/hover/focus/active/disabled at minimum for anything

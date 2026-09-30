@@ -26,12 +26,18 @@ export function navigate(to: string) {
   }
 
   // Same-page hash: the target is already mounted, scroll now. A hash
-  // that also changes page has to wait a tick for the new page (and the
-  // target element) to mount first.
-  const scrollToHash = () =>
-    document.getElementById(hash)?.scrollIntoView({ behavior: samePage ? "smooth" : "auto" });
-  if (samePage) scrollToHash();
-  else requestAnimationFrame(scrollToHash);
+  // that also changes page is handled by useScrollToHashOnNavigate,
+  // after the new page commits: scrolling here could hit an element
+  // with the same id on the page that is about to unmount.
+  if (samePage) document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+}
+
+/** Call once in App with the current pathname. */
+export function useScrollToHashOnNavigate(pathname: string) {
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash) document.getElementById(decodeURIComponent(hash))?.scrollIntoView();
+  }, [pathname]);
 }
 
 export function usePathname() {
