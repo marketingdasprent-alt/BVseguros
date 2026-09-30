@@ -6,7 +6,14 @@ import useSecaoAtiva from "../../hooks/useSecaoAtiva";
  * Subnavegação fixa por âncoras. Marca a secção a ser lida e, quando a
  * barra faz scroll horizontal (mobile), traz o item ativo para a vista.
  */
-export default function PageSubnav({ itens }: { itens: { id: string; label: string }[] }) {
+export default function PageSubnav({
+  itens,
+  acao,
+}: {
+  itens: { id: string; label: string }[];
+  /** Botão à direita da barra (ex.: "Simular", que abre o pop-up). */
+  acao?: { label: string; onClick: () => void };
+}) {
   const ativa = useSecaoAtiva(itens.map((i) => i.id));
   const lista = useRef<HTMLDivElement>(null);
 
@@ -31,6 +38,11 @@ export default function PageSubnav({ itens }: { itens: { id: string; label: stri
               {item.label}
             </a>
           ))}
+          {acao && (
+            <button type="button" className="page-subnav__action" onClick={acao.onClick}>
+              {acao.label}
+            </button>
+          )}
         </div>
       </Container>
     </nav>

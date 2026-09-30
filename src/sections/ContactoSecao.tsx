@@ -1,11 +1,11 @@
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
+import Button from "../components/ui/Button";
 import FlowLines from "../components/ui/FlowLines";
-import PorConfirmar from "../components/ui/PorConfirmar";
-import ContactoForm from "./ContactoForm";
-import { SEGUROS_FORMULARIO } from "../data/seguros";
-import { FORMULARIOS } from "../data/formularios";
 import LineIcon from "../components/ui/LineIcon";
+import PorConfirmar from "../components/ui/PorConfirmar";
+import { abrirProposta, abrirSinistro } from "../app/proposta";
+import { FORMULARIOS } from "../data/formularios";
 import type { Seguro } from "../data/seguros";
 
 const PROMESSAS = [
@@ -14,21 +14,30 @@ const PROMESSAS = [
   "Os seus dados servem só para responder ao pedido",
 ];
 
+const PROMESSAS_SINISTRO = [
+  "Ajudamos a participar à seguradora",
+  "Acompanhamos o processo consigo",
+  "Os seus dados servem só para tratar o pedido",
+];
+
 /**
- * Formulário de contacto no fim da página. Com `seguro`, usa o
- * formulário próprio desse ramo (título, texto e campos em
- * src/data/formularios.ts); sem ele, o genérico com a escolha do ramo.
+ * Fecho de página com o convite a pedir proposta. O formulário abre num
+ * pop-up (ModalProposta), para não quebrar a leitura da página. Com
+ * `seguro`, abre o formulário próprio desse ramo.
  */
 export default function ContactoSecao({
   titulo = "Fale connosco sobre o seu seguro.",
   seguro,
+  sinistro = false,
 }: {
   titulo?: string;
   seguro?: Seguro;
+  /** Fecho da página de sinistros: abre o pedido de sinistro em vez do de proposta. */
+  sinistro?: boolean;
 }) {
   const formulario = seguro ? FORMULARIOS[seguro.key] : undefined;
   return (
-    <Section id="contacto" surface className="section-decor">
+    <Section id="contacto" surface className="section-decor section-anchor">
       <FlowLines
         viewBox="0 0 1440 520"
         paths={[
@@ -37,34 +46,30 @@ export default function ContactoSecao({
         ]}
       />
       <Container>
-        <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
-          <div style={{ gridColumn: "span 5" }}>
-            <h2>{formulario?.titulo ?? titulo}</h2>
-            <p className="text-secondary" style={{ marginTop: "var(--space-sm)" }}>
-              {formulario?.texto ??
-                "Deixe os seus dados e um mediador da BV fala consigo para perceber o que precisa."}
-            </p>
-            <ul className="contact-promises" role="list">
-              {PROMESSAS.map((p) => (
-                <li key={p}>
-                  <LineIcon nome="check" size={20} />
-                  {p}
-                </li>
-              ))}
-            </ul>
-            <p className="text-caption" style={{ marginTop: "var(--space-lg)" }}>
-              Mediação de seguros:{" "}
-              <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>
-            </p>
-          </div>
-
-          <div style={{ gridColumn: "span 7" }}>
-            <ContactoForm
-              key={seguro?.key ?? "geral"}
-              ramos={SEGUROS_FORMULARIO}
-              ramoFixo={seguro && formulario ? { valor: seguro.ramoCrm, formulario } : undefined}
-            />
-          </div>
+        <div className="proposal-cta">
+          <h2>{formulario?.titulo ?? titulo}</h2>
+          <p className="text-secondary">
+            {formulario?.texto ??
+              (sinistro
+                ? "Diga-nos o que aconteceu e com que seguro. Um mediador da BV contacta-o para tratar do processo."
+                : "Deixe os seus dados e um mediador da BV fala consigo para perceber o que precisa.")}
+          </p>
+          <ul className="proposal-cta__promises" role="list">
+            {(sinistro ? PROMESSAS_SINISTRO : PROMESSAS).map((p) => (
+              <li key={p}>
+                <LineIcon nome="check" size={18} />
+                {p}
+              </li>
+            ))}
+          </ul>
+          {sinistro ? (
+            <Button onClick={() => abrirSinistro()}>Participar sinistro</Button>
+          ) : (
+            <Button onClick={() => abrirProposta(seguro?.key ?? null)}>Pedir proposta</Button>
+          )}
+          <p className="text-caption text-muted">
+            Mediação de seguros: <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>
+          </p>
         </div>
       </Container>
     </Section>

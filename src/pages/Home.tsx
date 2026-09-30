@@ -1,10 +1,11 @@
 import Container from "../components/layout/Container";
+import CardGrid from "../components/layout/CardGrid";
 import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
 import Link from "../app/Link";
+import { abrirProposta } from "../app/proposta";
 import PorConfirmar from "../components/ui/PorConfirmar";
 import FlowLines from "../components/ui/FlowLines";
-import AcessosRapidos from "../sections/AcessosRapidos";
 import ApoioSecao from "../sections/ApoioSecao";
 import ContactoPainel from "../sections/ContactoPainel";
 import PedirPropostaPara from "../sections/PedirPropostaPara";
@@ -76,7 +77,7 @@ function CheckMark() {
 export default function Home() {
   return (
     <>
-      <Section className="hero-dark">
+      <Section className="hero-dark" variant="compact">
         <Container>
           <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
             <div style={{ gridColumn: "span 7" }}>
@@ -90,7 +91,7 @@ export default function Home() {
                 precisar de usar a apólice.
               </p>
               <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
-                <Button as="a" href="#contacto">
+                <Button onClick={() => abrirProposta()}>
                   Pedir uma proposta
                 </Button>
                 <Button as={Link} href="/seguros" variant="secondary">
@@ -98,7 +99,7 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            <div style={{ gridColumn: "span 5", position: "relative" }}>
+            <div className="hero-media" style={{ gridColumn: "span 5", position: "relative" }}>
               <img
                 src="/images/porque-bv.jpg"
                 alt="Agente da BV Seguros em reunião com uma cliente"
@@ -115,11 +116,10 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <AcessosRapidos />
+          <PedirPropostaPara />
         </Container>
       </Section>
 
-      <PedirPropostaPara />
 
       <Section id="porque" className="section-decor">
         <FlowLines
@@ -133,20 +133,11 @@ export default function Home() {
           <div className="section-intro section-intro--wide">
             <h2>Três coisas que fazemos sempre.</h2>
           </div>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: "var(--space-lg)",
-              marginTop: "var(--space-xl)",
-            }}
-          >
+          <CardGrid style={{ marginTop: "var(--space-xl)" }}>
             {DIFERENCIAIS.map((item, i) => (
               <div
                 key={item.titulo}
                 className={"spotlight-card" + (i === 1 ? " spotlight-card--dark" : "")}
-                style={{ flex: "1 1 16rem", maxWidth: "24rem" }}
               >
                 <div className="spotlight-card__icon">
                   <CheckMark />
@@ -155,7 +146,7 @@ export default function Home() {
                 <p className={i === 1 ? undefined : "text-secondary"}>{item.descricao}</p>
               </div>
             ))}
-          </div>
+          </CardGrid>
         </Container>
       </Section>
 
@@ -222,25 +213,9 @@ export default function Home() {
             <div style={{ maxWidth: "var(--measure-intro-wide)" }}>
               <h2>Três passos, sem burocracia.</h2>
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                gap: "var(--space-lg)",
-                marginTop: "var(--space-xl)",
-              }}
-            >
+            <CardGrid style={{ marginTop: "var(--space-xl)" }}>
               {PASSOS.map((passo, i) => (
-                <div
-                  key={passo.titulo}
-                  style={{
-                    flex: "1 1 16rem",
-                    maxWidth: "24rem",
-                    borderTop: "var(--border-width-thick) solid var(--color-primary)",
-                    paddingTop: "var(--space-sm)",
-                  }}
-                >
+                <div key={passo.titulo} className="steps-list__item">
                   <span
                     className="text-display"
                     style={{ color: "var(--color-accent)", fontSize: "var(--font-size-h1)" }}
@@ -251,7 +226,7 @@ export default function Home() {
                   <p className="text-secondary">{passo.descricao}</p>
                 </div>
               ))}
-            </div>
+            </CardGrid>
           </div>
         </Container>
       </Section>

@@ -71,6 +71,55 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
+/* CARD GRID: the one way to lay out a set of boxes (cards, tiles).
+   Flex-wrap with a fixed basis, so an incomplete last row is centred
+   under the row above (the "V": 3 over 2, 2 over 1) instead of
+   hanging left like a CSS grid would leave it. Rule: any repeated set
+   of boxes uses .card-grid; forms and prose never do. Columns via
+   custom properties: --cols (desktop), --cols-tablet (< 1024px,
+   default 2), --cols-mobile (< 640px, default 1). Checked on every
+   page by `npm run qa:layout`. */
+.card-grid {
+  --cols: 3;
+  --c: var(--cols);
+  --gap: var(--space-lg);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap);
+}
+
+.card-grid > * {
+  flex: 0 0 calc((100% - (var(--c) - 1) * var(--gap)) / var(--c));
+  min-width: 0;
+}
+
+/* Desktop: when CardGrid balances rows with fewer columns than asked
+   (4 boxes as 2+2), the grid narrows and centres so each box keeps the
+   width it would have had, instead of growing to fill the row. */
+@media (min-width: 1024px) {
+  .card-grid {
+    width: calc(
+      var(--cols) * (100% - (var(--cols-alvo, var(--cols)) - 1) * var(--gap)) / var(--cols-alvo, var(--cols)) +
+        (var(--cols) - 1) * var(--gap)
+    );
+    max-width: 100%;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .card-grid {
+    --c: var(--cols-tablet, 2);
+  }
+}
+
+@media (max-width: 639px) {
+  .card-grid {
+    --c: var(--cols-mobile, 1);
+  }
+}
+
 .stack {
   display: flex;
   flex-direction: column;
@@ -86,6 +135,15 @@
 
 .cluster--center {
   justify-content: center;
+}
+
+/* Below 1024px a pair of buttons can wrap: they then share the row or
+   each fill it, so a wrapped pair never ends up as two ragged widths
+   hanging left (same "V" rule as .card-grid). */
+@media (max-width: 1023px) {
+  .cluster > .btn {
+    flex: 1 1 auto;
+  }
 }
 
 /* ---------------------------------------------------------------- */

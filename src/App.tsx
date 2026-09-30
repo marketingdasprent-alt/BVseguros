@@ -2,6 +2,8 @@ import type { ComponentType } from "react";
 import Header from "./components/navigation/Header";
 import Footer from "./components/layout/Footer";
 import CookieConsent from "./components/feedback/CookieConsent";
+import ModalProposta from "./components/feedback/ModalProposta";
+import { abrirProposta } from "./app/proposta";
 import BackToTop from "./components/feedback/BackToTop";
 import Home from "./pages/Home";
 import Seguros from "./pages/Seguros";
@@ -30,20 +32,20 @@ export default function App() {
   useScrollToHashOnNavigate(pathname);
   const Page = ROUTES[pathname.replace(/(.)\/+$/, "$1")] ?? NotFound;
   const seguro = seguroPorCaminho(pathname);
-  // Estas páginas têm o formulário na própria página.
-  const temContacto = pathname === "/" || pathname.startsWith("/seguros") || pathname.startsWith("/sinistros");
 
   return (
     <>
       <a href="#main-content" className="skip-link">
         Saltar para o conteúdo
       </a>
-      <Header cta={{ label: "Pedir contacto", href: temContacto ? "#contacto" : "/#contacto" }} />
+      {/* Na página de um ramo, o pop-up abre já com o formulário desse ramo. */}
+      <Header cta={{ label: "Pedir contacto", onClick: () => abrirProposta(seguro?.key ?? null) }} />
       <main id="main-content">
         {seguro ? <SeguroPagina key={seguro.slug} seguro={seguro} /> : <Page />}
       </main>
       <Footer />
       <BackToTop />
+      <ModalProposta />
       <CookieConsent />
     </>
   );

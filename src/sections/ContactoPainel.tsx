@@ -1,10 +1,11 @@
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
+import FlowLines from "../components/ui/FlowLines";
 import Button from "../components/ui/Button";
 import LineIcon from "../components/ui/LineIcon";
 import MapaGoogle from "../components/ui/MapaGoogle";
 import PorConfirmar from "../components/ui/PorConfirmar";
-import Link from "../app/Link";
+import { abrirProposta, abrirSinistro } from "../app/proposta";
 import { CANAIS, MORADA_CONFIRMADA } from "../data/apoio";
 
 /**
@@ -15,7 +16,8 @@ import { CANAIS, MORADA_CONFIRMADA } from "../data/apoio";
  */
 export default function ContactoPainel() {
   return (
-    <Section id="contacto" surface>
+    <Section id="contacto" surface className="section-decor">
+      <FlowLines variante="bordas" />
       <Container>
         <div className="signature-panel">
           <div className="signature-panel__media" aria-hidden="true">
@@ -47,10 +49,10 @@ export default function ContactoPainel() {
             </ul>
 
             <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
-              <Button as={Link} href="/seguros">
+              <Button onClick={() => abrirProposta()}>
                 Pedir proposta
               </Button>
-              <Button as={Link} href="/sinistros" variant="secondary">
+              <Button onClick={() => abrirSinistro()} variant="secondary">
                 Participar sinistro
               </Button>
             </div>

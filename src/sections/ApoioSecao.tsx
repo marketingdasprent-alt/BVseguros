@@ -1,5 +1,7 @@
 import Container from "../components/layout/Container";
+import CardGrid from "../components/layout/CardGrid";
 import Section from "../components/layout/Section";
+import FlowLines from "../components/ui/FlowLines";
 import Accordion from "../components/ui/Accordion";
 import LineIcon from "../components/ui/LineIcon";
 import PorConfirmar from "../components/ui/PorConfirmar";
@@ -17,7 +19,8 @@ export default function ApoioSecao({
   mostrarCanais?: boolean;
 }) {
   return (
-    <Section id="apoio" className="section-anchor">
+    <Section id="apoio" className="section-anchor section-decor">
+      <FlowLines variante="lateraisAbertas" />
       <Container>
         <div className="section-intro">
           <h2>{titulo}</h2>
@@ -31,7 +34,7 @@ export default function ApoioSecao({
             <h3 className="channels__title">
               Escolha como prefere falar connosco
             </h3>
-            <ul className="channels" role="list">
+            <CardGrid as="ul" className="channels" role="list" cols={4}>
               {CANAIS.map((c) => (
                 <li key={c.titulo} className="channel-card">
                   <span className="channel-card__icon">
@@ -54,7 +57,7 @@ export default function ApoioSecao({
                   </p>
                 </li>
               ))}
-            </ul>
+            </CardGrid>
           </>
         )}
       </Container>

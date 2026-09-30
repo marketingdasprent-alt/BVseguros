@@ -13,7 +13,10 @@ import useScrollState from "../../hooks/useScrollState";
  * docs/design-system.md#header for the full contract (transparent
  * variant, CTA slot, keyboard behavior).
  */
-export default function Header({ transparent = false, cta }: { transparent?: boolean; cta?: NavigationLink }) {
+/** CTA do header: um link, ou uma ação (ex.: abrir o pop-up de proposta). */
+export type HeaderCta = NavigationLink | { label: string; onClick: () => void };
+
+export default function Header({ transparent = false, cta }: { transparent?: boolean; cta?: HeaderCta }) {
   const scrolled = useScrollState();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -97,7 +100,12 @@ export default function Header({ transparent = false, cta }: { transparent?: boo
           </nav>
 
           <div className="header__actions">
-            {cta && (
+            {cta && "onClick" in cta && (
+              <Button size="sm" onClick={cta.onClick}>
+                {cta.label}
+              </Button>
+            )}
+            {cta && "href" in cta && (
               <Button as={Link} href={cta.href} size="sm">
                 {cta.label}
               </Button>
