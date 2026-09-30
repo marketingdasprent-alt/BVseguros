@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /laboratory
 
-Sitemap: /sitemap.xml
+Sitemap: https://bvseguros.pt/sitemap.xml

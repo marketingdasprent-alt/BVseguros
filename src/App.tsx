@@ -21,7 +21,8 @@ const ROUTES: Partial<Record<string, ComponentType>> = {
   "/": Home,
   "/seguros": Seguros,
   "/sinistros": Sinistros,
-  "/laboratory": Laboratory,
+  // Página de QA do design system: só em `npm run dev`, nunca no site publicado.
+  ...(import.meta.env.DEV ? { "/laboratory": Laboratory } : {}),
   "/privacy": Privacy,
   "/terms": Terms,
   "/cookies": Cookies,
