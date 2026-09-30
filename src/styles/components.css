@@ -334,11 +334,12 @@
   padding-block: var(--section-padding-normal) var(--space-lg);
 }
 
+/* Brand + 4 nav columns: a grid, so a wrapped row can never end up
+   ragged (breakpoints in responsive.css). */
 .footer__grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-xl);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl) var(--space-lg);
   padding-bottom: var(--space-xl);
 }
 
@@ -346,8 +347,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  flex: 0 1 auto;
-  min-width: 16rem;
   max-width: 26rem;
 }
 
@@ -362,8 +361,7 @@
 }
 
 .footer__column {
-  flex: 0 1 auto;
-  min-width: 8rem;
+  min-width: 0;
 }
 
 .footer__heading {
@@ -736,9 +734,11 @@ body.has-footer-visible .back-to-top {
   box-shadow: var(--shadow-md);
 }
 
+/* Fixed ratio (not a fixed height) so the crop doesn't change with the
+   card width; each ramo sets its own object-position (imagemFoco). */
 .media-card__media {
   width: 100%;
-  height: 10rem;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
   transition: transform var(--duration-slow) var(--easing-standard);
 }
@@ -748,6 +748,7 @@ body.has-footer-visible .back-to-top {
 }
 
 .media-card__body {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: var(--space-3xs);
@@ -1057,4 +1058,1271 @@ body.has-footer-visible .back-to-top {
   stroke-width: 2.5;
   stroke-linecap: round;
   opacity: 0.5;
+}
+
+/* ---------------------------------------------------------------- */
+/* SEGURO PAGES: project-specific, BV Seguros.                       */
+/* Hub /seguros and one page per ramo (src/pages/SeguroPagina.tsx),  */
+/* structured like an insurer's product page (hero, in-page nav,     */
+/* coverages, FAQ, related, contact). Existing tokens only.          */
+/* ---------------------------------------------------------------- */
+
+.media-card--link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.media-card--link:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.media-card__title {
+  font-size: var(--font-size-h4);
+}
+
+/* Visual button only: the whole card is the link. margin-top:auto pins
+   it to the bottom, so every button in a row sits at the same height. */
+.media-card__more {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-2xs);
+  margin-top: auto;
+  padding: var(--space-2xs) var(--space-md);
+  border: var(--border-width-thin) solid var(--color-accent);
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  transition: background-color var(--duration-fast) var(--easing-standard),
+    gap var(--duration-fast) var(--easing-standard);
+}
+
+.media-card__body > .text-secondary {
+  margin-bottom: var(--space-md);
+}
+
+.media-card--link:hover .media-card__more {
+  background-color: var(--color-primary-hover);
+  gap: var(--space-xs);
+}
+
+.breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs) var(--space-2xs);
+  font-size: var(--font-size-body-small);
+}
+
+.breadcrumb__item + .breadcrumb__item::before {
+  content: "/";
+  margin-right: var(--space-2xs);
+  opacity: 0.6;
+}
+
+.hero-dark .breadcrumb {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.breadcrumb__link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hero-dark .breadcrumb [aria-current="page"] {
+  color: var(--color-text-on-dark);
+}
+
+/* Sits right under the sticky header; sections land below both.
+   --header-offset is measured by Header.tsx (the header height changes
+   with viewport width); the fallback is its height at 1280px. */
+.page-subnav {
+  position: sticky;
+  top: var(--header-offset, 77px);
+  z-index: var(--z-sticky);
+  background-color: var(--color-surface);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.page-subnav__list {
+  position: relative; /* offsetParent for scrolling the active link into view */
+  display: flex;
+  gap: var(--space-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.page-subnav__link {
+  flex: none;
+  padding-block: var(--space-sm);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-bottom: var(--border-width-thick) solid transparent;
+}
+
+.page-subnav__link:hover {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.section-anchor {
+  scroll-margin-top: calc(var(--header-offset, 77px) + 3.5rem);
+}
+
+/* Flex + fixed basis: an incomplete last row sits centred instead of
+   hanging left. --colunas comes from the page (3 or 4). */
+.coverage-grid {
+  --colunas: 3;
+  --gap: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap);
+  margin-top: var(--space-xl);
+}
+
+.coverage-grid > * {
+  flex: 0 1 calc((100% - (var(--colunas) - 1) * var(--gap)) / var(--colunas));
+}
+
+@media (max-width: 1023px) {
+  .coverage-grid > * {
+    flex-basis: calc((100% - var(--gap)) / 2);
+  }
+}
+
+@media (max-width: 639px) {
+  .coverage-grid > * {
+    flex-basis: 100%;
+  }
+}
+
+.coverage-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.coverage-item h3 {
+  font-size: var(--font-size-body);
+  margin-bottom: var(--space-3xs);
+}
+
+.coverage-item__icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.steps-list {
+  display: grid;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.steps-list__item {
+  border-top: var(--border-width-thick) solid var(--color-primary);
+  padding-top: var(--space-sm);
+}
+
+.steps-list__number {
+  color: var(--color-accent);
+  font-size: var(--font-size-h2);
+}
+
+.faq {
+  margin-top: var(--space-lg);
+  border-top: var(--border-width-thin) solid var(--color-border);
+}
+
+.faq__item {
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.faq__question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-block: var(--space-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq__question::-webkit-details-marker {
+  display: none;
+}
+
+.faq__question::after {
+  content: "+";
+  flex: none;
+  font-size: var(--font-size-h4);
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.faq__item[open] .faq__question::after {
+  content: "\2212";
+}
+
+.faq__question:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.faq__answer {
+  padding-bottom: var(--space-md);
+}
+
+.related-heading {
+  font-size: var(--font-size-h4);
+}
+
+.related-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.related-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.related-link:hover {
+  border-color: var(--color-primary);
+}
+
+.related-link__icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  color: var(--color-accent);
+}
+
+/* ---------------------------------------------------------------- */
+/* FIDELIDADE-INSPIRED STRUCTURE: project-specific, BV Seguros.      */
+/* Mega-menu, quick actions, ramo picker, segment tabs, channels,    */
+/* protection levels + comparison table, reasons, feature band,      */
+/* claims. Patterns taken from an insurer site; the look stays the   */
+/* BV one (existing tokens only). See DECISIONS.md, 2026-09-29.      */
+/* ---------------------------------------------------------------- */
+
+/* Mega-menu: panel spans the header width, anchored to .header (sticky = positioned). */
+.mega__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3xs);
+}
+
+.mega__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.mega__toggle svg {
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.mega__toggle:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.mega__toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.mega__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background-color: var(--color-surface);
+  border-top: var(--border-width-thin) solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+
+.mega__panel[hidden] {
+  display: none;
+}
+
+.mega__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: var(--space-xl);
+  max-width: var(--container-standard);
+  margin-inline: auto;
+  padding: var(--space-lg) var(--container-gutter);
+}
+
+.mega__heading {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-sm);
+}
+
+.mega__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.mega__link {
+  display: block;
+  padding: var(--space-2xs) var(--space-xs);
+  margin-inline: calc(-1 * var(--space-xs));
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.mega__link:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.mega__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface));
+}
+
+.mega__aside-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-h4);
+}
+
+.mega__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.mega__cta:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Mobile menu: the submenu is a native details accordion. */
+.header__mobile-summary {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+}
+
+.header__mobile-summary::-webkit-details-marker {
+  display: none;
+}
+
+.header__mobile-summary::after {
+  content: "+";
+  color: var(--color-accent);
+}
+
+.header__mobile-group[open] .header__mobile-summary::after {
+  content: "\2212";
+}
+
+.header__mobile-heading {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.header__mobile-sublink {
+  display: block;
+  padding: var(--space-2xs) 0 var(--space-2xs) var(--space-sm);
+  color: var(--color-text-primary);
+}
+
+.header__mobile-sublink--all {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.header__mobile-sublink[aria-current="page"] {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Quick actions: white tiles on the navy hero. */
+.quick-actions {
+  margin-top: var(--space-xl);
+}
+
+.quick-actions__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.quick-actions__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  transition: transform var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
+}
+
+.quick-actions__item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.quick-actions__item:focus-visible {
+  outline: 2px solid var(--color-text-on-dark);
+  outline-offset: 3px;
+}
+
+.quick-actions__icon {
+  display: inline-flex;
+  padding: var(--space-2xs);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  background-color: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+}
+
+.quick-actions__label {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+}
+
+.quick-actions__sub {
+  display: block;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* "Quero pedir proposta para": centred title over centred pills, in a
+   contained box instead of a full-width one that left half of it empty. */
+.ramo-picker {
+  max-width: var(--measure-intro-wide);
+  margin-inline: auto;
+  padding: var(--space-lg);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.ramo-picker__title {
+  font-size: var(--font-size-h4);
+}
+
+/* 6 ramos: 3x2 of equal buttons on desktop, 2x3 on phones. */
+.ramo-picker__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+}
+
+.ramo-picker__option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  min-height: 2.75rem;
+  padding: var(--space-2xs) var(--space-md);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  transition: background-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+}
+
+.ramo-picker__option:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.ramo-picker__icon {
+  display: inline-flex;
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* Phones: 2 equal columns instead of a ragged wrap. */
+@media (max-width: 639px) {
+  .ramo-picker {
+    padding: var(--space-md);
+  }
+
+  .ramo-picker__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ramo-picker__option {
+    padding-inline: var(--space-xs);
+    text-align: left;
+  }
+}
+
+/* Segment tabs (Todos / Particulares / Empresas). */
+.segment-tabs-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.segment-tabs {
+  display: inline-flex;
+  gap: var(--space-3xs);
+  padding: var(--space-3xs);
+  border-radius: var(--radius-full);
+  background-color: var(--color-neutral-100);
+}
+
+.segment-tabs__tab {
+  padding: var(--space-2xs) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  transition: background-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+}
+
+.segment-tabs__tab:hover {
+  color: var(--color-text-primary);
+}
+
+.segment-tabs__tab[aria-selected="true"] {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.segment-tabs__tab:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Support block: FAQ in a reading column, then channels in a row. */
+.faq-wrap {
+  max-width: var(--container-narrow);
+  margin-inline: auto;
+}
+
+.channels__title {
+  margin-top: var(--space-2xl);
+  font-size: var(--font-size-h4);
+  text-align: center;
+}
+
+.channels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+@media (max-width: 1023px) {
+  .channels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 479px) {
+  .channels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.channel-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3xs);
+  padding: var(--space-md);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.channel-card__icon {
+  display: inline-flex;
+  margin-bottom: var(--space-2xs);
+  padding: var(--space-2xs);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  background-color: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+}
+
+.channel-card__title {
+  font-weight: var(--font-weight-semibold);
+}
+
+.channel-card__value {
+  margin-top: auto;
+  padding-top: var(--space-xs);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.insurer-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm) var(--space-xl);
+  margin-top: var(--space-md);
+}
+
+.insurer-strip__item {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-h4);
+  color: var(--color-text-muted);
+}
+
+/* Protection levels. */
+.level-cards {
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+.level-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+  padding: var(--space-lg);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.level-card p.text-secondary {
+  margin-bottom: var(--space-sm);
+}
+
+.level-card .btn {
+  margin-top: auto;
+}
+
+.level-card--featured {
+  border: var(--border-width-thick) solid var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.level-card__step {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.compare-table-wrap {
+  margin-top: var(--space-xl);
+  overflow-x: auto;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.compare-table-wrap:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.compare-table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  font-size: var(--font-size-body-small);
+}
+
+.compare-table th,
+.compare-table td {
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.compare-table tbody tr:last-child > * {
+  border-bottom: none;
+}
+
+.compare-table thead th {
+  font-family: var(--font-display);
+  font-size: var(--font-size-body);
+  background-color: var(--color-surface-alt);
+}
+
+/* Coverage column stays visible while the levels scroll sideways. */
+.compare-table th[scope="row"],
+.compare-table thead th:first-child {
+  position: sticky;
+  left: 0;
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-surface);
+}
+
+.compare-table thead th:first-child {
+  background-color: var(--color-surface-alt);
+}
+
+.availability {
+  display: inline-block;
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.availability--incluido {
+  color: var(--color-success);
+  background-color: var(--color-success-surface);
+}
+
+.availability--opcional {
+  color: var(--color-warning);
+  background-color: var(--color-warning-surface);
+}
+
+.availability--nao {
+  color: var(--color-text-muted);
+}
+
+/* Numbered reasons row ("Porquê tratar connosco", "Nas primeiras horas"). */
+.reasons__title {
+  font-size: var(--font-size-h3);
+}
+
+.reasons {
+  display: grid;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.reasons__item {
+  padding-top: var(--space-sm);
+  border-top: var(--border-width-thin) solid var(--color-border-strong);
+}
+
+.reasons__item h3 {
+  font-size: var(--font-size-h4);
+  margin-top: var(--space-2xs);
+}
+
+.reasons__number {
+  font-family: var(--font-display);
+  font-size: var(--font-size-h4);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent);
+}
+
+/* Feature band: one theme per ramo on a navy panel. */
+.feature-band {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-dark);
+}
+
+.feature-band__icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-text-on-dark);
+}
+
+.feature-band__title {
+  font-size: var(--font-size-h3);
+  color: var(--color-text-on-dark);
+}
+
+.feature-band__text {
+  margin-top: var(--space-xs);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.feature-band__points {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.feature-band__points li {
+  padding-left: var(--space-md);
+  border-left: var(--border-width-thick) solid rgba(255, 255, 255, 0.45);
+}
+
+@media (max-width: 900px) {
+  .feature-band {
+    grid-template-columns: 1fr;
+    padding: var(--space-lg);
+  }
+}
+
+/* Claims by ramo. */
+.claim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+.claim-card {
+  padding: var(--space-lg);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.claim-card h3 {
+  font-size: var(--font-size-h4);
+  margin-top: var(--space-xs);
+}
+
+.claim-card__icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  color: var(--color-accent);
+}
+
+.claim-card__steps {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-top: var(--space-sm);
+  padding-left: var(--space-md);
+  list-style: disc;
+  color: var(--color-text-secondary);
+}
+
+.contact-promises {
+  display: grid;
+  gap: var(--space-xs);
+  margin-top: var(--space-lg);
+}
+
+.contact-promises li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.contact-promises svg {
+  color: var(--color-accent);
+}
+
+.page-subnav__link[aria-current="true"] {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-actions__item:hover {
+    transform: none;
+  }
+}
+
+/* Rows of 3-4 items: one column on phones, then all in one row, so a
+   count that doesn't divide evenly never leaves a ragged last row
+   (same reasoning as .grid--services in responsive.css). */
+@media (min-width: 640px) {
+  .level-cards,
+  .reasons,
+  .steps-list {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+}
+
+@media (min-width: 1024px) {
+  .quick-actions__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Phones: the hero floating card hangs below the photo, so the quick
+   actions start further down; tiles go icon-over-label to fit 2x2. */
+@media (max-width: 767px) {
+  .quick-actions {
+    margin-top: calc(var(--space-xl) + var(--space-lg));
+  }
+
+  .quick-actions__item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2xs);
+    padding: var(--space-sm);
+  }
+
+  .quick-actions__sub {
+    display: none;
+  }
+}
+
+.compare-tabs {
+  display: none;
+}
+
+/* Phones: levels become a swipeable row (one card and a peek of the
+   next); the table shows one level at a time, picked with the tabs. */
+@media (max-width: 639px) {
+  .level-cards {
+    grid-auto-flow: column;
+    grid-auto-columns: 82%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--container-gutter));
+    padding-inline: var(--container-gutter);
+    padding-bottom: var(--space-2xs);
+  }
+
+  .level-card {
+    scroll-snap-align: center;
+  }
+
+  .compare-tabs {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-xl);
+  }
+
+  .compare-tabs + .compare-table-wrap {
+    margin-top: var(--space-md);
+  }
+
+  .compare-table {
+    min-width: 0;
+  }
+
+  .compare-table th[scope="row"],
+  .compare-table thead th:first-child {
+    position: static;
+  }
+
+  [data-nivel-movel="0"] [data-nivel]:not([data-nivel="0"]),
+  [data-nivel-movel="1"] [data-nivel]:not([data-nivel="1"]),
+  [data-nivel-movel="2"] [data-nivel]:not([data-nivel="2"]) {
+    display: none;
+  }
+}
+
+/* With a subnav on the page, header + subnav read as one block: the
+   header drops its own border/shadow and the subnav carries them. */
+body:has(.page-subnav) .header--scrolled {
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+
+.page-subnav {
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------------------------------------------------------------- */
+/* AJUSTES V2: project-specific, BV Seguros (DECISIONS.md 2026-09-30). */
+/* Per-ramo form fields, Home contact panel (BoomService signature  */
+/* composition) and the consent-gated map.                           */
+/* ---------------------------------------------------------------- */
+
+/* Per-ramo form: short fields in two columns from 640px. */
+.form-section-title {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-section-title:not(:first-child) {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: var(--border-width-thin) solid var(--color-border);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-grid__full {
+    grid-column: 1 / -1;
+  }
+}
+
+.choice-group {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.choice-group legend {
+  padding: 0;
+}
+
+.choice-group__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
+}
+
+.choice {
+  position: relative;
+  display: inline-flex;
+}
+
+.choice input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.choice span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  transition: background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+}
+
+.choice:hover span {
+  border-color: var(--color-primary);
+}
+
+.choice input:checked + span {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.choice input:focus-visible + span {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Home contact panel: photo cut by a diagonal, then a navy stripe with
+   an accent edge, then the contacts (layout of the BoomService email
+   signature). clip-path only, no extra image. */
+.signature-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-md);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.signature-panel__media {
+  position: relative;
+  align-self: stretch;
+  min-height: 22rem;
+}
+
+.signature-panel__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  clip-path: polygon(0 0, 84% 0, 70% 100%, 0 100%);
+}
+
+/* The stripe: a slanted band parallel to the photo edge. */
+.signature-panel__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--color-primary) 60%, var(--color-accent));
+  clip-path: polygon(88% 0, 93% 0, 79% 100%, 74% 100%);
+}
+
+.signature-panel__title {
+  color: var(--color-primary);
+}
+
+.signature-panel__subtitle {
+  margin-top: var(--space-2xs);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Separators in CSS, so a wrapped line never starts with a lone "|". */
+.signature-panel__subtitle span + span::before {
+  content: "|";
+  margin-inline: var(--space-2xs);
+  color: var(--color-border-strong);
+}
+
+@media (max-width: 639px) {
+  .signature-panel__subtitle span {
+    display: block;
+  }
+
+  .signature-panel__subtitle span + span::before {
+    content: none;
+  }
+}
+
+.signature-panel__contacts {
+  display: grid;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.signature-panel__contacts li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  overflow-wrap: anywhere;
+}
+
+.signature-panel__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: var(--color-text-on-primary);
+}
+
+@media (max-width: 767px) {
+  .signature-panel {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  .signature-panel__media {
+    min-height: 13rem;
+  }
+
+  /* Photo on top, the diagonal runs across the bottom edge instead. */
+  .signature-panel__media img {
+    clip-path: polygon(0 0, 100% 0, 100% 70%, 0 92%);
+  }
+
+  .signature-panel__media::after {
+    clip-path: polygon(0 95%, 100% 74%, 100% 81%, 0 100%);
+  }
+}
+
+/* Map: placeholder card until there is a confirmed address and consent. */
+.map-card {
+  overflow: hidden;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+}
+
+.map-card--placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  color: var(--color-accent);
+  background-color: color-mix(in srgb, var(--color-accent) 5%, var(--color-surface));
+}
+
+.map-card--placeholder .btn {
+  margin-top: var(--space-sm);
+}
+
+.map-card__title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-h4);
+  color: var(--color-text-primary);
+}
+
+.map-card__frame {
+  display: block;
+  width: 100%;
+  height: 22rem;
+  border: 0;
 }

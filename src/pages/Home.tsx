@@ -1,67 +1,16 @@
 import Container from "../components/layout/Container";
 import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
-import ContactoForm from "../sections/ContactoForm";
-import type { RamoCrm } from "../utils/enviarContacto";
+import Link from "../app/Link";
 import PorConfirmar from "../components/ui/PorConfirmar";
-
-type RamoKey = "auto" | "vida" | "saude" | "habitacao" | "trabalho" | "outros";
-
-/**
- * Fotografias de stock (Pexels, licença livre para uso comercial, sem
- * ligação real à BV Seguros): placeholders visuais, ver docs/anti-ai.md
- * #content-integrity. Não confundir com fotografia própria da empresa.
- */
-const RAMOS: { key: RamoKey; nome: string; descricao: string; imagem: string }[] = [
-  {
-    key: "auto",
-    nome: "Automóvel",
-    descricao: "Responsabilidade civil, danos próprios e assistência em viagem.",
-    imagem: "/images/ramos/auto.jpg",
-  },
-  {
-    key: "vida",
-    nome: "Vida",
-    descricao: "Proteção financeira para quem depende de si, ajustada à sua fase de vida.",
-    imagem: "/images/ramos/vida.jpg",
-  },
-  {
-    key: "saude",
-    nome: "Saúde",
-    descricao: "Acesso a rede de cuidados privados, com e sem internamento.",
-    imagem: "/images/ramos/saude.jpg",
-  },
-  {
-    key: "habitacao",
-    nome: "Multirriscos habitação",
-    descricao: "Casa própria ou arrendada, conteúdo e responsabilidade civil incluídos.",
-    imagem: "/images/ramos/habitacao.jpg",
-  },
-  {
-    key: "trabalho",
-    nome: "Acidentes de trabalho",
-    descricao: "Obrigatório para quem tem trabalhadores a cargo. Tratamos do processo todo.",
-    imagem: "/images/ramos/trabalho.jpg",
-  },
-  {
-    key: "outros",
-    nome: "Outros seguros",
-    descricao: "Responsabilidade civil, viagem e situações à medida. Fale connosco.",
-    imagem: "/images/ramos/outros.jpg",
-  },
-];
-
-// Chaves do site (imagens/ícones) mapeadas para os valores de ramo do CRM.
-const RAMO_CRM: Record<RamoKey, RamoCrm> = {
-  auto: "auto",
-  vida: "vida",
-  saude: "saude",
-  habitacao: "multirriscos",
-  trabalho: "acidentes_trabalho",
-  outros: "outro",
-};
-
-const RAMOS_FORMULARIO = RAMOS.map((ramo) => ({ valor: RAMO_CRM[ramo.key], nome: ramo.nome }));
+import FlowLines from "../components/ui/FlowLines";
+import AcessosRapidos from "../sections/AcessosRapidos";
+import ApoioSecao from "../sections/ApoioSecao";
+import ContactoPainel from "../sections/ContactoPainel";
+import PedirPropostaPara from "../sections/PedirPropostaPara";
+import SeguradorasFaixa from "../sections/SeguradorasFaixa";
+import SegurosGrid from "../sections/SegurosGrid";
+import { PASSOS } from "../data/seguros";
 
 const DIFERENCIAIS = [
   {
@@ -77,86 +26,6 @@ const DIFERENCIAIS = [
     descricao: "Quando precisar de acionar o seguro, tratamos do acompanhamento consigo.",
   },
 ];
-
-const PASSOS = [
-  {
-    titulo: "Conta-nos o que precisa",
-    descricao: "Preenche o formulário ou liga-nos. Sem compromisso, sem letras miúdas.",
-  },
-  {
-    titulo: "Comparamos por si",
-    descricao: "Analisamos propostas de várias seguradoras para o seu caso concreto.",
-  },
-  {
-    titulo: "Escolhe com confiança",
-    descricao: "Explicamos as opções em português simples. Você decide, nós tratamos do resto.",
-  },
-];
-
-/**
- * Ícones de traço mínimo (24x24, stroke="currentColor"), um por ramo.
- * Reutilizados nos cartões de "O que cobrimos": herdam a cor via CSS,
- * sem depender de nenhuma biblioteca de ícones.
- */
-function RamoIcon({ tipo }: { tipo: RamoKey }) {
-  const common = {
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.75,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-  };
-  switch (tipo) {
-    case "auto":
-      return (
-        <svg {...common}>
-          <path d="M4 16.5V12l2.2-5.5A2 2 0 0 1 8 5h8a2 2 0 0 1 1.8 1.5L20 12v4.5" />
-          <path d="M3 16.5h18" />
-          <circle cx="7.5" cy="17" r="1.6" />
-          <circle cx="16.5" cy="17" r="1.6" />
-        </svg>
-      );
-    case "vida":
-      return (
-        <svg {...common}>
-          <path d="M12 20s-7-4.35-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 5c-2.5 4.65-9.5 9-9.5 9Z" />
-        </svg>
-      );
-    case "saude":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 8v8M8 12h8" />
-        </svg>
-      );
-    case "habitacao":
-      return (
-        <svg {...common}>
-          <path d="M4 11 12 4l8 7" />
-          <path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" />
-          <path d="M10 20v-5h4v5" />
-        </svg>
-      );
-    case "trabalho":
-      return (
-        <svg {...common}>
-          <path d="M4 13a8 8 0 0 1 16 0" />
-          <path d="M3 13h18v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2Z" />
-          <path d="M9 13V9a3 3 0 0 1 6 0v4" />
-        </svg>
-      );
-    case "outros":
-      return (
-        <svg {...common}>
-          <path d="M4 12a8 8 0 0 1 16 0Z" />
-          <path d="M12 12v7a1.5 1.5 0 0 1-3 0" />
-          <path d="M12 4v2" />
-        </svg>
-      );
-  }
-}
 
 /** Ícone pequeno (escudo + check) para o cartão flutuante do Hero, cor accent. */
 function ShieldCheckIcon() {
@@ -177,40 +46,6 @@ function ShieldCheckIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-/** Ícones de contacto (telefone, email, localização): mesmo traço mínimo do RamoIcon. */
-function ContactIcon({ tipo }: { tipo: "telefone" | "email" | "morada" }) {
-  const common = {
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.75,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-  };
-  if (tipo === "telefone") {
-    return (
-      <svg {...common}>
-        <path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L14 13l5 2v3a2 2 0 0 1-2 2C10.5 20 4 13.5 4 6a2 2 0 0 1 1-2Z" />
-      </svg>
-    );
-  }
-  if (tipo === "email") {
-    return (
-      <svg {...common}>
-        <rect x="3" y="5" width="18" height="14" rx="2" />
-        <path d="m4 7 8 6 8-6" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...common}>
-      <path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z" />
-      <circle cx="12" cy="9" r="2.5" />
     </svg>
   );
 }
@@ -238,25 +73,6 @@ function CheckMark() {
   );
 }
 
-/**
- * Linhas azuis decorativas em SVG, a pedido direto do cliente (esboço
- * anotado por cima do site). Substituem as manchas circulares
- * anteriores. Decorativas só: aria-hidden, sem interação, sempre atrás
- * do conteúdo (section-decor dá z-index:1 ao Container). Cada secção
- * recebe o seu próprio par de curvas (viewBox e traçado próprios) em
- * vez de um preset repetido, para não ler como o mesmo carimbo cinco
- * vezes.
- */
-function FlowLines({ paths, viewBox }: { paths: string[]; viewBox: string }) {
-  return (
-    <svg aria-hidden="true" className="section-lines" viewBox={viewBox} preserveAspectRatio="none">
-      {paths.map((d) => (
-        <path key={d} d={d} />
-      ))}
-    </svg>
-  );
-}
-
 export default function Home() {
   return (
     <>
@@ -277,7 +93,7 @@ export default function Home() {
                 <Button as="a" href="#contacto">
                   Pedir uma proposta
                 </Button>
-                <Button as="a" href="#servicos" variant="secondary">
+                <Button as={Link} href="/seguros" variant="secondary">
                   Ver seguros disponíveis
                 </Button>
               </div>
@@ -299,8 +115,11 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <AcessosRapidos />
         </Container>
       </Section>
+
+      <PedirPropostaPara />
 
       <Section id="porque" className="section-decor">
         <FlowLines
@@ -384,28 +203,8 @@ export default function Home() {
           <div className="section-intro section-intro--wide">
             <h2>Um seguro para cada fase da vida.</h2>
           </div>
-          <div className="grid grid--services" style={{ gap: "var(--space-lg)", marginTop: "var(--space-xl)" }}>
-            {RAMOS.map((ramo) => (
-              <article
-                key={ramo.key}
-                className="media-card media-card--interactive"
-                style={{ gridColumn: "span 4" }}
-              >
-                <img
-                  src={ramo.imagem}
-                  alt=""
-                  className="media-card__media"
-                  loading="lazy"
-                />
-                <div className="media-card__body">
-                  <div className="media-card__icon-chip">
-                    <RamoIcon tipo={ramo.key} />
-                  </div>
-                  <h3>{ramo.nome}</h3>
-                  <p className="text-secondary">{ramo.descricao}</p>
-                </div>
-              </article>
-            ))}
+          <div style={{ marginTop: "var(--space-xl)" }}>
+            <SegurosGrid />
           </div>
         </Container>
       </Section>
@@ -457,59 +256,12 @@ export default function Home() {
         </Container>
       </Section>
 
-      <Section id="contacto" surface className="section-decor">
-        <FlowLines
-          viewBox="0 0 1440 520"
-          paths={[
-            "M -60,100 C 300,220 540,20 820,150 S 1240,280 1500,110",
-            "M -60,420 C 320,320 560,480 840,380 S 1260,240 1500,400",
-          ]}
-        />
-        <Container>
-          <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "start" }}>
-            <div style={{ gridColumn: "span 5" }}>
-              <h2>Fale connosco sobre o seu seguro.</h2>
-              <div
-                className="stack"
-                style={{ marginTop: "var(--space-lg)", gap: "var(--space-sm)" }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                  <div style={{ width: 20, height: 20, flex: "none", color: "var(--color-accent)" }}>
-                    <ContactIcon tipo="telefone" />
-                  </div>
-                  <p className="text-secondary">
-                    <PorConfirmar>+351 21 000 0000 (fictício, por confirmar)</PorConfirmar>
-                  </p>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                  <div style={{ width: 20, height: 20, flex: "none", color: "var(--color-accent)" }}>
-                    <ContactIcon tipo="email" />
-                  </div>
-                  <p className="text-secondary">
-                    <a href="mailto:geral@bvseguros.pt">geral@bvseguros.pt</a>
-                  </p>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                  <div style={{ width: 20, height: 20, flex: "none", color: "var(--color-accent)" }}>
-                    <ContactIcon tipo="morada" />
-                  </div>
-                  <p className="text-secondary">
-                    <PorConfirmar>Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)</PorConfirmar>
-                  </p>
-                </div>
-              </div>
-              <p className="text-caption" style={{ marginTop: "var(--space-lg)" }}>
-                Mediação de seguros:{" "}
-                <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>
-              </p>
-            </div>
+      <SeguradorasFaixa />
 
-            <div style={{ gridColumn: "span 7" }}>
-              <ContactoForm ramos={RAMOS_FORMULARIO} />
-            </div>
-          </div>
-        </Container>
-      </Section>
+      {/* Os canais já estão no painel de contacto logo a seguir. */}
+      <ApoioSecao mostrarCanais={false} />
+
+      <ContactoPainel />
     </>
   );
 }

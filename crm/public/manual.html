@@ -360,7 +360,7 @@
   <h3>Seguradoras</h3>
   <p>A lista de seguradoras que aparece nos formulários de apólices e propostas. Quando alguém escreve uma seguradora nova em "Outra…", ela entra aqui sozinha. Use <span class="ui">Renomear ou juntar</span> para corrigir nomes duplicados, e <span class="ui">Desativar</span> para a tirar dos formulários sem mexer nas apólices antigas.</p>
 
-  <h3>Importar a carteira (CSV)</h3>
+  <h3>Importar a carteira (CSV, PDF ou imagem)</h3>
   <ol class="passos">
     <li>Em <span class="menu">Administração → Importar</span>, escolha <strong>Clientes</strong> e carregue em <span class="ui">Descarregar modelo</span>.</li>
     <li>Preencha o modelo numa folha de cálculo e guarde-o em CSV.</li>
@@ -374,6 +374,7 @@
       <tr><td>Apólices</td><td><code>nif_cliente</code>, <code>numero_apolice</code>, <code>ramo</code>, <code>seguradora</code>, <code>data_inicio</code></td><td><code>premio_anual</code>, <code>data_fim</code>, <code>estado</code></td></tr>
     </tbody>
   </table></div>
+  <p>Também pode enviar um <strong>PDF</strong>, uma <strong>imagem</strong> (fotografia ou digitalização de uma lista), um ficheiro de <strong>texto</strong> ou um CSV exportado de outro sistema com outras colunas. Nesse caso o CRM lê o documento com IA e arruma os dados nas colunas do modelo (até 3 MB por ficheiro). A mesma validação de NIF, datas e valores é feita na mesma, mas <strong>confira a pré-visualização com o documento original</strong> antes de importar: um nome ou número mal lido pode passar.</p>
   <p>Clientes com um NIF que já existe no CRM não são duplicados. Se a coluna <code>responsavel_email</code> tiver o email de uma conta ativa, essa pessoa fica responsável; caso contrário, fica quem importa.</p>
 </section>
 

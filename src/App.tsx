@@ -4,15 +4,21 @@ import Footer from "./components/layout/Footer";
 import CookieConsent from "./components/feedback/CookieConsent";
 import BackToTop from "./components/feedback/BackToTop";
 import Home from "./pages/Home";
+import Seguros from "./pages/Seguros";
+import SeguroPagina from "./pages/SeguroPagina";
+import Sinistros from "./pages/Sinistros";
 import Laboratory from "./pages/Laboratory";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
 import Cookies from "./pages/legal/Cookies";
 import NotFound from "./pages/NotFound";
-import { usePathname } from "./app/router";
+import { usePathname, useScrollToHashOnNavigate } from "./app/router";
+import { seguroPorCaminho } from "./data/seguros";
 
 const ROUTES: Partial<Record<string, ComponentType>> = {
   "/": Home,
+  "/seguros": Seguros,
+  "/sinistros": Sinistros,
   "/laboratory": Laboratory,
   "/privacy": Privacy,
   "/terms": Terms,
@@ -21,16 +27,20 @@ const ROUTES: Partial<Record<string, ComponentType>> = {
 
 export default function App() {
   const pathname = usePathname();
-  const Page = ROUTES[pathname] ?? NotFound;
+  useScrollToHashOnNavigate(pathname);
+  const Page = ROUTES[pathname.replace(/(.)\/+$/, "$1")] ?? NotFound;
+  const seguro = seguroPorCaminho(pathname);
+  // Estas páginas têm o formulário na própria página.
+  const temContacto = pathname === "/" || pathname.startsWith("/seguros") || pathname.startsWith("/sinistros");
 
   return (
     <>
       <a href="#main-content" className="skip-link">
         Saltar para o conteúdo
       </a>
-      <Header cta={{ label: "Pedir contacto", href: "#contacto" }} />
+      <Header cta={{ label: "Pedir contacto", href: temContacto ? "#contacto" : "/#contacto" }} />
       <main id="main-content">
-        <Page />
+        {seguro ? <SeguroPagina key={seguro.slug} seguro={seguro} /> : <Page />}
       </main>
       <Footer />
       <BackToTop />

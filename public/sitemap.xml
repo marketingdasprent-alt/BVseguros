@@ -5,6 +5,30 @@
     <loc>https://example.com/</loc>
   </url>
   <url>
+    <loc>https://example.com/seguros</loc>
+  </url>
+  <url>
+    <loc>https://example.com/seguros/automovel</loc>
+  </url>
+  <url>
+    <loc>https://example.com/seguros/vida</loc>
+  </url>
+  <url>
+    <loc>https://example.com/seguros/saude</loc>
+  </url>
+  <url>
+    <loc>https://example.com/seguros/multirriscos-habitacao</loc>
+  </url>
+  <url>
+    <loc>https://example.com/seguros/acidentes-de-trabalho</loc>
+  </url>
+  <url>
+    <loc>https://example.com/seguros/outros-seguros</loc>
+  </url>
+  <url>
+    <loc>https://example.com/sinistros</loc>
+  </url>
+  <url>
     <loc>https://example.com/privacy</loc>
   </url>
   <url>

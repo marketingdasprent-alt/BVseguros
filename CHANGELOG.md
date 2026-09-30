@@ -3,6 +3,29 @@
 All notable changes to Web Blueprint are documented here.
 Format: `MAJOR.MINOR.PATCH`: see `BLUEPRINT.md#versioning`.
 
+## [Unreleased]: BV Seguros
+
+### Added
+
+- Páginas `/seguros`, `/seguros/<ramo>` (6 ramos) e `/sinistros`.
+- Mega-menu Seguros (Particulares/Empresas), acessos rápidos no hero,
+  seletor "Quero pedir proposta para", separadores Particulares/Empresas,
+  bloco "Dúvidas? Nós ajudamos" com canais de contacto, níveis de
+  proteção com tabela comparativa, destaque por ramo.
+
+- Formulário próprio em cada página de seguro (campos do ramo enviados
+  na mensagem do lead); painel de contacto da Home com mapa do Google
+  Maps sujeito a consentimento.
+
+### Changed
+
+- A Home deixa de ter formulário. Subnavegação encosta ao header em
+  qualquer largura; fotos dos cartões com foco por imagem; botão "Ver
+  coberturas" alinhado no fundo do cartão; seletor de ramo centrado.
+- Menu principal: Início, Seguros, Pedir contacto. Rodapé com colunas
+  Particulares, Empresas, Apoio e Empresa.
+- Um hash que muda de página faz scroll depois de a página nova montar.
+
 ## [2.2.0]: 2026-09-18
 
 ### Added
