@@ -10,7 +10,7 @@ export default function SeguradorasFaixa({ ramo }: { ramo?: RamoKey }) {
   return (
     <Section variant="compact">
       <Container>
-        <p className="text-label text-muted" style={{ textAlign: "center" }}>
+        <p className="text-label text-muted text-center">
           Seguradoras com quem trabalhamos
         </p>
         <ul className="insurer-strip" role="list">

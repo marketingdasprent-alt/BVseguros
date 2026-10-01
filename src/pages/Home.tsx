@@ -12,6 +12,8 @@ import PedirPropostaPara from "../sections/PedirPropostaPara";
 import SeguradorasFaixa from "../sections/SeguradorasFaixa";
 import SegurosGrid from "../sections/SegurosGrid";
 import { PASSOS } from "../data/seguros";
+import { SEGUROS_POR_VOLTA, slidesPorSeguro } from "../data/fotosHero";
+import useHeroFotos from "../hooks/useHeroFotos";
 
 const DIFERENCIAIS = [
   {
@@ -28,21 +30,21 @@ const DIFERENCIAIS = [
   },
 ];
 
-/** Ícone pequeno (escudo + check) para o cartão flutuante do Hero, cor accent. */
+/** Escudo + check da linha "Aconselhamento independente · Sem compromisso" do hero. */
 function ShieldCheckIcon() {
   return (
-    <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true">
+    <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
       <path
         d="M16 4c-3 2-6 2.5-9 2.8v8c0 6 3.6 10 9 12.2 5.4-2.2 9-6.2 9-12.2v-8c-3-.3-6-.8-9-2.8Z"
         fill="none"
-        stroke="var(--color-accent)"
+        stroke="currentColor"
         strokeWidth="2.2"
         strokeLinejoin="round"
       />
       <path
         d="M11.5 16.5l3 3 6-6.5"
         fill="none"
-        stroke="var(--color-accent)"
+        stroke="currentColor"
         strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -74,14 +76,24 @@ function CheckMark() {
   );
 }
 
+const SLIDES = slidesPorSeguro((s) => ({
+  acao: "Pedir proposta",
+  titulo: s.nome,
+  onClick: () => abrirProposta(s.key),
+}));
+
 export default function Home() {
+  const heroFotos = useHeroFotos(SLIDES, SEGUROS_POR_VOLTA);
   return (
     <>
-      <Section className="hero-dark" variant="compact">
+      <Section className="hero-dark hero-fotos" variant="compact">
+        {heroFotos.fundo}
         <Container>
-          <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center" }}>
+          <div className="grid hero-fotos__grelha">
             <div style={{ gridColumn: "span 7" }}>
-              <h1>Proteção a sério, de corretora independente.</h1>
+              <h1>
+                <strong className="hero-titulo__destaque">Proteção a sério,</strong> de corretora independente.
+              </h1>
               <p
                 className="text-body-large text-secondary"
                 style={{ marginTop: "var(--space-sm)" }}
@@ -98,23 +110,14 @@ export default function Home() {
                   Ver seguros disponíveis
                 </Button>
               </div>
+              <p className="hero-garantia">
+                <ShieldCheckIcon />
+                <span>Aconselhamento independente</span>
+                <span aria-hidden="true" className="hero-garantia__separador" />
+                <span>Sem compromisso</span>
+              </p>
             </div>
-            <div className="hero-media" style={{ gridColumn: "span 5", position: "relative" }}>
-              <img
-                src="/images/porque-bv.jpg"
-                alt="Agente da BV Seguros em reunião com uma cliente"
-                className="hero-photo"
-              />
-              <div className="hero-floating-card">
-                <div className="hero-floating-card__icon">
-                  <ShieldCheckIcon />
-                </div>
-                <div>
-                  <p className="hero-floating-card__title">Aconselhamento independente</p>
-                  <p className="hero-floating-card__sub">Sem compromisso</p>
-                </div>
-              </div>
-            </div>
+            <div className="hero-fotos__lado">{heroFotos.controlos}</div>
           </div>
           <PedirPropostaPara />
         </Container>

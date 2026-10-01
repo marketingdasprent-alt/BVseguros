@@ -6,8 +6,10 @@
 //      the last row is centred under the first (see .card-grid in
 //      src/styles/layout.css);
 //   3. an even number of boxes fills equal rows (4 -> 2+2, never 3+1);
-//   4. boxes side by side in the same row have the same height.
-//   Forms, dialogs and horizontal scrollers are exempt.
+//   4. boxes side by side in the same row have the same height;
+//   5. centred text is in a centred box (a narrower <p> must not hug the left);
+//   6. boxes side by side start their content at the same height.
+//   Forms, dialogs and horizontal scrollers are exempt from 2-4 and 6.
 // Usage: npm run dev (other terminal), then
 //   npm run qa:layout [-- --url=http://localhost:5190] [--shots=dir]
 // Needs Chrome or Edge; set CHROME_PATH if it is not in a standard place.
@@ -115,7 +117,10 @@ const AUDIT = `(() => {
     const rows = [];
     for (const k of kids) {
       // The visible box is the child itself or its only child (li > button).
-      const r = (isBox(k) ? k : k.children[0]).getBoundingClientRect();
+      const box = isBox(k) ? k : k.children[0];
+      const b = box.getBoundingClientRect();
+      const first = [...box.children].find((c) => c.offsetWidth > 0);
+      const r = { left: b.left, right: b.right, top: b.top, height: b.height, firstTop: first ? first.getBoundingClientRect().top : b.top };
       const row = rows.find((x) => Math.abs(x.top - r.top) < 4);
       if (row) row.items.push(r);
       else rows.push({ top: r.top, items: [r] });
@@ -124,6 +129,12 @@ const AUDIT = `(() => {
       const heights = row.items.map((r) => r.height);
       if (row.items.length > 1 && Math.max(...heights) - Math.min(...heights) > 2) {
         problems.push("uneven heights in a row (" + heights.map(Math.round).join("/") + "px) in " + describe(parent));
+        break;
+      }
+      // 6. Boxes in a row start their content on the same line (icon, label).
+      const starts = row.items.map((r) => r.firstTop - r.top);
+      if (row.items.length > 1 && Math.max(...starts) - Math.min(...starts) > 2) {
+        problems.push("content starts at different heights in a row (" + starts.map(Math.round).join("/") + "px) in " + describe(parent));
         break;
       }
     }
@@ -142,6 +153,24 @@ const AUDIT = `(() => {
     if (Math.abs(off) > 2) {
       problems.push("V rule: last row off-centre by " + Math.round(off) + "px (" + rows.map((r) => r.items.length).join("+") + ") in " + describe(parent));
     }
+  }
+
+  // 5. Centred text sits in a centred box: a block narrower than its parent
+  //    (p { max-width: 70ch }) with text-align: center must not hug the left.
+  for (const el of document.querySelectorAll("body p, body h1, body h2, body h3, body h4, body li, body div")) {
+    if (el.closest("[aria-hidden='true'], dialog")) continue;
+    const s = getComputedStyle(el);
+    if (s.textAlign !== "center" || s.display !== "block" || el.offsetWidth === 0 || !el.textContent.trim()) continue;
+    const parent = el.parentElement;
+    const ps = getComputedStyle(parent);
+    if (ps.display === "flex" || ps.display === "grid" || ps.display === "inline-flex") continue;
+    const pr = parent.getBoundingClientRect();
+    const innerLeft = pr.left + parseFloat(ps.paddingLeft) + parseFloat(ps.borderLeftWidth);
+    const innerRight = pr.right - parseFloat(ps.paddingRight) - parseFloat(ps.borderRightWidth);
+    const r = el.getBoundingClientRect();
+    if (innerRight - innerLeft - r.width < 4) continue;
+    const off = (r.left + r.right) / 2 - (innerLeft + innerRight) / 2;
+    if (Math.abs(off) > 2) problems.push("centred text in an off-centre box (" + Math.round(off) + "px): " + describe(el));
   }
   return problems;
 })()`;

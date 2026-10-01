@@ -815,13 +815,19 @@ body.has-footer-visible .back-to-top {
   color: rgba(255, 255, 255, 0.78);
 }
 
+/* The hero's main action in green, the one break from navy and white
+   (client request). Navy text on it: 6.45:1. */
 .hero-dark .btn--primary {
-  background-color: var(--color-surface);
-  color: var(--color-primary);
+  background-color: var(--color-cta);
+  color: var(--color-cta-text);
 }
 
 .hero-dark .btn--primary:hover:not(:disabled) {
-  background-color: var(--color-surface-alt);
+  background-color: var(--color-cta-hover);
+}
+
+.hero-dark .btn--primary:active:not(:disabled) {
+  background-color: var(--color-cta);
 }
 
 .hero-dark .btn--secondary {
@@ -922,58 +928,238 @@ body.has-footer-visible .back-to-top {
 }
 
 /* ---------------------------------------------------------------- */
-/* HERO PHOTO + FLOATING CARD: project-specific, BV Seguros.         */
-/* Inspired by two references the client shared (a finance-advisory  */
-/* site with a real hero photo + trust badge, and an agency site     */
-/* with layered floating cards over the hero image). Adapted, not    */
-/* copied: no fabricated stats/ratings in the floating card, and     */
-/* none of the second reference's purple gradient/glassmorphism      */
-/* (docs/anti-ai.md flags that exact look as a default to avoid).    */
+/* HERO-FOTOS: project-specific, BV Seguros.                         */
+/* Photos behind every hero, cross-fading on their own (pattern from  */
+/* the team's Razão Dinâmica site). The navy veil is heaviest behind  */
+/* the copy so text contrast never depends on the photo. Stock        */
+/* photos (src/data/fotosHero.ts), never presented as the company's.  */
 /* ---------------------------------------------------------------- */
 
-.hero-photo {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: var(--radius-xl);
-  display: block;
+.hero-fotos {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
 }
 
-.hero-floating-card {
+/* Same z as the content: the content comes later in the DOM, so it paints on top. */
+.hero-fotos__fundo {
   position: absolute;
-  left: var(--space-lg);
-  bottom: calc(-1 * var(--space-lg));
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
-  max-width: 15rem;
-  background-color: var(--color-surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-md) var(--space-md) var(--space-sm);
-  box-shadow: var(--shadow-lg);
+  inset: 0;
+  z-index: var(--z-base);
 }
 
-.hero-floating-card__icon {
-  flex: none;
+.hero-fotos > .container {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+.hero-fotos__fundo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.hero-fotos__fundo img.is-ativa {
+  opacity: 1;
+}
+
+.hero-fotos__fundo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--color-primary) 96%, transparent) 0%,
+      color-mix(in srgb, var(--color-primary) 86%, transparent) 38%,
+      color-mix(in srgb, var(--color-primary) 45%, transparent) 70%,
+      color-mix(in srgb, var(--color-primary) 25%, transparent) 100%
+    ),
+    linear-gradient(0deg, color-mix(in srgb, var(--color-primary) 70%, transparent) 0%, transparent 40%);
+}
+
+.hero-fotos__grelha {
+  gap: var(--space-xl);
+  align-items: end;
+}
+
+.hero-fotos__lado {
+  grid-column: span 5;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-fotos__controlos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-sm);
+}
+
+/* The insurance on the current banner: a link/button into that ramo. */
+.hero-fotos__legenda {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 13rem;
+  padding: var(--space-sm) var(--space-md);
+  text-align: left;
+  color: var(--color-text-on-dark);
+  background-color: color-mix(in srgb, var(--color-primary) 72%, transparent);
+  border: var(--border-width-thin) solid rgba(255, 255, 255, 0.28);
+  border-left: 3px solid var(--color-cta);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.hero-fotos__legenda:hover {
+  background-color: var(--color-primary);
+}
+
+.hero-fotos__legenda-acao {
+  font-size: var(--font-size-caption);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hero-fotos__legenda-titulo {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-body);
+}
+
+.hero-fotos__navegacao {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  gap: var(--space-sm);
 }
 
-.hero-floating-card__title {
+.hero-fotos__pontos {
+  display: flex;
+  gap: 2px;
+}
+
+/* 24px hit area (WCAG 2.5.8) around an 8px dot. */
+.hero-fotos__ponto {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.hero-fotos__ponto::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.45);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.hero-fotos__ponto:hover::before {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-fotos__ponto[aria-current="true"]::before {
+  background-color: var(--color-cta);
+  transform: scale(1.25);
+}
+
+.hero-fotos__pausa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-on-dark);
+  border: var(--border-width-thin) solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.hero-fotos__pausa:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.hero-fotos .hero-fotos__ponto:focus-visible,
+.hero-fotos .hero-fotos__pausa:focus-visible,
+.hero-fotos .hero-fotos__legenda:focus-visible {
+  outline: 2px solid var(--color-text-on-dark);
+  outline-offset: 2px;
+}
+
+/* Phones: one column, the veil evens out (the text covers the whole width). */
+@media (max-width: 767px) {
+  .hero-fotos__fundo::after {
+    background: color-mix(in srgb, var(--color-primary) 84%, transparent);
+  }
+
+  .hero-fotos__lado {
+    justify-content: flex-start;
+  }
+
+  .hero-fotos__controlos {
+    align-items: flex-start;
+  }
+
+  /* The ramo picker right below does the same job; keeps it on the first screen. */
+  .hero-fotos__legenda {
+    display: none;
+  }
+
+  .hero-fotos__grelha {
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 479px) {
+  .hero-garantia__separador {
+    display: none;
+  }
+
+  .hero-garantia span {
+    flex-basis: 100%;
+    padding-left: calc(22px + var(--space-xs));
+  }
+
+  .hero-garantia span:first-of-type {
+    flex-basis: auto;
+    padding-left: 0;
+  }
+}
+
+/* "Proteção a sério,": heavier than the rest of the headline. */
+.hero-titulo__destaque {
+  font-weight: 800;
+}
+
+/* "Aconselhamento independente · Sem compromisso": both halves alike. */
+.hero-garantia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-xs);
+  margin-top: var(--space-md);
   font-size: var(--font-size-body-small);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  line-height: 1.25;
+  color: var(--color-text-on-dark);
 }
 
-.hero-floating-card__sub {
-  font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
+.hero-garantia svg {
+  color: var(--color-cta);
+}
+
+.hero-garantia__separador {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: currentColor;
+  opacity: 0.6;
 }
 
 /* ---------------------------------------------------------------- */
@@ -1471,7 +1657,7 @@ body.has-footer-visible .back-to-top {
   font-weight: var(--font-weight-semibold);
 }
 
-/* "Quero pedir proposta para": centred title over the 6 ramos, the box
+/* "Vamos encontrar o seu seguro": centred title over the 6 ramos, the box
    as wide as the content column so no side of it is left empty. */
 .ramo-picker {
   position: relative;
@@ -1485,6 +1671,12 @@ body.has-footer-visible .back-to-top {
 
 .ramo-picker__title {
   font-size: var(--font-size-h4);
+}
+
+.ramo-picker__subtitle {
+  margin-top: var(--space-2xs);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
 }
 
 /* 6 ramos: one row of 6 on desktop, 3x2 on tablet, 2x3 on phones. */
@@ -1505,7 +1697,8 @@ body.has-footer-visible .back-to-top {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* Top, not centre: icons stay on one line when a label wraps to two. */
+  justify-content: flex-start;
   gap: var(--space-2xs);
   min-height: 5.5rem;
   padding: var(--space-sm) var(--space-xs);
@@ -2489,11 +2682,40 @@ button.ramo-picker__option {
   text-underline-offset: 3px;
 }
 
-/* Phones: the Home hero photo is hidden so the picker sits right under
-   the buttons, on the first screen (the same photo is in the contact
-   panel further down). */
-@media (max-width: 767px) {
-  .hero-media {
-    display: none;
+/* Thin rule between shortcuts, centred in the column gap. */
+.ramo-picker__shortcut {
+  position: relative;
+}
+
+.ramo-picker__shortcut + .ramo-picker__shortcut::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--space-xl) / -2);
+  top: 50%;
+  height: 1.1em;
+  border-left: var(--border-width-thin) solid var(--color-border-strong);
+  transform: translateY(-50%);
+}
+
+/* Phones: shortcuts stack, so the rules go horizontal. */
+@media (max-width: 479px) {
+  .ramo-picker__shortcuts {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .ramo-picker__shortcut {
+    padding-block: var(--space-xs);
+  }
+
+  .ramo-picker__shortcut + .ramo-picker__shortcut::before {
+    left: 50%;
+    top: 0;
+    width: 3rem;
+    height: 0;
+    border-left: none;
+    border-top: var(--border-width-thin) solid var(--color-border);
+    transform: translateX(-50%);
   }
 }
