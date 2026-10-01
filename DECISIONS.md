@@ -2036,3 +2036,45 @@ Project-specific.
 DATE:
 2026-09-30
 ```
+
+---
+
+```
+DECISION:
+(1) Every hero (Home, Seguros, each ramo page, Sinistros) gets photos
+behind it that cross-fade on their own every 6 s, replacing the photo
+in a rounded box (pattern from the team's Razão Dinâmica site). Home
+and Seguros show one banner per insurance, with a caption that opens
+that ramo (Home: the proposal form; Seguros: the ramo page); each lap
+uses another photo of each ramo, through all 24. Ramo pages and
+Sinistros rotate their own 4. Pause button (WCAG 2.2.2), clickable
+dots, nothing rotates under prefers-reduced-motion, only the current
+and next photo are loaded. 28 Pexels photos, WebP at 960 and 1920 px
+(public/images/hero, IDs in src/data/fotosHero.ts).
+(2) The hero's main button is green (--color-cta #4cc38a, navy text
+6.45:1), the one colour outside navy/white.
+(3) "Proteção a sério," in weight 800; the floating card becomes the
+line "Aconselhamento independente · Sem compromisso", both halves in
+the same type; "Quero pedir proposta para" becomes "Vamos encontrar o
+seu seguro" with a subtitle; thin rules between the picker shortcuts.
+
+REASON:
+Client feedback (marketing, 01/10): rotating banners, one insurance
+each; bolder headline; a CTA that breaks the blue and white; a warmer
+picker title. The navy veil is heaviest behind the copy, so contrast
+does not depend on the photo. On phones the caption is hidden (the
+picker right below does the same job) to keep the picker on the first
+screen.
+
+SCOPE:
+Site: hooks/useHeroFotos.tsx, data/fotosHero.ts, Home, Seguros,
+SeguroPagina, Sinistros, PedirPropostaPara, tokens.css (--color-cta*),
+components.css (.hero-fotos*, .hero-garantia, .hero-titulo__destaque;
+.hero-photo and .hero-floating-card removed), public/images/hero.
+
+LEVEL:
+Project-specific (Level 2: one new brand colour role).
+
+DATE:
+2026-10-01
+```

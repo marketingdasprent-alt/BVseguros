@@ -81,6 +81,13 @@ p.text-body-large {
   max-width: 60ch;
 }
 
+/* Centred text: the box centres too, or a p narrower than its parent
+   (max-width above) hugs the left. Checked by npm run qa:layout. */
+.text-center {
+  text-align: center;
+  margin-inline: auto;
+}
+
 /* Progressive enhancement: avoid short last lines without fixed breaks. */
 p { text-wrap: pretty; }
 h1, h2, h3, h4, .text-display { text-wrap: balance; }

@@ -52,6 +52,12 @@
   --color-secondary: var(--color-neutral-600);
   --color-accent: #3d6ea5;
 
+  /* Green for the hero's main action only (client request, 01/10): the one
+     break from navy and white. Text on it: --color-cta-text, 6.45:1. */
+  --color-cta: #4cc38a;
+  --color-cta-hover: #5ccf94;
+  --color-cta-text: var(--color-primary-active);
+
   --color-success: #2f6f4e;
   --color-success-surface: #eaf4ee;
   --color-warning: #8a5a12;

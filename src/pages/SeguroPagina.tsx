@@ -16,6 +16,8 @@ import SeguradorasFaixa from "../sections/SeguradorasFaixa";
 import { hrefSeguro, PASSOS, SEGUROS } from "../data/seguros";
 import type { Seguro } from "../data/seguros";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import useHeroFotos from "../hooks/useHeroFotos";
+import { slidesDe } from "../data/fotosHero";
 
 const RAZOES = [
   { titulo: "Várias seguradoras", descricao: "Comparamos propostas antes de recomendar uma, em vez de vender um só produto." },
@@ -33,6 +35,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
   const nomeSeguro = seguro.key === "outros" ? "outros seguros" : `seguro ${seguro.nome.toLowerCase()}`;
   useDocumentTitle(`${nomeSeguro[0].toUpperCase()}${nomeSeguro.slice(1)} | BV Seguros`, seguro.intro);
   const outros = SEGUROS.filter((s) => s.key !== seguro.key);
+  const heroFotos = useHeroFotos(slidesDe(seguro.key));
 
   const subnav = [
     ...(seguro.niveis ? [{ id: "niveis", label: "Níveis de proteção" }] : []),
@@ -43,7 +46,8 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
 
   return (
     <>
-      <Section className="hero-dark" variant="compact">
+      <Section className="hero-dark hero-fotos" variant="compact">
+        {heroFotos.fundo}
         <Container>
           <Breadcrumb
             itens={[
@@ -52,7 +56,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
               { label: seguro.nome },
             ]}
           />
-          <div className="grid" style={{ gap: "var(--space-xl)", alignItems: "center", marginTop: "var(--space-md)" }}>
+          <div className="grid hero-fotos__grelha" style={{ marginTop: "var(--space-md)" }}>
             <div style={{ gridColumn: "span 7" }}>
               <p className="text-label">{seguro.publico}</p>
               <h1 style={{ marginTop: "var(--space-2xs)" }}>{seguro.titulo}</h1>
@@ -68,9 +72,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
                 </Button>
               </div>
             </div>
-            <div style={{ gridColumn: "span 5" }}>
-              <img src={seguro.imagem} alt="" className="hero-photo" style={{ objectPosition: seguro.imagemFoco }} />
-            </div>
+            <div className="hero-fotos__lado">{heroFotos.controlos}</div>
           </div>
         </Container>
       </Section>
@@ -134,7 +136,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
               </li>
             ))}
           </CardGrid>
-          <p className="text-caption" style={{ marginTop: "var(--space-lg)", textAlign: "center" }}>
+          <p className="text-caption text-center" style={{ marginTop: "var(--space-lg)" }}>
             <PorConfirmar>
               Por confirmar: seguradoras com quem a BV trabalha neste ramo e
               coberturas que coloca.

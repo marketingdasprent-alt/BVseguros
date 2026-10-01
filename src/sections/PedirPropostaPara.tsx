@@ -6,14 +6,15 @@ import { ACESSOS_RAPIDOS } from "../data/apoio";
 import { SEGUROS } from "../data/seguros";
 
 /**
- * "Quero pedir proposta para": cartão dentro do hero da Home, para estar
+ * "Vamos encontrar o seu seguro": cartão dentro do hero da Home, para estar
  * logo no primeiro ecrã. Cada ramo abre o pop-up com o formulário desse
  * ramo; por baixo, os atalhos para o resto do site.
  */
 export default function PedirPropostaPara() {
   return (
     <div className="ramo-picker ramo-picker--hero">
-      <h2 className="ramo-picker__title">Quero pedir proposta para</h2>
+      <h2 className="ramo-picker__title">Vamos encontrar o seu seguro</h2>
+      <p className="ramo-picker__subtitle text-center">Escolha o tipo de seguro para pedir uma proposta.</p>
       <ul className="ramo-picker__list" role="list">
         {SEGUROS.map((s) => (
           <li key={s.key}>
