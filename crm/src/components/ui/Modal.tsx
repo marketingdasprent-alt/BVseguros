@@ -11,9 +11,12 @@ interface ModalProps {
   busy?: boolean;
   // 640px em vez de 460px, para formulários com mais de 5 campos.
   largo?: boolean;
+  // Ocupa o ecrã todo: para ler um registo longo ao lado do formulário (ex.: lead com pedido do site).
+  ecraInteiro?: boolean;
 }
 
-export function Modal({ title, subtitle, children, onClose, busy = false, largo = false }: ModalProps) {
+export function Modal({ title, subtitle, children, onClose, busy = false, largo = false, ecraInteiro = false }: ModalProps) {
+  const variante = ecraInteiro ? ' crm-modal--ecra' : largo ? ' crm-modal--wide' : '';
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -27,7 +30,7 @@ export function Modal({ title, subtitle, children, onClose, busy = false, largo 
     return () => { dialog?.close(); document.body.style.overflow = overflow; previous?.focus(); };
   }, []);
   return createPortal(
-    <dialog ref={ref} aria-labelledby={titleId} aria-busy={busy} className={`crm-modal${largo ? ' crm-modal--wide' : ''}`}
+    <dialog ref={ref} aria-labelledby={titleId} aria-busy={busy} className={`crm-modal${variante}`}
       onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}>
       <div className="modal-heading">
         <div className="min-w-0">

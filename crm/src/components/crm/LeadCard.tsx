@@ -3,6 +3,7 @@ import { KanbanCard, semArrasto } from '@/components/crm/KanbanCard'
 import { Badge } from '@/components/ui/Badge'
 import { Pessoa } from '@/components/ui/Pessoa'
 import { dataLocalIso, formatarData } from '@/lib/format'
+import { resumoMensagem } from '@/lib/mensagemSite'
 import { RAMOS } from '@/lib/types'
 import type { Atividade, Lead } from '@/lib/types'
 
@@ -23,6 +24,7 @@ export function LeadCard({ lead, nomeResponsavel, podeAtribuir, onAssumir, onAtr
   const ramoRotulo = RAMOS.find((r) => r.valor === lead.ramo_interesse)?.rotulo ?? lead.ramo_interesse
   const prazo = proximaTarefa?.data_prevista
   const atrasada = !!prazo && prazo < dataLocalIso()
+  const resumo = resumoMensagem(lead.mensagem, ramoRotulo)
 
   return (
     <KanbanCard id={lead.id}>
@@ -32,9 +34,9 @@ export function LeadCard({ lead, nomeResponsavel, podeAtribuir, onAssumir, onAtr
         <Badge tone="info">{ramoRotulo}</Badge>
         {lead.origem === 'site' && <Badge tone="success">Site</Badge>}
       </div>
-      {lead.mensagem && (
-        <p className="text-xs text-muted line-clamp-3 whitespace-pre-line" title={lead.mensagem}>
-          “{lead.mensagem}”
+      {resumo && (
+        <p className="text-xs text-muted line-clamp-2" title={lead.mensagem ?? undefined}>
+          {resumo}
         </p>
       )}
       {lead.notas && (
