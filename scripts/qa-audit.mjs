@@ -321,6 +321,19 @@ function checkUnusedDependencies() {
   }
 }
 
+// --- Deploy: caminhos dos assets (docs/lessons-learned.md, 2026-10-02) ---
+
+// Com base './' as rotas em subcaminho (/seguros/automovel) pedem /seguros/assets/… e,
+// ao abrir o link direto, a Vercel devolve o index.html: página em branco em produção.
+function checkAbsoluteBase() {
+  const config = path.join(ROOT, "vite.config.ts");
+  if (!existsSync(config)) return;
+  const base = /\bbase:\s*["']([^"']*)["']/.exec(readFileSync(config, "utf8"))?.[1];
+  if (base !== undefined && !base.startsWith("/")) {
+    fail("Deploy", `vite.config.ts tem base "${base}": use "/" para as rotas em subcaminho carregarem ao abrir o link direto.`, "vite.config.ts");
+  }
+}
+
 // --- Run ---
 
 checkEmDash();
@@ -334,6 +347,7 @@ checkClickableDivs();
 checkDuplicateIds();
 checkSeoBaseline();
 checkUnusedDependencies();
+checkAbsoluteBase();
 
 const sections = [...new Set(findings.map((f) => f.section))];
 const failCount = findings.filter((f) => f.level === "FAIL").length;
