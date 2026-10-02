@@ -1,5 +1,5 @@
 import { AlertTriangle, CalendarClock, Euro, Shield } from 'lucide-react'
-import { formatarData, formatarMoeda } from '@/lib/format'
+import { formatarData, formatarMoeda, SEM_VALOR } from '@/lib/format'
 import type { ResumoCliente } from '@/lib/fichaCliente'
 
 export function FichaResumo({ resumo }: { resumo: ResumoCliente }) {
@@ -21,7 +21,7 @@ export function FichaResumo({ resumo }: { resumo: ResumoCliente }) {
       </div>
       <div className="metric">
         <span className="metric-label">Próxima renovação <CalendarClock size={17} aria-hidden="true" /></span>
-        <strong className="metric-value metric-value--longo">{proxima ? formatarData(proxima.data_fim as string) : '—'}</strong>
+        <strong className="metric-value metric-value--longo">{proxima ? formatarData(proxima.data_fim as string) : SEM_VALOR}</strong>
         {proxima && <span className="metric-note">Apólice {proxima.numero_apolice}</span>}
       </div>
     </section>

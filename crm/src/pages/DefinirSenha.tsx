@@ -1,13 +1,27 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
+import { mensagemSenha } from '@/lib/acesso'
 import { Button } from '@/components/ui/Button'
 
 interface DefinirSenhaProps {
-  // Primeiro acesso com uma senha escolhida pelo admin: tem de a trocar antes de entrar.
+  // Primeiro acesso sem senha própria (escolhida pelo admin, ou convite antigo): tem de a definir antes de entrar.
   obrigatoria?: boolean
+  // Página /acesso: guarda a senha na sessão em memória e devolve a mensagem de erro, se houver.
+  aoGuardar?: (senha: string) => Promise<string | null>
+  titulo?: string
+  descricao?: string
 }
 
-export default function DefinirSenha({ obrigatoria = false }: DefinirSenhaProps) {
+async function guardarNaSessaoAtual(senha: string): Promise<string | null> {
+  const { error } = await supabase.auth.updateUser({ password: senha })
+  if (error) return mensagemSenha(error.message)
+  // Desliga o pedido de troca; se falhar, o pior é voltar a pedir a senha no próximo acesso.
+  const { error: erroFlag } = await supabase.rpc('senha_trocada')
+  if (erroFlag) console.error(erroFlag)
+  return null
+}
+
+export default function DefinirSenha({ obrigatoria = false, aoGuardar = guardarNaSessaoAtual, titulo, descricao }: DefinirSenhaProps) {
   const [senha, setSenha] = useState('')
   const [confirmar, setConfirmar] = useState('')
   const [erro, setErro] = useState<string | null>(null)
@@ -28,16 +42,12 @@ export default function DefinirSenha({ obrigatoria = false }: DefinirSenhaProps)
     }
 
     setAGuardar(true)
-    const { error } = await supabase.auth.updateUser({ password: senha })
-    if (error) {
-      setAGuardar(false)
-      setErro(/different from the old/i.test(error.message) ? 'A senha nova tem de ser diferente da atual.' : error.message)
+    const erroGuardar = await aoGuardar(senha)
+    setAGuardar(false)
+    if (erroGuardar) {
+      setErro(erroGuardar)
       return
     }
-    // Desliga o pedido de troca; se falhar, o pior é voltar a pedir a senha no próximo acesso.
-    const { error: erroFlag } = await supabase.rpc('senha_trocada')
-    if (erroFlag) console.error(erroFlag)
-    setAGuardar(false)
     setConcluido(true)
   }
 
@@ -60,11 +70,11 @@ export default function DefinirSenha({ obrigatoria = false }: DefinirSenhaProps)
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-xl p-8 border border-border space-y-5">
         <div className="flex flex-col items-center gap-2 mb-2">
           <img src="/brand/logo-icon.png" alt="BV Seguros" className="h-14 w-auto" />
-          <h1 className="font-display text-lg font-bold text-navy">{obrigatoria ? 'Escolha uma senha nova' : 'Definir senha'}</h1>
+          <h1 className="font-display text-lg font-bold text-navy">{titulo ?? (obrigatoria ? 'Escolha uma senha nova' : 'Definir senha')}</h1>
           <p className="text-sm text-muted text-center">
-            {obrigatoria
-              ? 'A senha com que entrou foi definida pelo administrador. Por segurança, escolha uma só sua antes de continuar.'
-              : 'Escolha a senha para aceder ao CRM da BV Seguros.'}
+            {descricao ?? (obrigatoria
+              ? 'Por segurança, escolha uma senha só sua antes de continuar.'
+              : 'Escolha a senha para aceder ao CRM da BV Seguros.')}
           </p>
         </div>
 

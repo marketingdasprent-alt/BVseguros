@@ -17,7 +17,8 @@ create role anon nologin; create role authenticated nologin; create role service
 create schema auth;
 grant usage on schema auth to anon, authenticated, service_role;
 create table auth.users (id uuid primary key default gen_random_uuid(), email text, raw_user_meta_data jsonb default '{}'::jsonb,
-  invited_at timestamptz, email_confirmed_at timestamptz, last_sign_in_at timestamptz, created_at timestamptz default now());
+  invited_at timestamptz, email_confirmed_at timestamptz, last_sign_in_at timestamptz, created_at timestamptz default now(),
+  encrypted_password varchar(255));
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 grant usage on schema public to anon, authenticated, service_role;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
@@ -338,6 +339,28 @@ async function senhas(db, c) {
   eventos ? ok(`${p} o histórico aceita "conta criada" e "senha definida"`) : falha(`${p} eventos novos recusados`)
 }
 
+// Convite aberto sem senha: só a service role sabe quem é; a migração obriga essas contas a definir senha.
+async function conviteSemSenha(db, c, migracao) {
+  const p = `[${c}] convite sem senha:`
+  const novo = async (email, invited, senha) => (await db.query(
+    `insert into auth.users (email, raw_user_meta_data, invited_at, email_confirmed_at, encrypted_password) values ($1, '{"nome":"Conta Teste"}', $2, now(), $3) returning id`,
+    [email, invited ? new Date().toISOString() : null, senha])).rows[0].id
+  const [semSenha, comSenha, criadaPeloAdmin] = [await novo('sem@bv.pt', true, ''), await novo('com@bv.pt', true, '$2a$10$hash'), await novo('adm-criou@bv.pt', false, '$2a$10$hash')]
+  await db.query(`update public.profiles set ativo = true where id in ($1, $2, $3)`, [semSenha, comSenha, criadaPeloAdmin])
+
+  await como(db, semSenha, () => espera(`${p} uma conta do CRM não pergunta quem não tem senha`, db.query(`select public.contas_sem_senha()`), true, /permission denied/))
+  await como(db, 'anon', () => espera(`${p} anónimo também não`, db.query(`select public.contas_sem_senha()`), true, /permission denied/))
+  const ids = await como(db, 'service', async () => (await db.query(`select public.contas_sem_senha() id`)).rows.map((r) => r.id))
+  ids.length === 1 && ids[0] === semSenha ? ok(`${p} só lista o convidado que nunca definiu senha`) : falha(`${p} lista errada: ${JSON.stringify(ids)}`)
+
+  if (!migracao) return
+  await db.exec(migracao)
+  const flags = (await db.query(`select id, deve_trocar_senha f from public.profiles where id in ($1, $2, $3)`, [semSenha, comSenha, criadaPeloAdmin])).rows
+  const flag = (id) => flags.find((r) => r.id === id)?.f
+  flag(semSenha) && !flag(comSenha) && !flag(criadaPeloAdmin)
+    ? ok(`${p} a migração obriga só esse convidado a definir senha`) : falha(`${p} flags depois da migração: ${JSON.stringify(flags)}`)
+}
+
 // Pedidos de sinistro do site: só entram pela função pública; quem tem Sinistros trata e converte.
 async function pedidosSinistro(db, c) {
   const p = `[${c}] pedidos de sinistro:`
@@ -417,6 +440,8 @@ try {
   await senhas(await novaBase(producao), 'B')
   await pedidosSinistro(await novaBase(schema), 'A')
   await pedidosSinistro(await novaBase(producao), 'B')
+  await conviteSemSenha(await novaBase(schema), 'A')
+  await conviteSemSenha(await novaBase(producao), 'B', ler(join(MIG, '2026-10-01_convite_sem_senha.sql')))
 } catch (e) {
   falha(e.message)
 }

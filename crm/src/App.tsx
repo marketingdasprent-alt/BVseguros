@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
-import { authFlowType, supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { ToastProvider } from '@/hooks/useToast'
 import { Button } from '@/components/ui/Button'
@@ -11,6 +11,7 @@ import Layout from '@/components/Layout'
 import { ComPermissao } from '@/components/ComPermissao'
 import Login from '@/pages/Login'
 import DefinirSenha from '@/pages/DefinirSenha'
+import Acesso from '@/pages/Acesso'
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Leads = lazy(() => import('@/pages/Leads'))
@@ -27,7 +28,10 @@ const Grupos = lazy(() => import('@/pages/Grupos'))
 
 function AreaPrivada() {
   const { session, loading, profile, profileLoading, profileError, refreshProfile } = useAuth()
+  const { pathname } = useLocation()
 
+  // Links dos emails: tratados à parte, com ou sem sessão, sem mexer na sessão atual.
+  if (pathname === '/acesso') return <Acesso />
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-sand">
@@ -36,7 +40,6 @@ function AreaPrivada() {
     )
   }
   if (!session) return <Login />
-  if (authFlowType === 'invite' || authFlowType === 'recovery') return <DefinirSenha />
   if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-sand">

@@ -117,6 +117,12 @@ assunto e o HTML:
 Antes, configurar o SMTP próprio (Authentication → Emails → SMTP Settings): o servidor
 de email de origem do Supabase só envia uns poucos emails por hora.
 
+Os links dos templates abrem `/acesso?token_hash=...&type=...` no CRM (Site URL da
+Supabase = endereço do CRM). Abrir o link não gasta o token nem inicia sessão: isso
+só acontece quando a pessoa define a senha (ou confirma o email), e a sessão de quem
+já estava no browser não muda sem aviso. Não usar `{{ .ConfirmationURL }}`: inicia
+sessão logo no clique.
+
 ## Por decidir
 
 Ver [`../documento.md`](../documento.md) secção 4 — ramos de seguro definitivos,

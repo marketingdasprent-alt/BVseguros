@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/useToast'
 import type { Cliente, ClienteEdicao, ClienteInsert } from '@/lib/types'
 import { mensagemErro } from '@/lib/erros'
 import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 export default function Clientes() {
   const { data: clientes, isLoading, error, recarregar, truncado } = useClientes()
@@ -53,7 +54,7 @@ export default function Clientes() {
       setAEditar(null)
       toast({ title: 'Cliente atualizado' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao guardar cliente', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível guardar cliente', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setAGuardarEdicao(false)
     }
@@ -77,7 +78,7 @@ export default function Clientes() {
       setAAtribuir(null)
       toast({ title: responsavelId === profile?.id ? 'Cliente assumido' : 'Responsável atualizado' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao atribuir cliente', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível atribuir cliente', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setAGuardarResponsavel(false)
     }
@@ -89,10 +90,10 @@ export default function Clientes() {
       await criarCliente(cliente)
       await recarregar()
       setAMostrarForm(false)
-      toast({ title: 'Cliente criado com sucesso' })
+      toast({ title: 'Cliente criado' })
       return true;
     } catch (err: unknown) {
-      toast({ title: 'Erro ao criar cliente', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível criar cliente', description: mensagemErro(err), variant: 'destructive' })
       return false;
     } finally {
       setACriar(false)
@@ -108,11 +109,11 @@ export default function Clientes() {
       {aMostrarForm && <NovoClienteForm aCriar={aCriar} onCriar={handleCriar} />}
 
       {isLoading && <Spinner />}
-      {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar clientes: {error.message}</p>}
+      {error && <ErroCarregar oQue="os clientes" erro={error} onTentarNovamente={recarregar} />}
 
       {!isLoading && !error && clientes.length === 0 && (
         <div className="panel">
-          <EmptyState titulo="Sem clientes ainda" descricao="Clientes convertidos de leads aparecem aqui." />
+          <EmptyState titulo="Sem clientes ainda" descricao="Crie um cliente em Novo cliente, converta um lead ou importe a carteira." />
         </div>
       )}
 

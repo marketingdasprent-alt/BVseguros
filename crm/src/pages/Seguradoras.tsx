@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { AlertTriangle, Building2, Eye, EyeOff, PenLine, Plus } from 'lucide-react'
+import { Building2, Eye, EyeOff, PenLine, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { RowActions } from '@/components/ui/RowActions'
 import { NomeSeguradoraModal } from '@/components/crm/NomeSeguradoraModal'
@@ -15,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { mensagemErro } from '@/lib/erros'
 import type { Seguradora } from '@/lib/types'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 export default function Seguradoras() {
   const { isAdmin } = useAuth()
@@ -54,9 +54,7 @@ export default function Seguradoras() {
 
       {isLoading && <Spinner />}
       {error && (
-        <Notice tone="danger" icon={AlertTriangle} alerta action={<Button variant="secondary" size="sm" onClick={() => recarregar()}>Tentar novamente</Button>}>
-          Não foi possível carregar as seguradoras: {error.message}
-        </Notice>
+        <ErroCarregar oQue="as seguradoras" erro={error} onTentarNovamente={() => recarregar()} />
       )}
       {!isLoading && !error && seguradoras.length === 0 && (
         <div className="panel"><EmptyState icon={Building2} titulo="Sem seguradoras" descricao="Aparecem aqui as que forem usadas em apólices e propostas, ou que adicionar." /></div>

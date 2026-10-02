@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { RowActions } from '@/components/ui/RowActions'
 import { TONE_ESTADO_RENOVACAO } from '@/lib/tone'
-import { formatarData } from '@/lib/format'
+import { formatarData, SEM_VALOR } from '@/lib/format'
 
 interface RenovacoesTableProps {
   itens: RenovacaoItem[]
@@ -22,7 +22,7 @@ interface RenovacoesTableProps {
 }
 
 export function RenovacoesTable({ itens, clientes, onMarcarContactado, onAbrirRenovar, onEditar, podeEditar, podeRenovar }: RenovacoesTableProps) {
-  const nomeCliente = (id: string) => clientes.find((c) => c.id === id)?.nome ?? '—'
+  const nomeCliente = (id: string) => clientes.find((c) => c.id === id)?.nome ?? SEM_VALOR
 
   return (
     <div className="table-panel">
@@ -68,7 +68,7 @@ export function RenovacoesTable({ itens, clientes, onMarcarContactado, onAbrirRe
                   <td className="whitespace-nowrap">
                     <Badge tone={TONE_ESTADO_RENOVACAO[estado]}>{estadoRotulo}</Badge>
                     {renovacao?.notas && (
-                      <p className="mt-1.5 max-w-[240px] truncate text-[11px] text-muted" title={renovacao.notas}>{renovacao.notas}</p>
+                      <p className="mt-1.5 max-w-[240px] truncate text-meta text-muted" title={renovacao.notas}>{renovacao.notas}</p>
                     )}
                   </td>
                   <td className="whitespace-nowrap">
@@ -86,7 +86,7 @@ export function RenovacoesTable({ itens, clientes, onMarcarContactado, onAbrirRe
                       )}
                       {renovada && (
                         <Button variant="ghost" size="sm" icon={<Pencil />} onClick={() => onEditar(item)}>
-                          Editar notas
+                          Editar
                         </Button>
                       )}
                       {!renovada && (

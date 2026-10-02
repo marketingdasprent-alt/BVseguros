@@ -22,6 +22,10 @@ import { ESTADOS_SINISTRO } from '@/lib/types'
 import type { EstadoSinistro, Sinistro, SinistroEdicao, SinistroInsert } from '@/lib/types'
 import { TONE_ESTADO_SINISTRO } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
+import { SEM_VALOR } from '@/lib/format'
+import { Badge } from '@/components/ui/Badge'
+import { Segmented } from '@/components/ui/Segmented'
 
 export default function Sinistros() {
   const { data: sinistros, isLoading, error, recarregar, truncado } = useSinistros()
@@ -41,7 +45,7 @@ export default function Sinistros() {
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const numeroApolice = (sinistro: Sinistro) =>
-    apolices.find((a) => a.id === sinistro.apolice_id)?.numero_apolice ?? '—'
+    apolices.find((a) => a.id === sinistro.apolice_id)?.numero_apolice ?? SEM_VALOR
 
   const sinistrosFiltrados = useMemo(() => sinistros.filter((s) => corresponde([numeroApolice(s), s.numero_sinistro, s.descricao, s.notas], termo)),
     [sinistros, termo, apolices])
@@ -51,7 +55,7 @@ export default function Sinistros() {
       await atualizarEstadoSinistro(id, estado, atualizadoEm)
       await recarregar()
     } catch (err: unknown) {
-      toast({ title: 'Erro ao mover sinistro', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível mudar o estado', description: mensagemErro(err), variant: 'destructive' })
       await recarregar()
     }
   }
@@ -62,9 +66,9 @@ export default function Sinistros() {
       await criarSinistro(sinistro)
       await recarregar()
       setModalAberto(false)
-      toast({ title: 'Sinistro criado com sucesso' })
+      toast({ title: 'Sinistro criado' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao criar sinistro', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível criar sinistro', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setACriar(false)
     }
@@ -78,7 +82,7 @@ export default function Sinistros() {
       setAEditar(null)
       toast({ title: 'Sinistro atualizado' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao guardar sinistro', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível guardar sinistro', description: mensagemErro(err), variant: 'destructive' })
       await recarregar()
     } finally {
       setACriar(false)
@@ -98,17 +102,15 @@ export default function Sinistros() {
           Novo sinistro
         </Button>} />
 
-      <div role="group" aria-label="O que ver" className="segmented">
-        <button type="button" aria-pressed={vista === 'processos'} onClick={() => mudarVista('processos')}>Processos</button>
-        <button type="button" aria-pressed={vista === 'pedidos'} onClick={() => mudarVista('pedidos')}>
-          Pedidos do site{pedidosNovos > 0 && <span className="ml-1.5 rounded-full bg-warning-bg px-1.5 text-warning-text">{pedidosNovos}</span>}
-        </button>
-      </div>
+      <Segmented rotulo="O que ver" valor={vista} onChange={mudarVista} opcoes={[
+        { valor: 'processos', rotulo: 'Processos' },
+        { valor: 'pedidos', rotulo: <>Pedidos do site{pedidosNovos > 0 && <Badge tone="warning" className="ml-1.5 px-1.5">{pedidosNovos}</Badge>}</> },
+      ]} />
 
       {vista === 'pedidos' && <PedidosSinistro onConvertido={recarregar} />}
 
       {vista === 'processos' && carregando && <Spinner />}
-      {vista === 'processos' && error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar sinistros: {error.message}</p>}
+      {vista === 'processos' && error && <ErroCarregar oQue="os sinistros" erro={error} onTentarNovamente={recarregar} />}
       {vista === 'processos' && !carregando && !error && (
         <>
         <AvisoTruncado truncado={truncado} />

@@ -3,12 +3,12 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { RowActions } from '@/components/ui/RowActions'
 import type { AcaoLinha } from '@/components/ui/RowActions'
-import { formatarDataRelativa } from '@/lib/format'
+import { formatarDataRelativa, SEM_VALOR } from '@/lib/format'
 import type { AlteracaoAcesso, EstadoConta, Profile } from '@/lib/types'
 
 interface UtilizadoresTableProps {
   utilizadores: Profile[]
-  // Vazio quando a API não está configurada: a página mostra um aviso e aqui fica "—".
+  // Vazio quando a API não está configurada: a página mostra um aviso e aqui fica SEM_VALOR.
   estados: Record<string, EstadoConta>
   nomeGrupo: (id: string | null) => string | null
   idAtual: string | null
@@ -29,7 +29,7 @@ export function UtilizadoresTable({
       { rotulo: 'Editar nome', icone: PenLine, onSelect: () => onEditarNome(u) },
       { rotulo: 'Mudar de grupo', icone: KeyRound, onSelect: () => onMudarGrupo(u) },
     ]
-    // Tirar o próprio acesso ou excluir-se deixava o admin fora do CRM a meio da sessão.
+    // Tirar o próprio acesso ou apagar-se deixava o admin fora do CRM a meio da sessão.
     if (u.id === idAtual) return acoes
     return [
       ...acoes,
@@ -40,7 +40,7 @@ export function UtilizadoresTable({
       u.is_admin
         ? { rotulo: 'Deixar de ser administrador', icone: User, onSelect: () => onAlterar(u, { is_admin: false }) }
         : { rotulo: 'Tornar administrador', icone: Crown, onSelect: () => onAlterar(u, { is_admin: true }) },
-      { rotulo: 'Excluir conta', icone: UserX, perigo: true, separadorAntes: true, onSelect: () => onExcluir(u) },
+      { rotulo: 'Apagar conta', icone: UserX, perigo: true, separadorAntes: true, onSelect: () => onExcluir(u) },
     ]
   }
 
@@ -66,7 +66,7 @@ export function UtilizadoresTable({
               return (
                 <tr key={u.id} className="border-t border-border hover:bg-ink/[0.02] transition-colors">
                   <td className="sticky left-0 z-10 bg-white whitespace-nowrap">
-                    {/* Texto corrido, não flex: a coluna fixa usa overflow-wrap:anywhere e um item
+                    {/* Texto corrido, não flex: a coluna fixa usa overflow-wrap:break-word e um item
                         flex encolhia até uma letra por linha. */}
                     {u.nome}
                     {isProprio && <Badge className="ml-2 align-middle">Você</Badge>}
@@ -86,7 +86,7 @@ export function UtilizadoresTable({
                       : <Badge tone="warning">Sem grupo</Badge>}
                   </td>
                   <td className="whitespace-nowrap text-xs tabular-nums text-muted">
-                    {!estado ? '—' : estado.ultimoAcesso ? formatarDataRelativa(estado.ultimoAcesso) : (
+                    {!estado ? SEM_VALOR : estado.ultimoAcesso ? formatarDataRelativa(estado.ultimoAcesso) : (
                       <span className="inline-flex items-center gap-1.5"><Clock size={12} aria-hidden="true" />Nunca entrou</span>
                     )}
                   </td>

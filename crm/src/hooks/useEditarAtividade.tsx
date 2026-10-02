@@ -35,7 +35,7 @@ export function useEditarAtividade({ leads, clientes, onAlterado }: OpcoesEditar
       toast({ title: 'Atividade atualizada' })
       return true
     } catch (err: unknown) {
-      toast({ title: 'Erro ao guardar atividade', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível guardar atividade', description: mensagemErro(err), variant: 'destructive' })
       return false
     } finally {
       setAGuardar(false)

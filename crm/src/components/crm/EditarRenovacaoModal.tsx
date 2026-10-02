@@ -50,7 +50,7 @@ export function EditarRenovacaoModal({ item, nomeCliente, aGuardar, onFechar, on
         )}
         <Campo label="Notas">
           <textarea rows={4} value={notas} onChange={(e) => setNotas(e.target.value)}
-            placeholder="Ex.: cliente pediu nova simulação com outra seguradora" className={CLASSE_INPUT} />
+            placeholder="Ex.: cliente pediu nova proposta com outra seguradora" className={CLASSE_INPUT} />
         </Campo>
         <RodapeFormulario aGuardar={aGuardar} textoGuardar="Guardar alterações" onCancelar={onFechar} />
       </form>

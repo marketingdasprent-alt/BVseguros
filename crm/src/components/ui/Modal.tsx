@@ -32,7 +32,7 @@ export function Modal({ title, subtitle, children, onClose, busy = false, largo 
       <div className="modal-heading">
         <div className="min-w-0">
           <h2 id={titleId}>{title}</h2>
-          {subtitle && <p className="mt-1 truncate text-[13px] text-muted">{subtitle}</p>}
+          {subtitle && <p className="mt-1 truncate text-body text-muted">{subtitle}</p>}
         </div>
         <button type="button" className="icon-button" disabled={busy} onClick={onClose} aria-label="Fechar"><X size={20} /></button>
       </div>

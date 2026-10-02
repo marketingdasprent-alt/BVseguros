@@ -1,3 +1,6 @@
+// Célula ou valor em falta: traço curto (o travessão longo está banido no projeto).
+export const SEM_VALOR = '–'
+
 const moeda = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' })
 
 export function formatarMoeda(valor: number): string {

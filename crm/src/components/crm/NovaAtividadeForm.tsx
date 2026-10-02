@@ -73,7 +73,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
         <select
           value={tipo}
           onChange={(e) => setTipo(e.target.value as TipoAtividade)}
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+          className={CLASSE_INPUT}
         >
           {TIPOS_ATIVIDADE.map((t) => (
             <option key={t.valor} value={t.valor}>
@@ -88,7 +88,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
           required
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+          className={CLASSE_INPUT}
         />
       </Campo>
 
@@ -100,7 +100,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
             setLigadoA(e.target.value as 'nenhum' | 'lead' | 'cliente')
             setLigadoId('')
           }}
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+          className={CLASSE_INPUT}
         >
           <option value="nenhum">Sem associação</option>
           <option value="lead">Associar a lead</option>
@@ -114,7 +114,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
           <select
             value={ligadoId}
             onChange={(e) => setLigadoId(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           >
             <option value="">Selecionar…</option>
             {listaLigacao.map((item) => (
@@ -131,7 +131,7 @@ export function NovaAtividadeForm({ leads, clientes, responsavelId, aCriar, onCr
           type="date"
           value={dataPrevista}
           onChange={(e) => setDataPrevista(e.target.value)}
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30 tabular-nums"
+          className={`${CLASSE_INPUT} tabular-nums`}
         />
       </Campo>
 
@@ -170,7 +170,7 @@ function Campo({ label, required, children }: { label: string; required?: boolea
     <label className="block min-w-0 space-y-2">
       <span className="block text-xs font-medium text-ink">
         {label}
-        {required && <span className="text-danger"> *</span>}
+        {required && <span className="text-danger-text" aria-hidden="true"> *</span>}
       </span>
       {children}
     </label>

@@ -120,7 +120,7 @@ export function NovoApoliceForm({ clientes, aCriar, onCriar, inicial, onCancelar
       <h2 className="form-title">Nova apólice</h2>
       {campos}
       <Button type="submit" loading={aCriar} className="col-span-full md:col-span-3">
-        Guardar apólice
+        Criar apólice
       </Button>
     </form>
   )

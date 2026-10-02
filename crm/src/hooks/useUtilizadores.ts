@@ -66,7 +66,7 @@ export async function reenviarConvite(id: string) {
 }
 
 export async function excluirUtilizador(id: string) {
-  return (await chamarApiUtilizadores('DELETE', { id }, 'Não foi possível excluir a conta.')).message ?? ''
+  return (await chamarApiUtilizadores('DELETE', { id }, 'Não foi possível apagar a conta.')).message ?? ''
 }
 
 // Convite pendente e último acesso vêm do Auth; sem a service-role key configurada a lista

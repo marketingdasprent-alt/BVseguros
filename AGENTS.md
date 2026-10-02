@@ -58,8 +58,9 @@ Construído sobre o [Web Blueprint](BLUEPRINT.md): design tokens, `Container`/
 
 - Cor de marca: `#184070` (navy do logótipo). `--color-secondary`/`--color-accent`
   são derivações sistemáticas dela e do neutro, não cores inventadas.
-- Tipografia: Plus Jakarta Sans (display) + Inter (body), via Google Fonts. A mesma
-  do CRM, para as duas partes lerem como a mesma marca.
+- Tipografia: Plus Jakarta Sans (display) + Inter (body), via Google Fonts. O CRM usa
+  Inter em tudo (decisão do redesign, confirmada a 01/10/2026: interface densa de uso
+  diário); a cor de marca e o glossário são os mesmos nas duas partes.
 - Conteúdo por confirmar fica marcado com o componente local `PorConfirmar` (em
   `src/pages/Home.tsx`) ou o bracket `[…]` nas páginas legais. Nunca publicar com o
   bracket ainda por preencher.

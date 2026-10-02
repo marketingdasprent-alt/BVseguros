@@ -1,5 +1,6 @@
 import { FILTROS_RESPONSAVEL } from '@/lib/responsavel'
 import type { FiltroResponsavel as Filtro } from '@/lib/responsavel'
+import { Segmented } from '@/components/ui/Segmented'
 
 interface FiltroResponsavelProps {
   valor: Filtro
@@ -8,12 +9,6 @@ interface FiltroResponsavelProps {
 
 export function FiltroResponsavel({ valor, onChange }: FiltroResponsavelProps) {
   return (
-    <div role="group" aria-label="Filtrar por responsável" className="segmented">
-      {FILTROS_RESPONSAVEL.map((f) => (
-        <button key={f.valor} type="button" aria-pressed={valor === f.valor} onClick={() => onChange(f.valor)}>
-          {f.rotulo}
-        </button>
-      ))}
-    </div>
+    <Segmented rotulo="Filtrar por responsável" opcoes={FILTROS_RESPONSAVEL} valor={valor} onChange={onChange} />
   )
 }

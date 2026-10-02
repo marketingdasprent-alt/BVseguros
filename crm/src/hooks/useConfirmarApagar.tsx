@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/useToast'
 import { mensagemErro } from '@/lib/erros'
 
 interface PedidoApagar {
-  // Ex.: "Apagar cliente", "Excluir conta": é o título do modal e o texto do botão.
+  // Ex.: "Apagar cliente", "Apagar conta": é o título do modal e o texto do botão.
   acao: string
   nome: string
   aviso?: string
@@ -40,7 +40,7 @@ export function useConfirmarApagar(onApagado: () => Promise<void> | void) {
     <Modal title={pedido.acao} onClose={() => setPedido(null)} busy={aApagar}>
       <div className="space-y-5">
         <p className="text-sm leading-relaxed text-ink">
-          Vai {pedido.acao.toLowerCase().startsWith('excluir') ? 'excluir' : 'apagar'}{' '}
+          Vai apagar{' '}
           <strong className="font-semibold">{pedido.nome}</strong>. Esta ação não pode ser desfeita.
         </p>
         {pedido.aviso && <Notice tone="danger" icon={AlertTriangle}>{pedido.aviso}</Notice>}

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import type { Apolice } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
+import { CLASSE_INPUT } from '@/components/ui/Campo'
 
 interface MarcarRenovadaModalProps {
   apolice: Apolice
@@ -20,21 +21,21 @@ export function MarcarRenovadaModal({ apolice, aGuardar, onFechar, onConfirmar }
   }
 
   return (
-    <Modal title="Renovar apólice" onClose={onFechar} busy={aGuardar}>
+    <Modal title="Marcar como renovada" onClose={onFechar} busy={aGuardar}>
       <form onSubmit={handleSubmit} className="space-y-5">
         
         <p className="text-sm text-muted">Apólice {apolice.numero_apolice}</p>
 
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">
-            Nova data de fim<span className="text-danger"> *</span>
+            Nova data de fim<span className="text-danger-text" aria-hidden="true"> *</span>
           </span>
           <input
             required
             type="date"
             value={novaDataFim}
             onChange={(e) => setNovaDataFim(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           />
         </label>
 
@@ -45,7 +46,7 @@ export function MarcarRenovadaModal({ apolice, aGuardar, onFechar, onConfirmar }
             step="0.01"
             value={novoPremio}
             onChange={(e) => setNovoPremio(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           />
         </label>
 
@@ -54,7 +55,7 @@ export function MarcarRenovadaModal({ apolice, aGuardar, onFechar, onConfirmar }
             Cancelar
           </Button>
           <Button type="submit" loading={aGuardar} className="flex-1">
-            Confirmar renovação
+            Marcar renovada
           </Button>
         </div>
       </form>

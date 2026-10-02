@@ -35,7 +35,7 @@ export function MudarGrupoModal({ utilizador, grupos, aGuardar, onGuardar, onFec
             : 'Passa a ter as permissões do grupo escolhido.'}{' '}
           <Link to="/grupos" className="text-link">Ver e editar grupos</Link>
         </p>
-        <RodapeFormulario aGuardar={aGuardar} textoGuardar="Guardar" onCancelar={onFechar} desativarGuardar={grupoId === (utilizador.grupo_id ?? '')} />
+        <RodapeFormulario aGuardar={aGuardar} textoGuardar="Mudar grupo" onCancelar={onFechar} desativarGuardar={grupoId === (utilizador.grupo_id ?? '')} />
       </form>
     </Modal>
   )

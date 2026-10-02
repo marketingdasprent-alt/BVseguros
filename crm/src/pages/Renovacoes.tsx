@@ -17,6 +17,8 @@ import { useClientes } from '@/hooks/useClientes'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/hooks/useAuth'
 import { mensagemErro } from '@/lib/erros'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
+import { SEM_VALOR } from '@/lib/format'
 
 export default function Renovacoes() {
   const { data: itens, isLoading, error, recarregar } = useRenovacoes()
@@ -33,7 +35,7 @@ export default function Renovacoes() {
       await recarregar()
       toast({ title: 'Renovação marcada como contactada' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao atualizar renovação', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível atualizar renovação', description: mensagemErro(err), variant: 'destructive' })
     }
   }
 
@@ -44,9 +46,9 @@ export default function Renovacoes() {
       await marcarRenovada(itemARenovar.apolice, itemARenovar.renovacao?.id ?? null, novaDataFim, novoPremio)
       await recarregar()
       setItemARenovar(null)
-      toast({ title: 'Apólice renovada com sucesso' })
+      toast({ title: 'Apólice renovada' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao renovar apólice', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível renovar apólice', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setAGuardar(false)
     }
@@ -60,7 +62,7 @@ export default function Renovacoes() {
       setAEditar(null)
       toast({ title: 'Renovação atualizada' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao guardar renovação', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível guardar renovação', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setAGuardar(false)
     }
@@ -81,7 +83,7 @@ export default function Renovacoes() {
           30 dias. </>} />
 
       {carregando && <Spinner />}
-      {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar renovações: {error.message}</p>}
+      {error && <ErroCarregar oQue="as renovações" erro={error} onTentarNovamente={recarregar} />}
       {!carregando && !error && itens.length === 0 && (
         <div className="panel">
           <EmptyState
@@ -130,7 +132,7 @@ export default function Renovacoes() {
       {aEditar && (
         <EditarRenovacaoModal
           item={aEditar}
-          nomeCliente={clientes.find((c) => c.id === aEditar.apolice.cliente_id)?.nome ?? '—'}
+          nomeCliente={clientes.find((c) => c.id === aEditar.apolice.cliente_id)?.nome ?? SEM_VALOR}
           aGuardar={aGuardar}
           onFechar={() => setAEditar(null)}
           onGuardar={(dados) => handleGuardarEdicao(aEditar, dados)}

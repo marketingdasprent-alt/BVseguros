@@ -3,7 +3,8 @@ import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export const CLASSE_INPUT =
-  'w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30'
+  // Foco: anel navy de 2px (10:1); o mínimo da WCAG 1.4.11 é 3:1.
+  'w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy'
 
 interface CampoProps {
   label: string
@@ -19,7 +20,7 @@ export function Campo({ label, required, className = '', extra, children }: Camp
       <span className="flex items-baseline justify-between gap-2 text-xs font-medium text-ink">
         <span>
           {label}
-          {required && <span className="ml-0.5 text-danger" aria-hidden="true">*</span>}
+          {required && <span className="ml-0.5 text-danger-text" aria-hidden="true">*</span>}
         </span>
         {extra}
       </span>

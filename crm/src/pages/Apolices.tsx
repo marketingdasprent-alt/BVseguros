@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/useToast'
 import { useSeguradoras } from '@/hooks/useSeguradoras'
 import type { Apolice, ApoliceInsert } from '@/lib/types'
 import { mensagemErro } from '@/lib/erros'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 export default function Apolices() {
   const { data: apolices, isLoading, error, recarregar, truncado } = useApolices()
@@ -51,10 +52,10 @@ export default function Apolices() {
       await criarApolice(apolice)
       await recarregar()
       setAMostrarForm(false)
-      toast({ title: 'Apólice criada com sucesso' })
+      toast({ title: 'Apólice criada' })
       return true;
     } catch (err: unknown) {
-      toast({ title: 'Erro ao criar apólice', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível criar apólice', description: mensagemErro(err), variant: 'destructive' })
       return false;
     } finally {
       setACriar(false)
@@ -70,7 +71,7 @@ export default function Apolices() {
       toast({ title: 'Apólice atualizada' })
       return true
     } catch (err: unknown) {
-      toast({ title: 'Erro ao guardar apólice', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível guardar apólice', description: mensagemErro(err), variant: 'destructive' })
       return false
     } finally {
       setACriar(false)
@@ -98,10 +99,10 @@ export default function Apolices() {
       )}
 
       {isLoading && <Spinner />}
-      {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar apólices: {error.message}</p>}
+      {error && <ErroCarregar oQue="as apólices" erro={error} onTentarNovamente={recarregar} />}
       {!isLoading && !error && apolices.length === 0 && (
         <div className="panel">
-          <EmptyState titulo="Sem apólices ainda" descricao="As apólices dos seus clientes aparecem aqui." />
+          <EmptyState titulo="Sem apólices ainda" descricao="Registe a primeira em Nova apólice, ou importe a carteira." />
         </div>
       )}
       {!isLoading && !error && apolices.length > 0 && (

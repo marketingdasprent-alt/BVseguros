@@ -9,7 +9,7 @@ interface PessoaProps {
 
 // Mini avatar + nome, para responsáveis em cartões, tabelas e escolhas.
 export function Pessoa({ nome, semNome = 'Sem responsável' }: PessoaProps) {
-  if (!nome) return <span className="text-[11px] text-muted">{semNome}</span>
+  if (!nome) return <span className="text-meta text-muted">{semNome}</span>
   return (
     <span className="person" title={nome}>
       <span className="mini-avatar" aria-hidden="true">{iniciais(nome)}</span>

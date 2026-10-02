@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, Download } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Notice'
 import type { ErroLinha } from '@/lib/importacao'
+import { SEM_VALOR } from '@/lib/format'
 
 const MAX_ERROS_VISIVEIS = 50
 
@@ -11,7 +12,7 @@ export function ListaErros({ erros, titulo, onDescarregar }: { erros: ErroLinha[
     <Notice tone="danger" icon={AlertTriangle}
       action={<Button variant="secondary" size="sm" icon={<Download />} onClick={onDescarregar}>Relatório</Button>}>
       <p className="font-medium">{titulo}</p>
-      <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto scroll-thin text-[13px]">
+      <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto scroll-thin text-body">
         {erros.slice(0, MAX_ERROS_VISIVEIS).map((e) => (
           <li key={`${e.linha}-${e.mensagem}`}><span className="font-semibold tabular-nums">Linha {e.linha}:</span> {e.mensagem}</li>
         ))}
@@ -54,7 +55,7 @@ export function PreVisualizacao<T>({ validas, cabecalho, maximo }: { validas: { 
             {visiveis.map((v) => (
               <tr key={v.linha} className="border-t border-border">
                 <td className="tabular-nums">{v.linha}</td>
-                {cabecalho.map((c) => <td key={c} className="whitespace-nowrap">{String((v.dados as unknown as Record<string, unknown>)[c] ?? '—')}</td>)}
+                {cabecalho.map((c) => <td key={c} className="whitespace-nowrap">{String((v.dados as unknown as Record<string, unknown>)[c] ?? SEM_VALOR)}</td>)}
               </tr>
             ))}
           </tbody>

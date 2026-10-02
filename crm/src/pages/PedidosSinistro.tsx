@@ -16,6 +16,8 @@ import { useToast } from '@/hooks/useToast'
 import { corresponde } from '@/lib/pesquisa'
 import { mensagemErro } from '@/lib/erros'
 import type { EstadoPedidoSinistro, PedidoSinistro } from '@/lib/types'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
+import { Segmented } from '@/components/ui/Segmented'
 
 type Filtro = 'abertos' | EstadoPedidoSinistro | 'todos'
 const FILTROS: { valor: Filtro; rotulo: string }[] = [
@@ -63,22 +65,18 @@ export default function PedidosSinistro({ onConvertido }: { onConvertido: () => 
       estado === 'arquivado' ? 'Pedido arquivado' : estado === 'novo' ? 'Pedido reaberto' : 'Pedido em tratamento', estado === 'arquivado')
 
   if (isLoading || clientesCarregando || apolicesCarregando) return <Spinner />
-  if (error) return <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar os pedidos: {error.message}</p>
+  if (error) return <ErroCarregar oQue="os pedidos de sinistro" erro={error} onTentarNovamente={recarregar} />
 
   return (
     <div className="space-y-4">
       <AvisoTruncado truncado={truncado} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="group" aria-label="Estado dos pedidos" className="segmented">
-          {FILTROS.map((f) => (
-            <button key={f.valor} type="button" aria-pressed={filtro === f.valor} onClick={() => filtros.definir('estado', f.valor, 'abertos')}>{f.rotulo}</button>
-          ))}
-        </div>
+        <Segmented rotulo="Estado dos pedidos" opcoes={FILTROS} valor={filtro} onChange={(v) => filtros.definir('estado', v, 'abertos')} />
       </div>
       <BarraPesquisa valor={termo} onChange={(v) => filtros.definir('q', v)} rotulo="Pesquisar pedidos" placeholder="Nome, email, telefone, nº de apólice ou descrição" />
 
       {pedidos.length === 0 ? (
-        <EmptyState icon={Inbox} titulo="Ainda não há pedidos do site" descricao="Os pedidos feitos em Participar sinistro, no site, aparecem aqui." />
+        <EmptyState icon={Inbox} titulo="Ainda não há pedidos de sinistro do site" descricao="Os pedidos feitos em Participar sinistro, no site, aparecem aqui." />
       ) : visiveis.length === 0 ? (
         termo ? <SemResultados termo={termo} onLimpar={() => filtros.definir('q', '')} />
           : <EmptyState icon={Inbox} titulo="Nenhum pedido neste estado" />

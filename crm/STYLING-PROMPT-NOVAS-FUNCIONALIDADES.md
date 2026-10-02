@@ -36,23 +36,38 @@
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `--canvas` / `bg-sand` | `#f4f6f9` / `#F5F7FA` | fundo da aplicação |
+| `--canvas` / `bg-sand` | `#f4f6f9` | fundo da aplicação |
 | `--surface` | `#fff` | painéis, cartões, modais |
 | `--surface-soft` | `#f8fafc` | cabeçalho de tabela, hover suave, inputs desativados |
 | `--ink` / `text-ink` | `#1a2a3d` | texto |
-| `--muted` / `text-muted` | `#647184` | texto secundário, meta |
+| `--heading` | `#172b43` | títulos de página e KPIs |
+| `--navy-text` | `#173f6a` | texto navy sobre claro |
+| `--muted` / `text-muted` | `#5f6b7e` | texto secundário, meta (4.8:1 sobre a coluna do Kanban) |
+| `--muted-soft` / `text-muted-soft` | `#72839a` | só ícones e traços, nunca texto |
 | `--border` / `border-border` | `#e1e7ee` | todas as bordas e divisórias |
+| `--border-strong`, `--border-hover` | `#cbd5e1`, `#bcc8d7` | inputs, hover de borda |
+| `--tint`, `--tint-soft` | `#e8eff7`, `#eef2f7` | seleção, coluna do Kanban, realces |
 | `--navy` / `bg-navy` | `#184070` | ação primária, links, destaque |
-| `--sidebar` | `#112b49` | barra lateral |
-| `success/warning/danger/info` + `-bg`/`-text` | ver `tailwind.config.js` | só para estado (badges, avisos) |
+| `--focus` | `#184070` | todo o anel de foco (`--focus-on-dark` na barra lateral) |
+| `--sidebar`, `--sidebar-text/-muted/-avatar` | `#112b49`, ... | barra lateral |
+| `--success/warning/danger/info` + `-bg`/`-text` | ver `:root` | só para estado (badges, avisos) |
+
+**Fonte única (01/10/2026):** todas as cores vivem no `:root` de `src/index.css`; o
+`tailwind.config.js` lê-as (`rgb(var(--x-rgb) / <alpha-value>)` onde há opacidade).
+Não há hex soltos nas classes. Tamanhos de letra (`--fs-*`, também `text-meta`,
+`text-small`, `text-body`, `text-panel`), raios (`--radius-xs` a `--radius-2xl`) e
+sombras (`--shadow-card/raised/pop/modal`) também são tokens.
 
 **Forma**
 - Painéis e tabelas: `border 1px var(--border)`, `border-radius: 12px`, sem sombra.
-- Cartões de Kanban: `9px`, sombra `0 2px 4px -2px #18283b25`, sem borda.
-- Modais: `14px`, sombra `0 24px 70px -20px #0b203c66`, largura máx. `460px`.
-- Inputs: altura mínima `42px`, `border-radius: 8px` (`rounded-lg`).
+- Cartões de Kanban: `--radius-sm` (8px), `--shadow-card`, sem borda.
+- Modais: `--radius-xl` (14px), `--shadow-modal`, largura máx. `460px`.
+- Inputs: altura mínima `42px`, `border-radius: 8px` (`rounded-lg`), sempre `CLASSE_INPUT`/`Campo`; foco com anel navy de 2 px.
 - Botões: componente `Button` (`primary | secondary | ghost | destructive`, `sm | md`).
 - Badges: componente `Badge` (`tone`), sempre `rounded-full text-xs font-medium`.
+- Avisos: `Notice` (`neutral | info | success | warning | danger`); erro de carregamento: `ErroCarregar`.
+- Escolha entre poucas opções: `Segmented` (nunca `aria-pressed` em botões de ação).
+- Valor em falta numa célula: `SEM_VALOR` (`lib/format.ts`).
 
 **Tipografia** (tudo Inter; hierarquia por tamanho, peso e `letter-spacing` negativo)
 - h1 de página `29px/600/-.035em`; h2 de painel `15px/600/-.015em`;

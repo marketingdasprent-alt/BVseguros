@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react'
 import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-// danger (vermelho cheio) só no botão que confirma apagar/excluir.
+// danger (vermelho cheio) só no botão que confirma apagar.
 type Variant = 'primary' | 'secondary' | 'ghost' | 'ghost-danger' | 'destructive' | 'danger'
 type Size = 'sm' | 'md'
 
@@ -18,7 +18,7 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   secondary: 'border border-border text-ink bg-white hover:border-border-strong',
   ghost: 'text-muted hover:text-ink hover:bg-ink/[0.03]',
   destructive: 'border border-danger/30 text-danger-text hover:bg-danger-bg',
-  danger: 'bg-danger text-white hover:bg-[#d92d20]',
+  danger: 'bg-danger-text text-white hover:bg-danger-hover',
   'ghost-danger': 'text-danger-text hover:bg-danger-bg',
 }
 

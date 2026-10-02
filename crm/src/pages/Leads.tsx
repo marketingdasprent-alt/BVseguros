@@ -28,6 +28,7 @@ import type { Atividade, AtividadeInsert, ClienteEdicao, EstadoLead, Lead, LeadE
 import { TONE_ESTADO_LEAD } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
 import { filtrarPorResponsavel, lerFiltroResponsavel } from '@/lib/responsavel'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 export default function Leads() {
   const { data: leads, isLoading, error, recarregar, truncado } = useLeads()
@@ -80,26 +81,26 @@ export default function Leads() {
       await atualizarEstadoLead(id, estado, atualizadoEm)
       await recarregar()
     } catch (err: unknown) {
-      toast({ title: 'Erro ao mover lead', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível mudar o estado', description: mensagemErro(err), variant: 'destructive' })
       await recarregar()
     }
   }
 
   const handleCriar = (dados: LeadEdicao) =>
-    guardar(() => criarLead({ ...dados, estado: 'novo' }), 'Lead criado com sucesso', 'Erro ao criar lead', () => setModalAberto(false))
+    guardar(() => criarLead({ ...dados, estado: 'novo' }), 'Lead criado', 'Não foi possível criar lead', () => setModalAberto(false))
 
   const handleEditar = (lead: Lead, dados: LeadEdicao) =>
-    guardar(() => atualizarLead(lead.id, dados, lead.atualizado_em), 'Lead atualizado', 'Erro ao guardar lead', () => setAEditar(null))
+    guardar(() => atualizarLead(lead.id, dados, lead.atualizado_em), 'Lead atualizado', 'Não foi possível guardar lead', () => setAEditar(null))
 
   const handleConverter = (lead: Lead, dados: ClienteEdicao) =>
-    guardar(() => converterLead(lead, dados), 'Lead convertido em cliente', 'Erro ao converter lead', () => setAConverter(null))
+    guardar(() => converterLead(lead, dados), 'Lead convertido em cliente', 'Não foi possível converter lead', () => setAConverter(null))
 
   const handleSoMarcarConvertido = (lead: Lead) =>
-    guardar(() => atualizarEstadoLead(lead.id, 'convertido', lead.atualizado_em), 'Lead marcado como convertido', 'Erro ao mover lead', () => setAConverter(null))
+    guardar(() => atualizarEstadoLead(lead.id, 'convertido', lead.atualizado_em), 'Lead marcado como convertido', 'Não foi possível mudar o estado', () => setAConverter(null))
 
   const handleAtribuir = (lead: Lead, responsavelId: string | null) =>
     guardar(() => atribuirLead(lead.id, responsavelId, lead.atualizado_em),
-      responsavelId === profile?.id ? 'Lead assumido' : 'Responsável atualizado', 'Erro ao atribuir lead', () => setAAtribuir(null))
+      responsavelId === profile?.id ? 'Lead assumido' : 'Responsável atualizado', 'Não foi possível atribuir lead', () => setAAtribuir(null))
 
   const handleCriarAtividade = async (dados: AtividadeInsert) => {
     setAGuardar(true)
@@ -109,7 +110,7 @@ export default function Leads() {
       toast({ title: 'Atividade registada' })
       return true
     } catch (err: unknown) {
-      toast({ title: 'Erro ao registar atividade', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível registar atividade', description: mensagemErro(err), variant: 'destructive' })
       return false
     } finally {
       setAGuardar(false)
@@ -121,7 +122,7 @@ export default function Leads() {
       await marcarConcluida(atividade.id, !atividade.concluida)
       await atividades.recarregar()
     } catch (err: unknown) {
-      toast({ title: 'Erro ao atualizar tarefa', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível atualizar tarefa', description: mensagemErro(err), variant: 'destructive' })
     }
   }
 
@@ -142,7 +143,7 @@ export default function Leads() {
         </Button>} />
 
       {isLoading && <Spinner />}
-      {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar leads: {error.message}</p>}
+      {error && <ErroCarregar oQue="os leads" erro={error} onTentarNovamente={recarregar} />}
       {!isLoading && !error && (
         <>
           <AvisoTruncado truncado={truncado} />

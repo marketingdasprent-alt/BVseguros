@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { ClienteInsert } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
+import { CLASSE_INPUT } from '@/components/ui/Campo'
 
 interface NovoClienteFormProps {
   aCriar: boolean
@@ -41,7 +42,7 @@ export function NovoClienteForm({ aCriar, onCriar }: NovoClienteFormProps) {
       <Campo label="NIF" value={nif} onChange={setNif} />
       <div className="col-span-full"><Campo label="Morada" value={morada} onChange={setMorada} /></div>
       <Button type="submit" loading={aCriar} className="col-span-full md:col-span-4">
-        Guardar cliente
+        Criar cliente
       </Button>
     </form>
   )
@@ -64,14 +65,14 @@ function Campo({
     <label className="block min-w-0 space-y-2">
       <span className="block text-xs font-medium text-ink">
         {label}
-        {required && <span className="text-danger"> *</span>}
+        {required && <span className="text-danger-text" aria-hidden="true"> *</span>}
       </span>
       <input
         type={type}
         required={required}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+        className={CLASSE_INPUT}
       />
     </label>
   )

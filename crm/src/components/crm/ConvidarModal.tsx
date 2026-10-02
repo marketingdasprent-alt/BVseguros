@@ -7,6 +7,7 @@ import { Campo, CLASSE_INPUT, RodapeFormulario } from '@/components/ui/Campo'
 import { CampoSenha } from '@/components/crm/CampoSenha'
 import type { NovaConta } from '@/hooks/useUtilizadores'
 import type { Grupo } from '@/lib/types'
+import { Segmented } from '@/components/ui/Segmented'
 
 interface ConvidarModalProps {
   aEnviar: boolean
@@ -56,12 +57,12 @@ export function ConvidarModal({ aEnviar, grupos, onFechar, onCriar }: ConvidarMo
   }
 
   return (
-    <Modal title="Adicionar utilizador" onClose={onFechar} busy={aEnviar}>
+    <Modal title="Novo utilizador" onClose={onFechar} busy={aEnviar}>
       {feito ? (
         <div className="space-y-5">
           <div className="success-state" role="status">
             {feito.comSenha ? <UserCheck size={32} strokeWidth={1.6} aria-hidden="true" /> : <MailCheck size={32} strokeWidth={1.6} aria-hidden="true" />}
-            <strong className="text-[15px] font-semibold text-ink">{feito.comSenha ? 'Conta criada' : 'Convite enviado'}</strong>
+            <strong className="text-panel font-semibold text-ink">{feito.comSenha ? 'Conta criada' : 'Convite enviado'}</strong>
             {feito.comSenha ? (
               <p><span className="font-medium text-ink">{feito.email}</span> já pode entrar com a senha que definiu. No primeiro acesso, o CRM pede uma senha nova.</p>
             ) : (
@@ -75,10 +76,10 @@ export function ConvidarModal({ aEnviar, grupos, onFechar, onCriar }: ConvidarMo
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div role="group" aria-label="Como dar acesso" className="segmented">
-            <button type="button" aria-pressed={!comSenha} onClick={() => setComSenha(false)}>Enviar convite por email</button>
-            <button type="button" aria-pressed={comSenha} onClick={() => setComSenha(true)}>Criar já com senha</button>
-          </div>
+          <Segmented rotulo="Como dar acesso" valor={comSenha ? 'senha' : 'convite'} onChange={(v) => setComSenha(v === 'senha')} opcoes={[
+            { valor: 'convite', rotulo: 'Enviar convite por email' },
+            { valor: 'senha', rotulo: 'Criar já com senha' },
+          ]} />
           <Notice tone="info" icon={comSenha ? KeyRound : Mail}>
             {comSenha
               ? 'A conta fica logo pronta, sem email. Passe a senha à pessoa por um canal seguro; no primeiro acesso ela escolhe uma nova.'

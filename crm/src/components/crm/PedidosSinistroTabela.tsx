@@ -26,7 +26,7 @@ export function PedidosSinistroTabela({ pedidos, onAbrir }: PedidosSinistroTabel
             <tr>
               <th className="font-semibold uppercase whitespace-nowrap">Recebido</th>
               <th className="font-semibold uppercase whitespace-nowrap">Nome</th>
-              <th className="font-semibold uppercase whitespace-nowrap">Seguro</th>
+              <th className="font-semibold uppercase whitespace-nowrap">Ramo</th>
               <th className="font-semibold uppercase whitespace-nowrap">Ocorrência</th>
               <th className="font-semibold uppercase whitespace-nowrap">Estado</th>
               <th className="font-semibold uppercase whitespace-nowrap"><span className="sr-only">Ações</span></th>

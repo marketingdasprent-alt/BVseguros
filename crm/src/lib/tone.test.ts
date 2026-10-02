@@ -9,7 +9,7 @@ import {
 } from '@/lib/tone'
 
 // Garante que cada novo estado adicionado a lib/types.ts recebe sempre uma
-// cor correspondente — sem isto, um estado esquecido rebenta em runtime só
+// cor correspondente: sem isto, um estado esquecido rebenta em runtime só
 // quando alguém o encontra na UI (Badge com tone `undefined`).
 describe('mapas de tone cobrem todos os estados definidos', () => {
   it('EstadoLead', () => {

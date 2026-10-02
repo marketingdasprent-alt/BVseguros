@@ -56,7 +56,7 @@ export function AtribuirResponsavelModal({ nomeRegisto, responsavelAtual, membro
             </div>
           </fieldset>
         )}
-        <RodapeFormulario aGuardar={aGuardar} textoGuardar="Guardar" onCancelar={onFechar}
+        <RodapeFormulario aGuardar={aGuardar} textoGuardar="Atribuir" onCancelar={onFechar}
           desativarGuardar={escolhido === (responsavelAtual ?? '')} />
       </form>
     </Modal>
