@@ -2782,6 +2782,219 @@ body:has(.page-subnav) .header--scrolled {
   color: var(--color-text-muted);
 }
 
+/* Telefone: indicativo com bandeira e número na mesma caixa, separados por um traço. */
+.phone-field__anchor {
+  position: relative;
+}
+
+.phone-field__control {
+  display: flex;
+  align-items: stretch;
+  height: 3.25rem;
+  background-color: var(--color-surface);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
+}
+
+.phone-field__control:hover {
+  border-color: var(--color-text-muted);
+}
+
+/* O anel fica na caixa toda, como na matrícula, e não em cada metade. */
+.phone-field__control:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus-ring) 35%, transparent);
+}
+
+.field--error .phone-field__control {
+  border-color: var(--color-error);
+}
+
+.field--error .phone-field__control:focus-within {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 25%, transparent);
+}
+
+.phone-field__country {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex-shrink: 0;
+  padding-inline: var(--space-sm) var(--space-xs);
+  border: none;
+  border-right: var(--border-width-thin) solid var(--color-border);
+  border-radius: 0;
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.phone-field__country:hover,
+.phone-field__country[aria-expanded="true"] {
+  background-color: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+.phone-field__country:focus-visible {
+  outline: none;
+  background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+}
+
+.phone-field__flag {
+  display: block;
+  flex-shrink: 0;
+  width: 1.3125rem;
+  height: 0.875rem;
+  border-radius: 2px;
+  object-fit: cover;
+  /* Contorno fino: bandeiras com branco na borda (Japão, Chipre) não se perdem no fundo. */
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text-primary) 12%, transparent);
+}
+
+.phone-field__dial,
+.phone-field__code {
+  font-variant-numeric: tabular-nums;
+}
+
+.phone-field__chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--color-text-muted);
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.phone-field__country[aria-expanded="true"] .phone-field__chevron {
+  transform: rotate(180deg);
+}
+
+.phone-field__input {
+  flex: 1;
+  min-width: 0;
+  padding-inline: var(--space-sm);
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.phone-field__input:focus-visible {
+  outline: none;
+}
+
+.phone-field__input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.phone-field__panel {
+  position: absolute;
+  top: calc(100% + var(--space-3xs));
+  left: 0;
+  right: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.phone-field__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.phone-field__search svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.phone-field__search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.25rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--color-text-primary);
+}
+
+.phone-field__search input:focus-visible {
+  outline: none;
+}
+
+.phone-field__list {
+  max-height: 17rem;
+  margin: 0;
+  padding: var(--space-3xs);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.phone-field__group {
+  padding: var(--space-2xs) var(--space-xs) var(--space-3xs);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.phone-field__option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 2.5rem;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.phone-field__option[aria-selected="true"] {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+}
+
+.phone-field__option--atual .phone-field__name {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.phone-field__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phone-field__code {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-muted);
+}
+
+.phone-field__empty {
+  padding: var(--space-sm) var(--space-xs);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-muted);
+}
+
+@media (pointer: coarse) {
+  .phone-field__option {
+    min-height: 2.75rem;
+  }
+}
+
 /* Rever e enviar. */
 .form-review {
   display: flex;

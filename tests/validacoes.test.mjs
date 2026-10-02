@@ -7,7 +7,7 @@ import {
   formatarCodigoPostal, validarCodigoPostal, formatarMatricula, validarMatricula, idade,
   validarNascimentoCondutor, validarIdades, validarCartaVsNascimento,
   validarNipc, formatarTelefone, sugestaoEmail, mascaraCodigoPostal, limparMatricula, repartirMatricula,
-  naoFutura, diasDesde, hojeIso,
+  naoFutura, diasDesde, hojeIso, validarTelefoneComIndicativo, digitosNacionais, formatarNacional, telefoneCompleto,
 } from "../src/utils/validacoes.ts";
 
 test("NIF: dígito de controlo módulo 11", () => {
@@ -43,6 +43,22 @@ test("telefone", () => {
   assert.match(validarTelefone("91a345678"), /só dígitos/);
   assert.match(validarTelefone("+1234"), /indicativo/);
   assert.equal(normalizarTelefone("(+351) 91-234.56 78"), "+351912345678");
+});
+
+test("telefone com indicativo escolhido à parte", () => {
+  assert.equal(validarTelefoneComIndicativo("351", "912 345 678"), null);
+  assert.match(validarTelefoneComIndicativo("351", "91234567"), /9 dígitos/);
+  assert.equal(validarTelefoneComIndicativo("44", "020 7946 0958"), null, "o 0 inicial não conta");
+  assert.equal(validarTelefoneComIndicativo("55", "11 91234 5678"), null);
+  assert.match(validarTelefoneComIndicativo("44", "1234"), /curto/);
+  assert.match(validarTelefoneComIndicativo("1", "1234567890123456"), /longo/);
+  assert.match(validarTelefoneComIndicativo("33", "6a 12"), /só dígitos/);
+  assert.equal(validarTelefoneComIndicativo("33", ""), null);
+  assert.equal(digitosNacionais("39", "06 1234 5678"), "0612345678", "Itália mantém o 0");
+  assert.equal(formatarNacional("351", "912345678"), "912 345 678");
+  assert.equal(formatarNacional("44", "020-7946 0958"), "20 7946 0958");
+  assert.equal(telefoneCompleto("351", "912345678"), "+351 912 345 678");
+  assert.equal(telefoneCompleto("44", "  "), "");
 });
 
 test("email e nome", () => {

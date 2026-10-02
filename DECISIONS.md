@@ -2336,3 +2336,39 @@ Project-specific (Level 2).
 DATE:
 2026-10-02
 ```
+
+---
+
+```
+DECISION:
+BV Seguros: the phone field in the request forms (CamposContacto) gets a
+country dialling code picker (CampoTelefone): a flag button opens a
+searchable list (combobox pattern; "Mais usados" first: Portugal,
+Brazil, Spain, France, UK, Switzerland, Luxembourg, Germany, Angola,
+Cape Verde, Mozambique, USA), and typing or pasting "+44…"/"0044…"
+switches the country on its own. Portugal keeps the Portuguese rules
+(9 digits, starts with 2, 3 or 9, shown as 3 3 3); other countries are
+checked by length (9 to 15 digits with the code, the same limit as
+criar_lead_site) and lose the leading trunk 0 (except Italy, San
+Marino, Vatican, Ivory Coast). The full number ("+351 912 345 678") goes
+in the hidden `telefone` input, so the request payload is unchanged.
+
+REASON:
+Many BV clients are in the diaspora or in Portuguese-speaking
+countries; the old free text field accepted "+44…" but gave no help
+and validated foreign numbers loosely (8 digits passed).
+
+SCOPE:
+Site: components/forms/CampoTelefone.tsx (new), CamposBase.tsx,
+data/indicativos.ts (E.164 codes and PT-PT names), public/bandeiras
+(country-flag-icons SVGs, MIT licence included), utils/validacoes.ts
+(validarTelefoneComIndicativo, digitosNacionais, formatarNacional,
+telefoneCompleto), styles/components.css (.phone-field*),
+tests/validacoes.test.mjs.
+
+LEVEL:
+Project-specific (Level 2).
+
+DATE:
+2026-10-02
+```
