@@ -31,7 +31,8 @@ export type EnvioPedido = {
   valores: Valores;
   formulario?: FormularioRamo;
   ramo: RamoCrm;
-  contexto: string[];
+  /** Nível escolhido na página do ramo (?nivel=), se houver. */
+  nivel: string | null;
 };
 
 /**
@@ -60,8 +61,8 @@ export type ContactoFormProps = {
    * ele, o tipo de seguro é o primeiro passo e os passos desse ramo vêm a seguir.
    */
   ramoFixo?: { valor: RamoCrm; formulario: FormularioRamo };
-  /** Linhas já escolhidas na página (ex.: o nível de proteção), no topo da mensagem do lead. */
-  contexto?: string[];
+  /** Nível escolhido na página do ramo: vai na mensagem do lead quando o formulário não o pergunta. */
+  nivel?: string | null;
   /** Com isto, o ecrã de sucesso mostra "Fechar" em vez de "Enviar outro pedido". */
   onConcluido?: () => void;
   /** Por omissão, o pedido de proposta. */
@@ -71,25 +72,31 @@ export type ContactoFormProps = {
 const texto = (dados: FormData, nome: string) => String(dados.get(nome) ?? "").trim();
 
 /** Pedido de proposta: vai para o CRM como lead, com as respostas na mensagem (opção A). */
-async function enviarProposta({ dados, valores, formulario, ramo, contexto }: EnvioPedido, token: string | null) {
+async function enviarProposta({ dados, valores, formulario, ramo, nivel }: EnvioPedido, token: string | null) {
   const nif = texto(dados, "nif").replace(/\D/g, "");
   const cp = texto(dados, "codigo_postal");
   const local = texto(dados, "codigo_postal_local");
-  const contacto: Bloco = {
-    titulo: "Contacto",
+  // Nome, telefone e email já vão nos campos do lead; aqui só o que falta para pedir propostas.
+  const quemPede: Bloco = {
+    titulo: "Quem pede",
     linhas: [
       { rotulo: "NIF", valor: nif },
-      { rotulo: "Código postal", valor: local ? `${cp} (${local})` : cp },
+      { rotulo: "Código postal", valor: local ? `${cp} ${local}` : cp },
     ].filter((l) => l.valor),
   };
-  const blocos = [...(formulario ? blocosDosPassos(formulario.passos, valores) : []), ...(contacto.linhas.length ? [contacto] : [])];
+  const blocos = [
+    ...(formulario ? blocosDosPassos(formulario.passos, valores, { curto: true }) : []),
+    ...(quemPede.linhas.length ? [quemPede] : []),
+  ];
+  const nomeRamo = formulario ? SEGUROS.find((s) => s.ramoCrm === ramo)?.nome : undefined;
+  const destaques = [nomeRamo ?? "Pedido de proposta", ...(formulario?.destaques?.(valores) ?? [])];
   await enviarContacto(
     {
       nome: texto(dados, "nome"),
       email: texto(dados, "email"),
       telefone: normalizarTelefone(texto(dados, "telefone")),
       ramo,
-      mensagem: montarMensagem(blocos, texto(dados, "mensagem"), contexto),
+      mensagem: montarMensagem(blocos, texto(dados, "mensagem"), { destaques, nivel }),
       consentimento: dados.get("consentimento") === "sim",
     },
     token
@@ -123,7 +130,7 @@ function erroAte(campo: Element | null, mensagem: string) {
  * passos ficam montados num só <form>, escondidos com `hidden`, para o
  * envio ter tudo; cada passo é validado antes de se avançar.
  */
-export default function ContactoForm({ ramos, ramoFixo, contexto = [], onConcluido, modalidade = PROPOSTA }: ContactoFormProps) {
+export default function ContactoForm({ ramos, ramoFixo, nivel = null, onConcluido, modalidade = PROPOSTA }: ContactoFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const titulos = useRef<(HTMLHeadingElement | null)[]>([]);
   const mudouPasso = useRef<"titulo" | "erro" | null>(null);
@@ -316,7 +323,7 @@ export default function ContactoForm({ ramos, ramoFixo, contexto = [], onConclui
           valores: lerValores(form),
           formulario,
           ramo: (ramoFixo?.valor ?? (ramoEscolhido || "outro")) as RamoCrm,
-          contexto,
+          nivel,
         },
         token
       );

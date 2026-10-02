@@ -61,7 +61,10 @@ sombras (`--shadow-card/raised/pop/modal`) também são tokens.
 **Forma**
 - Painéis e tabelas: `border 1px var(--border)`, `border-radius: 12px`, sem sombra.
 - Cartões de Kanban: `--radius-sm` (8px), `--shadow-card`, sem borda.
-- Modais: `--radius-xl` (14px), `--shadow-modal`, largura máx. `460px`.
+- Modais: `--radius-xl` (14px), `--shadow-modal`, largura máx. `460px`. `Modal ecraInteiro`
+  (só "Editar lead"/"Novo lead"): ecrã todo, cabeçalho e barra de botões fixos, conteúdo até
+  1120px alinhado com o título; com pedido do site, dados à esquerda e pedido à direita
+  (≥1024px), pedido em cima no telemóvel.
 - Inputs: altura mínima `42px`, `border-radius: 8px` (`rounded-lg`), sempre `CLASSE_INPUT`/`Campo`; foco com anel navy de 2 px.
 - Botões: componente `Button` (`primary | secondary | ghost | destructive`, `sm | md`).
 - Badges: componente `Badge` (`tone`), sempre `rounded-full text-xs font-medium`.

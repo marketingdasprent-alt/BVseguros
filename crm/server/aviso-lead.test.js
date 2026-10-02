@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createHandler, escaparHtml, montarEmail } from '../api/aviso-lead.js'
+import { createHandler, escaparHtml, mensagemHtml, montarEmail } from '../api/aviso-lead.js'
 
 const ENV = {
   AVISO_LEAD_SEGREDO: 'segredo-certo', BREVO_API_KEY: 'k', BREVO_REMETENTE: 'crm@bv.pt',
@@ -69,6 +69,20 @@ describe('montarEmail', () => {
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;')
     expect(html).toContain('Ana &lt;b&gt;Costa&lt;/b&gt;')
+  })
+
+  it('destaca o resumo e os títulos dos blocos da mensagem do site, sempre escapados', () => {
+    const html = mensagemHtml('Automóvel · BT-84-HL · Essencial\n\n[Veículo]\nMatrícula: BT-84-HL\n[<b>x</b>]')
+    expect(html).toContain('<strong style="font-size:15px;color:#172b43">Automóvel · BT-84-HL · Essencial</strong>')
+    expect(html).toMatch(/<strong style="[^"]*">Veículo<\/strong>/)
+    expect(html).toContain('Matrícula: BT-84-HL')
+    expect(html).toContain('&lt;b&gt;x&lt;/b&gt;')
+    expect(html).not.toContain('<b>')
+  })
+
+  it('"Outros seguros" no interesse, como no resto do CRM', () => {
+    const { texto } = montarEmail({ ...LEAD, ramo_interesse: 'outro', mensagem: '' }, null)
+    expect(texto).toContain('Interesse: Outros seguros')
   })
 
   it('escaparHtml trata aspas e &', () => {

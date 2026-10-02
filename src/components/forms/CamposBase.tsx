@@ -1,15 +1,9 @@
 import { useRef, useState } from "react";
 import InputValidado from "./InputValidado";
 import CampoCodigoPostal from "./CampoCodigoPostal";
+import CampoTelefone from "./CampoTelefone";
 import type { ValorExterno } from "./CampoCodigoPostal";
-import {
-  formatarTelefone,
-  sugestaoEmail,
-  validarEmail,
-  validarNif,
-  validarNome,
-  validarTelefone,
-} from "../../utils/validacoes";
+import { sugestaoEmail, validarEmail, validarNif, validarNome } from "../../utils/validacoes";
 import Link from "../../app/Link";
 
 const soDigitos = (v: string) => v.replace(/\D/g, "");
@@ -87,17 +81,7 @@ export function CamposContacto({ nifObrigatorio = false, comCodigoPostal = false
         filtrar={soDigitos}
       />
       <CampoEmail />
-      <InputValidado
-        className="form-grid__half"
-        label="Telefone"
-        name="telefone"
-        type="tel"
-        autoComplete="tel"
-        required
-        maxLength={20}
-        validar={validarTelefone}
-        formatar={formatarTelefone}
-      />
+      <CampoTelefone className="form-grid__half" label="Telefone" name="telefone" required />
       {comCodigoPostal && (
         <CampoCodigoPostal
           className="form-grid__half"

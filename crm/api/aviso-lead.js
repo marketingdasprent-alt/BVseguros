@@ -8,7 +8,18 @@ import { timingSafeEqual } from 'node:crypto'
 
 const RAMOS = {
   auto: 'Automóvel', vida: 'Vida', saude: 'Saúde', multirriscos: 'Multirriscos habitação',
-  acidentes_trabalho: 'Acidentes de trabalho', outro: 'Outro',
+  acidentes_trabalho: 'Acidentes de trabalho', outro: 'Outros seguros',
+}
+
+// A mensagem do site já se lê sozinha (resumo, "[Título]", "Rótulo: valor"): no HTML só se
+// destaca o resumo e os títulos dos blocos. Tudo escapado, linha a linha.
+export function mensagemHtml(mensagem) {
+  return String(mensagem ?? '').replace(/\r/g, '').split('\n').map((linha, i) => {
+    const titulo = /^\[(.+)\]$/.exec(linha.trim())
+    if (titulo) return `<strong style="display:block;margin-top:10px;color:#184070;font-size:12px;text-transform:uppercase;letter-spacing:.06em">${escaparHtml(titulo[1])}</strong>`
+    if (i === 0 && linha.includes(' · ')) return `<strong style="font-size:15px;color:#172b43">${escaparHtml(linha)}</strong>`
+    return escaparHtml(linha)
+  }).join('<br>')
 }
 
 // O conteúdo vem de um formulário público: nunca entra no HTML sem ser escapado.
@@ -33,7 +44,7 @@ export function montarEmail(lead, crmUrl) {
     <p style="color:#647184;margin:0 0 20px">Chegou um pedido de contacto que ainda não tem responsável.</p>
     <table style="border-collapse:collapse;margin-bottom:16px">${linhas.map(([k, v]) =>
       `<tr><td style="padding:4px 12px 4px 0;color:#647184">${k}</td><td style="padding:4px 0"><strong>${escaparHtml(v)}</strong></td></tr>`).join('')}</table>
-    ${lead.mensagem ? `<p style="background:#f8fafc;border:1px solid #e1e7ee;border-radius:8px;padding:12px;white-space:pre-line">${escaparHtml(lead.mensagem)}</p>` : ''}
+    ${lead.mensagem ? `<div style="background:#f8fafc;border:1px solid #e1e7ee;border-radius:8px;padding:12px;line-height:1.6">${mensagemHtml(lead.mensagem)}</div>` : ''}
     ${link ? `<p style="margin:24px 0"><a href="${link}" style="background:#184070;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">Abrir no CRM</a></p>` : ''}
     <p style="font-size:12px;color:#647184">BV Seguros · CRM interno</p></div>`
   const texto = `Novo pedido pelo site\n\n${linhas.map(([k, v]) => `${k}: ${v}`).join('\n')}${lead.mensagem ? `\n\nMensagem:\n${lead.mensagem}` : ''}${link ? `\n\nAbrir no CRM: ${link}` : ''}`

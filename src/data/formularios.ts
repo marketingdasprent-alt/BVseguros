@@ -10,6 +10,7 @@ import {
 } from "../utils/validacoes";
 import { validarMatricula } from "../utils/validacoes";
 import type { Validador } from "../utils/validacoes";
+import { euros } from "../utils/montarMensagem";
 
 /** Respostas do formulário, por `nome` do campo (sem o prefixo `d_`). Várias escolhas vêm juntas por ", ". */
 export type Valores = Record<string, string>;
@@ -53,6 +54,10 @@ export type Campo = {
   max?: number | string;
   minLength?: number;
   maxLength?: number;
+  /** Rótulo curto na mensagem do CRM (sem ele: o rótulo sem "?" final). */
+  resumo?: string;
+  /** Valores reescritos na mensagem do CRM, quando a opção sozinha não se percebe (ex.: "Sim"). */
+  resumoValores?: Record<string, string>;
   /** Validação própria do campo (src/utils/validacoes.ts), além de required/min/max. */
   validar?: Validador;
   /** Arruma o valor ao sair do campo (ex.: matrícula em maiúsculas com hífenes). */
@@ -75,6 +80,8 @@ export type PassoRamo = {
   id: string;
   /** Nome curto na barra de progresso. */
   nome: string;
+  /** Título do bloco na mensagem do CRM; passos seguidos com o mesmo bloco juntam-se. */
+  bloco?: string;
   titulo: string;
   texto?: string;
   campos: Campo[];
@@ -103,6 +110,8 @@ export type FormularioRamo = {
   semRevisao?: boolean;
   /** Regras entre campos do ramo. */
   regras?: (v: Valores) => ErroRegra[];
+  /** O essencial do pedido, para a linha de resumo no topo da mensagem do CRM (vazios saem). */
+  destaques?: (v: Valores) => (string | undefined)[];
   /** O NIF de quem pede deixa de ser obrigatório (ex.: a empresa já deu o NIPC). */
   nifDispensavel?: (v: Valores) => boolean;
   /** Se o NIF de quem pede tem de ser de pessoa singular, a mensagem para um NIF de empresa. */
@@ -134,6 +143,7 @@ export const matriculaCompleta = (m: string) => /^[A-Z0-9]{2}-[A-Z0-9]{2}-[A-Z0-
 const MOTIVO_NOVO = "Carro novo, ainda por matricular";
 const MOTIVO_IMPORTADO = "Carro importado, à espera da matrícula portuguesa";
 const COM_TRABALHADORES = "Não, tenho trabalhadores";
+const comLocal = (cp?: string, local?: string) => (cp && local ? `${cp} ${local}` : cp);
 
 /** Todas as marcas que o simulador da Fidelidade mostrou (carros de 2017 e de 2026), por ordem. */
 export const MARCAS_AUTO = [
@@ -159,19 +169,31 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
   auto: {
     titulo: "Peça uma proposta de seguro automóvel.",
     texto: "Tenha à mão a matrícula e a carta de condução. Comparamos propostas de várias seguradoras.",
+    destaques: (v) => [v.matricula === SEM_MATRICULA ? v.modelo || "sem matrícula" : v.matricula, v.protecao],
     passos: [
       {
         id: "matricula",
         nome: "A matrícula",
+        bloco: "Veículo",
         titulo: "Comece por indicar a matrícula do seu carro.",
         texto: "Depois pedimos o resto dos dados do carro.",
         destaque: "matricula",
         avancaQuando: (v) => semMatricula(v) || matriculaCompleta(v.matricula ?? ""),
-        campos: [{ nome: "matricula", rotulo: "Matrícula", tipo: "matricula", obrigatorio: true, permitirSemMatricula: true }],
+        campos: [
+          {
+            nome: "matricula",
+            rotulo: "Matrícula",
+            resumoValores: { [SEM_MATRICULA]: "Sem matrícula" },
+            tipo: "matricula",
+            obrigatorio: true,
+            permitirSemMatricula: true,
+          },
+        ],
       },
       {
         id: "sem_matricula",
         nome: "Sem matrícula",
+        bloco: "Veículo",
         titulo: "Porque ainda não tem matrícula?",
         mostrarSe: semMatricula,
         avancaQuando: (v) => Boolean(v.motivo_sem_matricula),
@@ -188,12 +210,14 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "veiculo",
         nome: "O veículo",
+        bloco: "Veículo",
         titulo: "Agora, o carro.",
         texto: "Com a matrícula, estes dados são opcionais.",
         campos: [
           {
             nome: "tipo_veiculo",
             rotulo: "Tipo de veículo",
+            resumo: "Tipo",
             tipo: "radio",
             opcoes: ["Ligeiro", "Motociclo"],
             padrao: "Ligeiro",
@@ -204,6 +228,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "uso",
             rotulo: "Uso do veículo",
+            resumo: "Uso",
             tipo: "radio",
             opcoes: ["Particular", "Profissional"],
             padrao: "Particular",
@@ -215,6 +240,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "modelo",
             rotulo: "Modelo e versão",
+            resumo: "Modelo",
             tipo: "texto",
             placeholder: "Ex.: Clio 1.5 dCi",
             maxLength: 80,
@@ -231,6 +257,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "data_matricula",
             rotulo: "Data da 1.ª matrícula",
+            resumo: "1.ª matrícula",
             tipo: "data",
             max: "hoje",
             validar: naoFuturaMatricula,
@@ -245,6 +272,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "importado",
             rotulo: "Veículo importado?",
+            resumo: "Importado",
             tipo: "radio",
             opcoes: SIM_NAO,
             padrao: "Não",
@@ -255,6 +283,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "data_matricula_pt",
             rotulo: "Data da matrícula portuguesa, se for importado",
+            resumo: "Matrícula portuguesa",
             tipo: "data",
             max: "hoje",
             validar: naoFuturaMatricula,
@@ -264,6 +293,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "atrelado",
             rotulo: "Leva atrelado ou reboque (bicicletas, pranchas, animais, mota)?",
+            resumo: "Atrelado ou reboque",
             tipo: "radio",
             opcoes: SIM_NAO,
             padrao: "Não",
@@ -275,12 +305,14 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "condutor",
         nome: "O condutor",
+        bloco: "Condutor habitual",
         titulo: "Agora, o condutor habitual.",
         texto: "É quem conduz o carro mais vezes.",
         campos: [
           {
             nome: "nascimento_condutor",
             rotulo: "Data de nascimento do condutor habitual",
+            resumo: "Data de nascimento",
             tipo: "data",
             obrigatorio: true,
             max: "hoje",
@@ -290,6 +322,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "data_carta",
             rotulo: "Data da carta de condução",
+            resumo: "Carta desde",
             tipo: "data",
             obrigatorio: true,
             max: "hoje",
@@ -299,6 +332,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "seguro_em_nome",
             rotulo: "O seguro fica em nome do condutor habitual?",
+            resumo: "Seguro em nome do condutor",
             tipo: "radio",
             opcoes: SIM_NAO,
             padrao: "Sim",
@@ -307,12 +341,14 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "anos_seguro",
             rotulo: "Há quantos anos tem seguro automóvel em seu nome?",
+            resumo: "Anos com seguro em nome próprio",
             tipo: "radio",
             opcoes: ["Nunca tive", "Menos de 2", "2 a 5", "Mais de 5"],
           },
           {
             nome: "sinistros",
             rotulo: "Teve sinistros com culpa nos últimos 5 anos?",
+            resumo: "Sinistros com culpa (5 anos)",
             tipo: "radio",
             opcoes: ["Nenhum", "1", "2 ou mais"],
           },
@@ -321,12 +357,14 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "tomador",
         nome: "Quem fica com o seguro",
+        bloco: "Tomador do seguro",
         titulo: "Em nome de quem fica o seguro?",
         mostrarSe: (v) => v.seguro_em_nome === "Não",
         campos: [
           {
             nome: "tomador_nome",
             rotulo: "Nome de quem fica com o seguro",
+            resumo: "Nome",
             tipo: "texto",
             maxLength: 120,
             obrigatorio: true,
@@ -335,6 +373,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "tomador_nif",
             rotulo: "NIF de quem fica com o seguro",
+            resumo: "NIF",
             tipo: "texto",
             inputMode: "numeric",
             maxLength: 9,
@@ -348,6 +387,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "protecao",
         nome: "A proteção",
+        bloco: "Proteção",
         titulo: "Que proteção procura?",
         texto: "Serve para pedirmos as propostas certas; pode mudar de ideias depois.",
         avancaQuando: (v) => Boolean(v.protecao),
@@ -355,13 +395,15 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "protecao",
             rotulo: "Nível de proteção",
+            resumo: "Nível",
             tipo: "cartoes",
             obrigatorio: true,
-            opcoes: ["Só o obrigatório", "Danos próprios, carro usado", "Proteção completa", "Não sei, aconselhem-me"],
+            // Os mesmos níveis e frases da tabela da página do ramo (seguros.ts): quem lá escolhe um nível já o traz marcado.
+            opcoes: ["Essencial", "Intermédio", "Completo", "Não sei, aconselhem-me"],
             descricoes: [
-              "Responsabilidade civil e assistência em viagem.",
-              "Também choque, furto, incêndio e fenómenos da natureza.",
-              "A mais alargada, para carro novo ou semi-novo.",
+              "O mínimo obrigatório para circular, com assistência em viagem.",
+              "Protege também contra furto, incêndio, natureza e vidros.",
+              "Inclui danos no próprio carro, mesmo com culpa sua.",
               "Um mediador explica as opções antes de pedir propostas.",
             ],
           },
@@ -370,18 +412,21 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "extras",
         nome: "Extras",
+        bloco: "Proteção",
         titulo: "Quer acrescentar alguma coisa?",
         texto: "Tudo opcional. O mediador confirma consigo antes de pedir as propostas.",
         campos: [
           {
             nome: "extras",
             rotulo: "Coberturas extra",
+            resumo: "Extras",
             tipo: "multipla",
             opcoes: ["Quebra de vidros", "Veículo de substituição", "Proteção jurídica", "Ocupantes"],
           },
           {
             nome: "inicio",
             rotulo: "Início do seguro",
+            resumo: "Início",
             tipo: "data",
             min: "amanha",
             max: "doze_meses",
@@ -408,10 +453,12 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
   vida: {
     titulo: "Peça uma proposta de seguro de vida.",
     texto: "Diga-nos para que precisa do seguro e quem quer segurar. Não pedimos dados de saúde neste formulário.",
+    destaques: (v) => [v.finalidade, euros(v.montante || v.capital)],
     passos: [
       {
         id: "finalidade",
         nome: "Para que é",
+        bloco: "Seguro de vida",
         titulo: "Para que é o seguro de vida?",
         avancaQuando: (v) => Boolean(v.finalidade),
         campos: [
@@ -432,11 +479,13 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "seguro",
         nome: "O seguro",
+        bloco: "Seguro de vida",
         titulo: "Fale-nos do seguro.",
         campos: [
           {
             nome: "montante",
             rotulo: "Montante em dívida (€)",
+            resumo: "Montante em dívida",
             tipo: "numero",
             inputMode: "numeric",
             min: 0,
@@ -447,6 +496,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "anos_credito",
             rotulo: "Anos que faltam do crédito",
+            resumo: "Anos de crédito em falta",
             tipo: "numero",
             inputMode: "numeric",
             min: 1,
@@ -467,6 +517,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "trocar_banco",
             rotulo: "Quer trocar o seguro de vida que tem no banco?",
+            resumo: "Trocar o seguro do banco",
             tipo: "radio",
             opcoes: ["Sim", "Não", NAO_SEI],
             obrigatorio: true,
@@ -475,6 +526,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "capital",
             rotulo: "Capital pretendido (€)",
+            resumo: "Capital pretendido",
             tipo: "numero",
             inputMode: "numeric",
             min: 0,
@@ -489,16 +541,24 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
   saude: {
     titulo: "Peça uma proposta de seguro de saúde.",
     texto: "Só precisamos de saber quem quer proteger e o que procura. Não pedimos informação sobre doenças.",
+    destaques: (v) => {
+      const idades = v.pessoas || v.idades;
+      const n = Number(v.n_pessoas) || (v.pessoas ? v.pessoas.split(",").length : 0);
+      const pessoas = n ? `${n} ${n === 1 ? "pessoa" : "pessoas"}${idades ? ` (${idades})` : ""}` : idades;
+      return [pessoas, v.necessidade];
+    },
     passos: [
       {
         id: "para_quem",
         nome: "Para quem é",
+        bloco: "Pessoas seguras",
         titulo: "Para quem é o seguro de saúde?",
         avancaQuando: (v) => Boolean(v.para_quem),
         campos: [
           {
             nome: "para_quem",
             rotulo: "Para quem é",
+            resumo: "Para quem",
             tipo: "cartoes",
             obrigatorio: true,
             opcoes: ["Para mim e a minha família", "Só para outras pessoas", "Para a minha empresa"],
@@ -513,11 +573,13 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "pessoas",
         nome: "As pessoas",
+        bloco: "Pessoas seguras",
         titulo: "Quem fica no seguro?",
         campos: [
           {
             nome: "pessoas",
             rotulo: "Idades das pessoas seguras",
+            resumo: "Idades",
             tipo: "pessoas",
             obrigatorio: true,
             maxPessoas: 10,
@@ -538,6 +600,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "idades",
             rotulo: "Idades aproximadas",
+            resumo: "Idades",
             tipo: "texto",
             placeholder: "Ex.: entre 25 e 50",
             maxLength: 80,
@@ -549,6 +612,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "necessidades",
         nome: "O que procura",
+        bloco: "Preferências",
         titulo: "O que é mais importante para si?",
         texto: "Escolha a frase que mais se aproxima. Não perguntamos nada sobre a sua saúde.",
         avancaQuando: (v) => Boolean(v.necessidade),
@@ -556,6 +620,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "necessidade",
             rotulo: "O mais importante",
+            resumo: "Prioridade",
             tipo: "cartoes",
             obrigatorio: true,
             opcoes: [
@@ -580,6 +645,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "detalhes",
         nome: "Detalhes",
+        bloco: "Preferências",
         titulo: "Só mais uns detalhes.",
         campos: [
           { nome: "tem_seguro", rotulo: "Já tem seguro de saúde?", tipo: "radio", opcoes: SIM_NAO, largura: "meia" },
@@ -588,6 +654,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "pagamento",
             rotulo: "Como prefere pagar?",
+            resumo: "Pagamento",
             tipo: "radio",
             opcoes: ["Mensal", "Trimestral", "Semestral", "Anual", NAO_SEI],
           },
@@ -598,16 +665,19 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
   habitacao: {
     titulo: "Peça uma proposta de seguro multirriscos.",
     texto: "Alguns dados da casa chegam para começarmos a comparar.",
+    destaques: (v) => [v.tipo_imovel, comLocal(v.codigo_postal_imovel, v.codigo_postal_imovel_local), v.segurar],
     passos: [
       {
         id: "imovel",
         nome: "O imóvel",
+        bloco: "Imóvel",
         titulo: "Fale-nos da casa.",
         campos: [
-          { nome: "tipo_imovel", rotulo: "Tipo de imóvel", tipo: "radio", opcoes: ["Apartamento", "Moradia"], largura: "meia" },
+          { nome: "tipo_imovel", rotulo: "Tipo de imóvel", resumo: "Tipo", tipo: "radio", opcoes: ["Apartamento", "Moradia"], largura: "meia" },
           {
             nome: "utilizacao",
             rotulo: "Habitação permanente ou secundária?",
+            resumo: "Habitação",
             tipo: "radio",
             opcoes: ["Permanente", "Secundária"],
             obrigatorio: true,
@@ -619,11 +689,12 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
             tipo: "radio",
             opcoes: ["Proprietário, vivo lá", "Proprietário, arrendo a outros", "Inquilino"],
           },
-          { nome: "segurar", rotulo: "O que quer segurar?", tipo: "radio", opcoes: ["Edifício", "Recheio", "Ambos", NAO_SEI] },
-          { nome: "credito", rotulo: "Tem crédito habitação?", tipo: "radio", opcoes: SIM_NAO },
+          { nome: "segurar", rotulo: "O que quer segurar?", resumo: "A segurar", tipo: "radio", opcoes: ["Edifício", "Recheio", "Ambos", NAO_SEI] },
+          { nome: "credito", rotulo: "Tem crédito habitação?", resumo: "Crédito habitação", tipo: "radio", opcoes: SIM_NAO },
           {
             nome: "morada_imovel",
             rotulo: "Morada do imóvel",
+            resumo: "Morada",
             tipo: "morada",
             codigoPostal: "codigo_postal_imovel",
             placeholder: "Escreva a rua e escolha uma sugestão",
@@ -632,6 +703,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "codigo_postal_imovel",
             rotulo: "Código postal do imóvel",
+            resumo: "Código postal",
             tipo: "codigo_postal",
             obrigatorio: true,
             largura: "meia",
@@ -639,6 +711,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "area",
             rotulo: "Área aproximada (m²)",
+            resumo: "Área",
             tipo: "numero",
             inputMode: "numeric",
             min: 10,
@@ -657,6 +730,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "construcao",
             rotulo: "Tipo de construção",
+            resumo: "Construção",
             tipo: "radio",
             opcoes: ["Betão", "Alvenaria", "Madeira ou outra", NAO_SEI],
           },
@@ -667,16 +741,23 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
   trabalho: {
     titulo: "Peça uma proposta de acidentes de trabalho.",
     texto: "Com a atividade, o nº de trabalhadores e a massa salarial conseguimos pedir propostas.",
+    destaques: (v) => [
+      v.empresa || (v.independente === "Sim" ? "Trabalhador independente" : undefined),
+      v.trabalhadores ? `${v.trabalhadores} trabalhadores` : undefined,
+    ],
     passos: [
       {
         id: "independente",
         nome: "Quem trabalha",
+        bloco: "Empresa",
         titulo: "É trabalhador independente?",
         avancaQuando: (v) => Boolean(v.independente),
         campos: [
           {
             nome: "independente",
             rotulo: "Situação",
+            resumo: "Situação",
+            resumoValores: { Sim: "Trabalhador independente", [COM_TRABALHADORES]: "Com trabalhadores" },
             tipo: "cartoes",
             opcoes: ["Sim", COM_TRABALHADORES],
             descricoes: ["Trabalho por conta própria, sem ninguém a cargo.", "Tenho uma empresa com pessoas a trabalhar."],
@@ -687,11 +768,13 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
       {
         id: "atividade",
         nome: "A atividade",
+        bloco: "Empresa",
         titulo: "Fale-nos da atividade.",
         campos: [
           {
             nome: "empresa",
             rotulo: "Nome da empresa",
+            resumo: "Nome",
             tipo: "texto",
             autoComplete: "organization",
             maxLength: 120,
@@ -701,6 +784,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "nipc",
             rotulo: "NIPC da empresa",
+            resumo: "NIPC",
             tipo: "texto",
             inputMode: "numeric",
             maxLength: 9,
@@ -731,6 +815,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "trabalhadores",
             rotulo: "Nº de trabalhadores",
+            resumo: "Trabalhadores",
             tipo: "numero",
             inputMode: "numeric",
             min: 0,
@@ -741,6 +826,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
           {
             nome: "massa_salarial",
             rotulo: "Massa salarial anual (€)",
+            resumo: "Massa salarial anual",
             placeholder: "Valor aproximado",
             tipo: "numero",
             inputMode: "numeric",
@@ -757,12 +843,14 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
   outros: {
     titulo: "Diga-nos que seguro procura.",
     texto: "Descreva a situação e procuramos a solução junto das seguradoras.",
+    destaques: (v) => [v.tipo],
     semMensagemLivre: true,
     semRevisao: true,
     passos: [
       {
         id: "pedido",
         nome: "O pedido",
+        bloco: "Pedido",
         titulo: "Que seguro procura?",
         campos: [
           {
@@ -771,7 +859,7 @@ export const FORMULARIOS: Record<RamoKey, FormularioRamo> = {
             tipo: "select",
             opcoes: ["Responsabilidade civil", "Viagem", "Animais de companhia", "Acidentes pessoais", "Empresa", "Outro"],
           },
-          { nome: "descricao", rotulo: "O que precisa de segurar?", tipo: "textarea", obrigatorio: true, maxLength: 1500 },
+          { nome: "descricao", rotulo: "O que precisa de segurar?", resumo: "Descrição", tipo: "textarea", obrigatorio: true, maxLength: 1500 },
         ],
       },
     ],

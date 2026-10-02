@@ -8,7 +8,8 @@ export function formatarMoeda(valor: number): string {
 }
 
 export function formatarData(data: string): string {
-  const [ano, mes, dia] = data.split('-')
+  // Aceita também um timestamp completo (criado_em): só conta a parte da data.
+  const [ano, mes, dia] = data.slice(0, 10).split('-')
   return `${dia}/${mes}/${ano}`
 }
 

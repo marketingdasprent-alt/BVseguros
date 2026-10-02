@@ -64,9 +64,45 @@ export const validarTelefone: Validador = (valor) => {
     if (!/^[239]/.test(nacional)) return "Um número português começa por 2, 3 ou 9.";
     return null;
   }
+  // 9 a 15 dígitos com o indicativo: o mesmo limite de criar_lead_site.
   const digitos = t.length - 1;
-  return digitos >= 8 && digitos <= 15 ? null : "Confirme o número e o indicativo do país.";
+  return digitos >= 9 && digitos <= 15 ? null : "Confirme o número e o indicativo do país.";
 };
+
+// Itália, São Marino, Vaticano e Costa do Marfim mantêm o 0 depois do indicativo.
+const MANTEM_ZERO = new Set(["39", "378", "379", "225"]);
+
+/** Só os dígitos do número nacional, sem o 0 de chamada interna ("020 7946 0958" no Reino Unido dá "2079460958"). */
+export function digitosNacionais(indicativo: string, nacional: string): string {
+  const d = soDigitos(nacional);
+  return MANTEM_ZERO.has(indicativo) ? d : d.replace(/^0+/, "");
+}
+
+/** Número escrito ao lado de um indicativo escolhido à parte (ex.: "351" e "912 345 678"). */
+export function validarTelefoneComIndicativo(indicativo: string, nacional: string): string | null {
+  const t = normalizarTelefone(nacional);
+  if (!t) return null;
+  if (!/^\d+$/.test(t)) return "Use só dígitos e espaços.";
+  if (indicativo === "351") return validarTelefone(t);
+  const total = indicativo.length + digitosNacionais(indicativo, t).length;
+  if (total < 9) return "O número parece curto para este país. Confirme os dígitos.";
+  if (total > 15) return "O número parece longo para este país. Confirme os dígitos.";
+  return null;
+}
+
+/** Arruma o número ao sair do campo: Portugal em 3 3 3; os outros sem o 0 inicial e com os espaços de quem escreveu. */
+export function formatarNacional(indicativo: string, nacional: string): string {
+  if (indicativo === "351") return formatarTelefone(nacional);
+  if (!/^[\d\s().-]+$/.test(nacional)) return nacional.trim();
+  const semZeros = MANTEM_ZERO.has(indicativo) ? nacional : nacional.replace(/^[\s0().-]+/, "");
+  return semZeros.replace(/[().-]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** O que segue para o CRM: "+351 912 345 678", "+44 20 7946 0958". Vazio se não há número. */
+export function telefoneCompleto(indicativo: string, nacional: string): string {
+  const n = formatarNacional(indicativo, nacional);
+  return n ? `+${indicativo} ${n}` : "";
+}
 
 /** Só para mostrar: "912345678" passa a "912 345 678" e "+351912345678" a "+351 912 345 678". */
 export function formatarTelefone(valor: string): string {

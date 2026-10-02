@@ -6,12 +6,25 @@ import SinistroForm from "../sections/SinistroForm";
 import { useSearch } from "../app/router";
 import type { ModoPedido } from "../app/proposta";
 import { FORMULARIOS } from "../data/formularios";
+import type { FormularioRamo } from "../data/formularios";
 import { SEGUROS_FORMULARIO, hrefSeguro } from "../data/seguros";
 import type { Seguro } from "../data/seguros";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const TEXTO_SINISTRO =
   "Conte-nos o que aconteceu. Um mediador da BV fala consigo e acompanha o processo junto da seguradora.";
+
+/** O nível escolhido na página do ramo já vem marcado, se o formulário tiver essa opção. */
+function comNivel(formulario: FormularioRamo, nivel: string | null): FormularioRamo {
+  if (!nivel) return formulario;
+  return {
+    ...formulario,
+    passos: formulario.passos.map((p) => ({
+      ...p,
+      campos: p.campos.map((c) => (c.nome === "protecao" && c.opcoes?.includes(nivel) ? { ...c, padrao: nivel } : c)),
+    })),
+  };
+}
 
 /**
  * O pedido de proposta ou de sinistro numa página inteira, como o simulador
@@ -21,8 +34,8 @@ const TEXTO_SINISTRO =
  */
 export default function PaginaPedido({ modo, seguro }: { modo: ModoPedido; seguro?: Seguro }) {
   const sinistro = modo === "sinistro";
-  const formulario = seguro && !sinistro ? FORMULARIOS[seguro.key] : undefined;
   const nivel = new URLSearchParams(useSearch()).get("nivel")?.trim().slice(0, 40) || null;
+  const formulario = seguro && !sinistro ? comNivel(FORMULARIOS[seguro.key], nivel) : undefined;
 
   const titulo = sinistro ? "Participar sinistro." : (formulario?.titulo ?? "Peça uma proposta.");
   const texto = sinistro ? TEXTO_SINISTRO : (formulario?.texto ?? "Diga-nos que seguro procura e um mediador da BV fala consigo.");
@@ -67,7 +80,7 @@ export default function PaginaPedido({ modo, seguro }: { modo: ModoPedido; segur
               key={seguro?.key ?? "geral"}
               ramos={SEGUROS_FORMULARIO}
               ramoFixo={seguro && formulario ? { valor: seguro.ramoCrm, formulario } : undefined}
-              contexto={nivel ? [`Nível de proteção pretendido: ${nivel}`] : []}
+              nivel={nivel}
             />
           )}
         </Container>

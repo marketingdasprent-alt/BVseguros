@@ -200,6 +200,40 @@
   .modal-heading h2 { font-size: var(--fs-modal); font-weight: 600; letter-spacing: -.025em; }
   .modal-content { padding: 24px; }
   .crm-modal--wide { max-width: 640px; }
+
+  /* Ecrã inteiro: cabeçalho e rodapé fixos, só o meio faz scroll, fundo da app por trás dos painéis. */
+  .crm-modal--ecra { display: flex; flex-direction: column; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; overflow: hidden; border-radius: 0; background: var(--canvas); box-shadow: none; }
+  .crm-modal--ecra .modal-heading { flex-shrink: 0; padding: 16px max(24px, calc((100% - 1120px) / 2)); }
+  .crm-modal--ecra .modal-content { display: flex; flex: 1; min-height: 0; flex-direction: column; padding: 0; }
+
+  /* Modal em ecrã inteiro (lead, pedido de sinistro): painel principal à esquerda e um lateral à direita, à vista ao fazer scroll. */
+  .editor-ecra { display: flex; flex: 1; min-height: 0; flex-direction: column; }
+  .editor-ecra__grelha { display: grid; flex: 1; align-content: start; gap: 24px; width: 100%; max-width: calc(1120px + 48px); margin: 0 auto; padding: 28px 24px; overflow-y: auto; }
+  /* Sem pedido do site: só o formulário, mais estreito, alinhado com o título. */
+  .editor-ecra__grelha--simples { max-width: calc(720px + 48px); }
+  .editor-ecra__painel { display: grid; align-content: start; gap: 20px; padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+  .editor-ecra__titulo { font-size: var(--fs-panel); font-weight: 600; letter-spacing: -.015em; color: var(--heading); }
+  .editor-ecra__campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
+  .editor-ecra__largo { grid-column: 1 / -1; }
+  .editor-ecra__lateral .mensagem-site { background: var(--surface); }
+  .editor-ecra__rodape { flex-shrink: 0; padding: 16px max(24px, calc((100% - 1120px) / 2)); border-top: 1px solid var(--border); background: var(--surface); }
+  .editor-ecra__rodape .form-footer { margin: 0; padding: 0; border: 0; }
+
+  @media (min-width: 1024px) {
+    .editor-ecra__grelha:not(.editor-ecra__grelha--simples) { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+    .editor-ecra__grelha:not(.editor-ecra__grelha--simples) .editor-ecra__painel { grid-column: 1; grid-row: 1; }
+    .editor-ecra__lateral { position: sticky; top: 0; grid-column: 2; grid-row: 1; max-height: calc(100dvh - 220px); overflow-y: auto; border-radius: var(--radius-md); }
+  }
+
+  @media (max-width: 639px) {
+    .editor-ecra__grelha { padding: 16px; gap: 16px; }
+    .editor-ecra__painel { padding: 20px; }
+    .editor-ecra__campos { grid-template-columns: minmax(0, 1fr); }
+    .crm-modal--ecra .modal-heading, .editor-ecra__rodape { padding-block: 12px; padding-inline: 16px; }
+    /* Barra fixa mais baixa: Cancelar e Guardar lado a lado, Apagar por baixo. */
+    .editor-ecra__rodape .form-footer-end { flex-direction: row; }
+    .editor-ecra__rodape .form-footer-end > .button { flex: 1; width: auto; }
+  }
   .form-context { padding-bottom: 16px; border-bottom: 1px solid var(--border); }
   .form-context dt { font-size: var(--fs-small); color: var(--muted); }
   .form-context dd { margin-top: 3px; font-size: var(--fs-body); font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
@@ -223,6 +257,18 @@
   .notice--danger { background: var(--danger-bg); color: var(--danger-text); }
   .notice-body { flex: 1; min-width: 0; }
   .notice-action { display: flex; align-items: center; gap: 12px; }
+
+  /* Pedido feito no site (MensagemSite): blocos com rótulo e valor alinhados. */
+  .mensagem-site { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-soft); }
+  .mensagem-site__origem { font-size: var(--fs-meta); font-weight: 500; color: var(--muted); }
+  .mensagem-site__resumo { margin-top: -10px; font-size: var(--fs-ui); font-weight: 600; color: var(--heading); }
+  .mensagem-site__titulo { margin-bottom: 6px; font-size: var(--fs-micro); font-weight: 600; letter-spacing: .065em; text-transform: uppercase; color: var(--muted); }
+  .mensagem-site__lista { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: center; gap: 4px 12px; font-size: var(--fs-body); line-height: 1.5; }
+  .mensagem-site__lista dt { color: var(--muted); }
+  .mensagem-site__lista dd { display: flex; align-items: center; gap: 4px; min-width: 0; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .mensagem-site__copiar { display: inline-grid; flex-shrink: 0; place-items: center; width: 24px; height: 24px; border-radius: var(--radius-xs); color: var(--muted-soft); transition: color 150ms ease, background-color 150ms ease; }
+  .mensagem-site__copiar:hover { color: var(--navy); background: var(--tint-soft); }
+  .mensagem-site__livre { font-size: var(--fs-body); line-height: 1.6; color: var(--ink); white-space: pre-line; overflow-wrap: anywhere; }
 
   .mini-avatar { display: inline-grid; flex-shrink: 0; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--tint); color: var(--navy-text); font-size: var(--fs-micro); font-weight: 600; }
   .person { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
@@ -399,4 +445,5 @@
   .segmented button { min-height: 44px; }
   .card-actions-links button, .inline-action { min-height: 44px; }
   .row-menu [role='menuitem'] { min-height: 44px; }
+  .mensagem-site__copiar { width: 44px; height: 44px; }
 }
