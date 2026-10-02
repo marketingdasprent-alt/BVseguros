@@ -1,37 +1,53 @@
-import type { Campo } from "../data/formularios";
+import type { Campo, PassoRamo, Valores } from "../data/formularios";
 
 /** Limite de `p_mensagem` na função criar_lead_site (crm/supabase/schema.sql). */
 export const MAX_MENSAGEM = 2000;
 
-function formatarValor(campo: Campo, valor: string): string {
-  // input type="date" devolve aaaa-mm-dd; no CRM lê-se melhor em dd/mm/aaaa.
-  if (campo.tipo === "data") {
-    const [a, m, d] = valor.split("-");
-    return a && m && d ? `${d}/${m}/${a}` : valor;
+/** Um bloco do resumo e da mensagem do CRM: um passo, com as suas respostas. */
+export type Bloco = { titulo: string; passo?: string; linhas: { rotulo: string; valor: string }[] };
+
+/** input type="date" devolve aaaa-mm-dd; no CRM e no resumo lê-se melhor em dd/mm/aaaa. */
+export function dataPt(valor: string): string {
+  const [a, m, d] = valor.split("-");
+  return a && m && d ? `${d}/${m}/${a}` : valor;
+}
+
+function valorLegivel(campo: Campo, valores: Valores): string {
+  const v = (valores[campo.nome] ?? "").trim();
+  if (!v) return "";
+  if (campo.tipo === "data") return dataPt(v);
+  if (campo.tipo === "codigo_postal") {
+    const local = (valores[`${campo.nome}_local`] ?? "").trim();
+    return local ? `${v} (${local})` : v;
   }
-  return valor;
+  return v;
+}
+
+/** Os passos do ramo como blocos "Rótulo: valor", só com o que foi respondido. */
+export function blocosDosPassos(passos: PassoRamo[], valores: Valores): Bloco[] {
+  return passos
+    .map((p) => ({
+      titulo: p.nome,
+      passo: p.id,
+      linhas: p.campos
+        .map((c) => ({ rotulo: c.rotulo, valor: valorLegivel(c, valores) }))
+        .filter((l) => l.valor !== ""),
+    }))
+    .filter((b) => b.linhas.length > 0);
 }
 
 /**
  * Junta o contexto já escolhido na página (ex.: nível de proteção) e os
- * campos do ramo num bloco "Rótulo: valor" legível no CRM, seguido da
- * mensagem livre. Se passar do limite, corta a mensagem livre
- * (os campos do ramo são o que a BV precisa para pedir propostas).
+ * blocos do ramo num texto "[Passo]" e "Rótulo: valor" legível no CRM,
+ * seguido da mensagem livre. Se passar do limite, corta a mensagem livre
+ * (as respostas do ramo são o que a BV precisa para pedir propostas).
  */
-export function montarMensagem(
-  campos: Campo[],
-  valores: Record<string, string>,
-  livre: string,
-  contexto: string[] = []
-): string {
-  const linhas = [
+export function montarMensagem(blocos: Bloco[], livre: string, contexto: string[] = []): string {
+  const partes = [
     ...contexto,
-    ...campos
-      .map((c) => ({ c, v: (valores[c.nome] ?? "").trim() }))
-      .filter(({ v }) => v !== "")
-      .map(({ c, v }) => `${c.rotulo}: ${formatarValor(c, v)}`),
+    ...blocos.flatMap((b) => [`[${b.titulo}]`, ...b.linhas.map((l) => `${l.rotulo}: ${l.valor}`)]),
   ];
-  const detalhes = linhas.join("\n");
+  const detalhes = partes.join("\n");
   const texto = livre.trim();
   if (!texto) return detalhes.slice(0, MAX_MENSAGEM);
   if (!detalhes) return texto.slice(0, MAX_MENSAGEM);

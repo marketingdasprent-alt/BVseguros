@@ -5,9 +5,9 @@
  */
 
 import { useId } from "react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 
-export type InputProps = ComponentPropsWithoutRef<"input"> & {
+export type InputProps = ComponentPropsWithRef<"input"> & {
   label?: ReactNode;
   status?: "error" | "success";
   message?: ReactNode;

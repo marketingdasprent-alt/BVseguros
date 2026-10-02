@@ -12,6 +12,10 @@
  *   1024px laptop / tablet-landscape
  *   1280px desktop
  *   1440px desktop-large
+ *
+ * Media queries use only 480/640/768/1024: min-width at the value,
+ * max-width one pixel below (479/639/767/1023), so no width falls in
+ * both ranges.
  */
 
 /* Header: mobile menu collapses into the toggle below 1024px.
@@ -76,3 +80,22 @@
   }
 }
 
+
+/* Touch: alvos de pelo menos 44px onde o dedo é o ponteiro (botões
+   pequenos, links do rodapé). O desenho não muda em desktop. */
+@media (pointer: coarse) {
+  .btn--sm {
+    min-height: 2.75rem;
+  }
+
+  .footer__link,
+  .footer__legal-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  .footer__list {
+    gap: 0;
+  }
+}

@@ -13,7 +13,7 @@ import PorConfirmar from "../../components/ui/PorConfirmar";
  */
 export default function Privacy() {
   return (
-    <LegalLayout title="Política de Privacidade" updatedAt="30 de setembro de 2026">
+    <LegalLayout title="Política de Privacidade" updatedAt="1 de outubro de 2026">
       <p>
         Esta Política de Privacidade descreve como a{" "}
         <strong>BV Seguros</strong> (&quot;nós&quot;) recolhe, usa e protege
@@ -125,6 +125,14 @@ export default function Privacy() {
         pedidos, o endereço IP de quem envia um formulário é guardado apenas
         de forma cifrada (um código irreversível, nunca o IP em claro) e
         apagado ao fim de 24 horas.
+      </p>
+      <p>
+        Para confirmar o código postal e sugerir a morada enquanto escreve, o
+        formulário de pedido de proposta consulta o serviço moradas.dev. Esse
+        serviço recebe apenas o código postal ou o texto da morada que está a
+        escrever, e o endereço IP do seu dispositivo, como em qualquer pedido
+        na internet; não recebe o seu nome, contactos nem as outras respostas
+        do formulário.
       </p>
 
       <h2>6. Transferências internacionais</h2>

@@ -65,7 +65,7 @@ export default function CaixaVerificacao({ verificacao }: { verificacao: Verific
         verificacao.ligar(() => t.reset(widget));
       })
       .catch((erro: unknown) => console.warn(erro));
-    // Sai do ecrã (pedido enviado, pop-up fechado): o widget vai com ele e volta a ser desenhado se o formulário regressar.
+    // Sai do ecrã (pedido enviado, saída da página): o widget vai com ele e volta a ser desenhado se o formulário regressar.
     return () => {
       ativo = false;
       verificacao.desligar();

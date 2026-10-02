@@ -177,14 +177,24 @@
 /* CARD                                                                */
 /* ---------------------------------------------------------------- */
 
+/* Uma só superfície de cartão: as variantes abaixo herdam fundo, borda e
+   raio daqui e só definem o interior (padding, gap, layout). */
+.card,
+.spotlight-card,
+.claim-card,
+.channel-card,
+.coverage-item,
+.level-card {
+  background-color: var(--color-surface);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
   padding: var(--space-lg);
-  background-color: var(--color-surface);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-lg);
 }
 
 .card--interactive {
@@ -329,9 +339,19 @@
 /* ---------------------------------------------------------------- */
 
 .footer {
-  background-color: var(--color-neutral-950);
+  background-color: var(--color-surface-inverse);
   color: var(--color-text-on-dark);
   padding-block: var(--section-padding-normal) var(--space-lg);
+}
+
+/* Pedidos: só a linha legal, sem as colunas nem o filete por cima. */
+.footer--minimo {
+  padding-block: var(--space-lg);
+}
+
+.footer--minimo .footer__bottom {
+  padding-top: 0;
+  border-top: none;
 }
 
 /* Brand + 4 nav columns: a grid, so a wrapped row can never end up
@@ -357,7 +377,7 @@
 }
 
 .footer__description {
-  color: var(--color-neutral-400);
+  color: var(--color-text-on-dark-secondary);
 }
 
 .footer__column {
@@ -367,7 +387,7 @@
 .footer__heading {
   font-size: var(--font-size-label);
   font-weight: var(--font-weight-medium);
-  color: var(--color-neutral-400);
+  color: var(--color-text-on-dark-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: var(--space-sm);
@@ -380,7 +400,7 @@
 }
 
 .footer__link {
-  color: var(--color-neutral-300);
+  color: var(--color-text-on-dark-secondary);
   transition: color var(--duration-fast) var(--easing-standard);
 }
 
@@ -400,14 +420,14 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--radius-full);
-  border: var(--border-width-thin) solid var(--color-neutral-700);
-  color: var(--color-neutral-300);
+  border: var(--border-width-thin) solid var(--color-border-on-dark-strong);
+  color: var(--color-text-on-dark-secondary);
   transition: border-color var(--duration-fast) var(--easing-standard),
     color var(--duration-fast) var(--easing-standard);
 }
 
 .footer__social-link:hover {
-  border-color: var(--color-neutral-400);
+  border-color: var(--color-text-on-dark);
   color: var(--color-text-on-dark);
 }
 
@@ -416,8 +436,8 @@
   flex-direction: column;
   gap: var(--space-sm);
   padding-top: var(--space-lg);
-  border-top: var(--border-width-thin) solid var(--color-neutral-800);
-  color: var(--color-neutral-500);
+  border-top: var(--border-width-thin) solid var(--color-border-on-dark);
+  color: var(--color-text-on-dark-muted);
   font-size: var(--font-size-caption);
 }
 
@@ -428,12 +448,12 @@
 }
 
 .footer__legal-link {
-  color: var(--color-neutral-500);
+  color: var(--color-text-on-dark-muted);
   transition: color var(--duration-fast) var(--easing-standard);
 }
 
 .footer__legal-link:hover {
-  color: var(--color-neutral-300);
+  color: var(--color-text-on-dark-secondary);
 }
 
 /* ---------------------------------------------------------------- */
@@ -482,6 +502,43 @@
 
 .cookie-banner__manage {
   width: 100%;
+}
+
+body.has-cookie-banner {
+  padding-bottom: calc(var(--cookie-banner-altura, 0px) + var(--space-sm));
+}
+
+/* Desktop: texto à esquerda, botões à direita, para o banner ocupar menos altura. */
+@media (min-width: 768px) {
+  .cookie-banner {
+    max-width: var(--container-standard);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "title actions"
+      "body actions"
+      "body manage";
+    column-gap: var(--space-lg);
+    row-gap: var(--space-2xs);
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .cookie-banner__title {
+    grid-area: title;
+  }
+
+  .cookie-banner__body {
+    grid-area: body;
+  }
+
+  .cookie-banner__actions {
+    grid-area: actions;
+  }
+
+  .cookie-banner__manage {
+    grid-area: manage;
+  }
 }
 
 .cookie-dialog {
@@ -577,7 +634,7 @@
   color: var(--color-text-secondary);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 479px) {
   .cookie-banner__actions {
     grid-template-columns: 1fr;
   }
@@ -756,44 +813,6 @@ body.has-footer-visible .back-to-top {
 }
 
 /* ---------------------------------------------------------------- */
-/* SPLIT-SECTION: project-specific, BV Seguros.                      */
-/* The "full-bleed split section" pattern from docs/design-system.md: */
-/* media runs the full section height on one side, copy stays        */
-/* Container-aligned on the other. Used by "Porquê a BV".             */
-/* ---------------------------------------------------------------- */
-
-.split-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: stretch;
-  padding-block: 0;
-}
-
-.split-section__media {
-  width: 100%;
-  height: 100%;
-  min-height: 22rem;
-  object-fit: cover;
-}
-
-.split-section__copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-block: var(--section-padding-normal);
-}
-
-@media (max-width: 768px) {
-  .split-section {
-    grid-template-columns: 1fr;
-  }
-
-  .split-section__media {
-    min-height: 16rem;
-  }
-}
-
-/* ---------------------------------------------------------------- */
 /* HERO-DARK: project-specific, BV Seguros.                          */
 /* Navy background on the Hero for a colour break right under the    */
 /* white header, instead of white-on-white all the way down. Scoped  */
@@ -812,7 +831,7 @@ body.has-footer-visible .back-to-top {
 }
 
 .hero-dark .text-secondary {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--color-text-on-dark-secondary);
 }
 
 /* The hero's main action in green, the one break from navy and white
@@ -831,7 +850,7 @@ body.has-footer-visible .back-to-top {
 }
 
 .hero-dark .btn--secondary {
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: var(--color-border-on-dark-strong);
   color: var(--color-text-on-dark);
 }
 
@@ -854,25 +873,10 @@ body.has-footer-visible .back-to-top {
   padding: var(--space-xl) var(--space-lg);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .como-funciona-box {
     padding: var(--space-lg) var(--space-md);
   }
-}
-
-/* ---------------------------------------------------------------- */
-/* CONTACT-FORM-CARD: project-specific, BV Seguros.                  */
-/* The contact form sits on a "surface" (grey) Section; card-ifying  */
-/* it gives the form its own visible surface instead of the fields   */
-/* floating directly on the grey background.                        */
-/* ---------------------------------------------------------------- */
-
-.contact-form-card {
-  background-color: var(--color-surface);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg);
-  box-shadow: var(--shadow-sm);
 }
 
 .contact-consent {
@@ -1024,7 +1028,7 @@ body.has-footer-visible .back-to-top {
 
 .hero-fotos__legenda-acao {
   font-size: var(--font-size-caption);
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--color-text-on-dark-secondary);
 }
 
 .hero-fotos__legenda-titulo {
@@ -1077,7 +1081,7 @@ body.has-footer-visible .back-to-top {
   width: 32px;
   height: 32px;
   color: var(--color-text-on-dark);
-  border: var(--border-width-thin) solid rgba(255, 255, 255, 0.45);
+  border: var(--border-width-thin) solid var(--color-border-on-dark-strong);
   border-radius: 50%;
   cursor: pointer;
 }
@@ -1171,9 +1175,6 @@ body.has-footer-visible .back-to-top {
 
 .spotlight-card {
   padding: var(--space-lg);
-  border-radius: var(--radius-lg);
-  border: var(--border-width-thin) solid var(--color-border);
-  background-color: var(--color-surface);
 }
 
 .spotlight-card--dark {
@@ -1187,15 +1188,15 @@ body.has-footer-visible .back-to-top {
 }
 
 .spotlight-card--dark p {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--color-text-on-dark-secondary);
 }
 
 .spotlight-card__icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: var(--icon-size-xl);
+  height: var(--icon-size-xl);
   margin-bottom: var(--space-sm);
 }
 
@@ -1209,8 +1210,8 @@ body.has-footer-visible .back-to-top {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
   color: var(--color-accent);
   margin-bottom: var(--space-2xs);
 }
@@ -1267,7 +1268,7 @@ body.has-footer-visible .back-to-top {
   font-size: var(--font-size-h4);
 }
 
-/* Card actions: "Simular" opens the proposal pop-up, "Ver detalhes"
+/* Card actions: "Simular" leads to the proposal page, "Ver detalhes"
    goes to the ramo page. margin-top:auto pins them to the bottom, so
    the buttons of every card in a row sit at the same height. */
 .media-card__actions {
@@ -1277,8 +1278,9 @@ body.has-footer-visible .back-to-top {
   margin-top: auto;
 }
 
+/* Cartão estreito: quando os dois botões não cabem lado a lado, cada um ocupa a linha. */
 .media-card__actions .btn {
-  gap: var(--space-2xs);
+  flex: 1 1 auto;
 }
 
 .media-card__body > .text-secondary {
@@ -1312,7 +1314,7 @@ body.has-footer-visible .back-to-top {
 }
 
 .hero-dark .breadcrumb {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--color-text-on-dark-secondary);
 }
 
 .breadcrumb__link {
@@ -1371,9 +1373,6 @@ body.has-footer-visible .back-to-top {
   flex-direction: column;
   gap: var(--space-xs);
   padding: var(--space-md);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface);
 }
 
 .coverage-item h3 {
@@ -1383,8 +1382,8 @@ body.has-footer-visible .back-to-top {
 
 .coverage-item__icon {
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   padding: 3px;
   border-radius: var(--radius-full);
   background-color: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
@@ -1486,8 +1485,8 @@ body.has-footer-visible .back-to-top {
 
 .related-link__icon {
   display: inline-flex;
-  width: 18px;
-  height: 18px;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
   color: var(--color-accent);
 }
 
@@ -1504,30 +1503,6 @@ body.has-footer-visible .back-to-top {
   display: flex;
   align-items: center;
   gap: var(--space-3xs);
-}
-
-.mega__toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  transition: background-color var(--duration-fast) var(--easing-standard);
-}
-
-.mega__toggle svg {
-  transition: transform var(--duration-fast) var(--easing-standard);
-}
-
-.mega__toggle:hover {
-  background-color: var(--color-surface-alt);
-  color: var(--color-text-primary);
-}
-
-.mega__toggle[aria-expanded="true"] svg {
-  transform: rotate(180deg);
 }
 
 .mega__panel {
@@ -1721,8 +1696,8 @@ body.has-footer-visible .back-to-top {
 .ramo-picker__icon {
   display: inline-flex;
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   color: var(--color-accent);
 }
 
@@ -1812,9 +1787,6 @@ body.has-footer-visible .back-to-top {
   align-items: flex-start;
   gap: var(--space-3xs);
   padding: var(--space-md);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface);
 }
 
 .channel-card__icon {
@@ -1868,8 +1840,6 @@ body.has-footer-visible .back-to-top {
   padding: var(--space-lg);
   /* Thick border from the start, so choosing a level doesn't shift the layout. */
   border: var(--border-width-thick) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface);
   cursor: pointer;
   transition: border-color var(--duration-fast) var(--easing-standard),
     box-shadow var(--duration-fast) var(--easing-standard);
@@ -2001,7 +1971,7 @@ body.has-footer-visible .back-to-top {
   color: var(--color-text-muted);
 }
 
-/* Numbered reasons row ("Porquê tratar connosco", "Nas primeiras horas"). */
+/* Reasons row ("Porquê tratar connosco"; numbered only in "Nas primeiras horas", where order matters). */
 .reasons__title {
   font-size: var(--font-size-h3);
 }
@@ -2040,8 +2010,8 @@ body.has-footer-visible .back-to-top {
 }
 
 .feature-band__icon {
-  width: 48px;
-  height: 48px;
+  width: var(--icon-size-2xl);
+  height: var(--icon-size-2xl);
   color: var(--color-text-on-dark);
 }
 
@@ -2052,7 +2022,7 @@ body.has-footer-visible .back-to-top {
 
 .feature-band__text {
   margin-top: var(--space-xs);
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--color-text-on-dark-secondary);
 }
 
 .feature-band__points {
@@ -2062,10 +2032,10 @@ body.has-footer-visible .back-to-top {
 
 .feature-band__points li {
   padding-left: var(--space-md);
-  border-left: var(--border-width-thick) solid rgba(255, 255, 255, 0.45);
+  border-left: var(--border-width-thick) solid var(--color-border-on-dark-strong);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .feature-band {
     grid-template-columns: 1fr;
     padding: var(--space-lg);
@@ -2080,9 +2050,6 @@ body.has-footer-visible .back-to-top {
 
 .claim-card {
   padding: var(--space-lg);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface);
 }
 
 .claim-card h3 {
@@ -2092,8 +2059,8 @@ body.has-footer-visible .back-to-top {
 
 .claim-card__icon {
   display: inline-flex;
-  width: 32px;
-  height: 32px;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
   color: var(--color-accent);
 }
 
@@ -2186,20 +2153,6 @@ body:has(.page-subnav) .header--scrolled {
 /* ---------------------------------------------------------------- */
 
 /* Per-ramo form: short fields in two columns from 640px. */
-.form-section-title {
-  font-size: var(--font-size-label);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.form-section-title:not(:first-child) {
-  margin-top: var(--space-sm);
-  padding-top: var(--space-md);
-  border-top: var(--border-width-thin) solid var(--color-border);
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -2231,7 +2184,7 @@ body:has(.page-subnav) .header--scrolled {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2xs);
-  margin-top: var(--space-2xs);
+  margin-top: var(--space-3xs);
 }
 
 .choice {
@@ -2274,6 +2227,626 @@ body:has(.page-subnav) .header--scrolled {
 .choice input:focus-visible + span {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+}
+
+.choice input[type="checkbox"]:checked + span::before {
+  content: "✓";
+  margin-right: var(--space-3xs);
+}
+
+/* Nos formulários em grelha, texto, data e lista com a mesma altura:
+   lado a lado, as caixas acabam todas na mesma linha. */
+.form-grid :is(input, select).field__control {
+  height: 3.25rem;
+}
+
+.field__message--error {
+  color: var(--color-error);
+}
+
+.field__message--warning {
+  color: var(--color-warning);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Pedido de proposta por passos (ContactoForm). DECISIONS.md 2026-10-01.
+   Como na Fidelidade: só o passo atual mostra o nome; os outros são o
+   número (ou o visto), ligados por uma linha. Cabe sempre numa linha. */
+.form-steps__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.form-steps {
+  margin-bottom: var(--space-xs);
+}
+
+.form-steps__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+/* A linha entre passos ocupa o espaço que sobra, dividido por igual:
+   a barra vai de uma ponta à outra do formulário. */
+/* flex-basis auto: cada item parte do seu tamanho e recebe a mesma fatia
+   do que sobra, por isso todas as linhas ficam com o mesmo comprimento. */
+.form-steps__item + .form-steps__item {
+  flex: 1 1 auto;
+}
+
+.form-steps__item + .form-steps__item::before {
+  content: "";
+  flex: 1 1 auto;
+  min-width: var(--space-sm);
+  height: var(--border-width-thin);
+  background-color: var(--color-border-strong);
+}
+
+.form-steps__item--feito + .form-steps__item::before,
+.form-steps__item--atual::before {
+  background-color: var(--color-primary);
+}
+
+.form-steps__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 2rem;
+  padding: var(--space-3xs);
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.form-steps__n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  font-size: var(--font-size-caption);
+  line-height: 1;
+}
+
+/* Fora do passo atual o nome fica só para o leitor de ecrã. */
+.form-steps__item:not(.form-steps__item--atual) .form-steps__name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.form-steps__item--atual .form-steps__link {
+  padding-right: var(--space-sm);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.form-steps__item--atual .form-steps__n {
+  color: var(--color-primary);
+}
+
+.form-steps__item--feito .form-steps__link {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.form-steps__item--feito .form-steps__n {
+  background-color: transparent;
+}
+
+.form-steps__item--feito .form-steps__link:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+}
+
+.form-steps__link:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.form-steps__mobile {
+  display: none;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+@media (max-width: 639px) {
+  .form-steps__list {
+    display: none;
+  }
+
+  .form-steps__mobile {
+    display: block;
+  }
+}
+
+.form-step[hidden] {
+  display: none;
+}
+
+/* Mudar de passo é passar a página para o lado: da direita ao avançar, da
+   esquerda ao voltar. A animação recomeça sozinha porque o passo deixa de
+   estar escondido. */
+.form-step--frente {
+  animation: passo-da-direita var(--duration-slow) var(--easing-emphasized);
+}
+
+.form-step--tras {
+  animation: passo-da-esquerda var(--duration-slow) var(--easing-emphasized);
+}
+
+@keyframes passo-da-direita {
+  from {
+    opacity: 0;
+    transform: translateX(3rem);
+  }
+}
+
+@keyframes passo-da-esquerda {
+  from {
+    opacity: 0;
+    transform: translateX(-3rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-step--frente,
+  .form-step--tras {
+    animation: none;
+  }
+}
+
+/* O passo a entrar não pode criar scroll horizontal na página. A margem
+   deixa ver o contorno de foco dos campos encostados aos lados. */
+.form-wizard {
+  overflow-x: clip;
+  overflow-clip-margin: 6px;
+}
+
+.form-step__title {
+  font-size: var(--font-size-h4);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3xs);
+}
+
+/* Recebe o foco ao mudar de passo (para o leitor de ecrã), mas não é clicável: sem contorno. */
+.form-step__title:focus,
+.form-step__title:focus-visible {
+  outline: none;
+}
+
+.form-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: var(--border-width-thin) solid var(--color-border);
+}
+
+.form-nav__next {
+  margin-left: auto;
+}
+
+.form-why {
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-alt);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.form-why__title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3xs);
+}
+
+.form-why a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* Cartões de opção: um rádio grande, para a primeira escolha de cada passo. */
+.option-cards {
+  margin-top: var(--space-2xs);
+}
+
+.option-card {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+}
+
+.option-card input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.option-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  transition: border-color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard);
+}
+
+.option-card:hover .option-card__body {
+  border-color: var(--color-primary);
+}
+
+.option-card input:checked + .option-card__body {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.option-card input:focus-visible + .option-card__body {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.option-card__title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.option-card__text {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.option-card__icon {
+  display: inline-flex;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  color: var(--color-primary);
+}
+
+.option-card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Matrícula: três caixas numa chapa, com a faixa "P" à esquerda. */
+.plate-field {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3xs);
+}
+
+/* Sem o recuo por omissão da legend: alinha com os rótulos dos outros campos. */
+.plate-field legend,
+.people-field legend {
+  padding: 0;
+}
+
+.plate {
+  display: inline-flex;
+  align-items: stretch;
+  border: var(--border-width-thick) solid var(--color-text-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+.plate--error {
+  border-color: var(--color-error);
+}
+
+.plate--off {
+  opacity: 0.55;
+}
+
+.plate__country {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-body-small);
+}
+
+.plate__part {
+  display: inline-flex;
+  align-items: center;
+}
+
+.plate__dot {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold);
+}
+
+.plate__box {
+  width: 3.25rem;
+  min-height: 3rem;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: var(--font-size-h4);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plate__box::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.plate:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus-ring) 35%, transparent);
+}
+
+.plate--error:focus-within {
+  border-color: var(--color-error);
+}
+
+/* A caixa ativa fica com fundo, em vez de um contorno quadrado dentro da chapa. */
+.plate__box:focus,
+.plate__box:focus-visible {
+  outline: none;
+  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+}
+
+.plate-field__error {
+  color: var(--color-error);
+}
+
+/* Matrícula em destaque: o primeiro ecrã do pedido automóvel, grande e ao
+   centro, como no simulador da Fidelidade. O resto aparece por baixo. */
+.form-step--destaque > div:first-child {
+  text-align: center;
+}
+
+/* Um <p> centrado mais estreito que o pai também tem de ficar ao centro. */
+.form-step--destaque > div:first-child > * {
+  margin-inline: auto;
+}
+
+.plate-field--grande {
+  align-items: center;
+  gap: var(--space-xs);
+  padding-block: var(--space-md);
+  text-align: center;
+}
+
+.plate-field--grande legend {
+  width: 100%;
+  text-align: center;
+}
+
+.plate-field--grande .plate__country {
+  width: 2.75rem;
+  font-size: var(--font-size-body);
+}
+
+.plate-field--grande .plate__box {
+  width: 5rem;
+  min-height: 4.5rem;
+  font-size: var(--font-size-h2);
+}
+
+@media (max-width: 639px) {
+  .plate-field--grande .plate__box {
+    width: 3.75rem;
+    min-height: 3.75rem;
+    font-size: var(--font-size-h3);
+  }
+}
+
+.plate-field__toggle,
+.people-field__add,
+.person-card__remove,
+.form-review__edit,
+.email-field__suggestion {
+  padding: var(--space-3xs) 0;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.plate-field__toggle:focus-visible,
+.people-field__add:focus-visible,
+.person-card__remove:focus-visible,
+.form-review__edit:focus-visible,
+.email-field__suggestion:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.email-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+/* Pessoas a segurar: um cartão por pessoa, só com a idade. */
+.people-field {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+}
+
+.people-field__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  width: 9.5rem;
+  padding: var(--space-sm);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-alt);
+}
+
+/* Morada com sugestões. */
+/* Quatro quartos com o mesmo espaço do .form-grid: a morada ocupa três e o
+   número um, e a margem direita coincide com a da coluna de baixo. */
+.address-field__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.address-field__street {
+  position: relative;
+  grid-column: span 3;
+}
+
+.address-field__list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: var(--z-overlay);
+  margin: var(--space-3xs) 0 0;
+  padding: var(--space-3xs);
+  list-style: none;
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.address-field__option {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.address-field__option[aria-selected="true"],
+.address-field__option:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+}
+
+.address-field__place {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* Rever e enviar. */
+.form-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form-review__block {
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.form-review__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-2xs);
+}
+
+.form-review__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.form-review__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.form-review__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-sm);
+  font-size: var(--font-size-body-small);
+}
+
+.form-review__row dt {
+  color: var(--color-text-secondary);
+}
+
+.form-review__row dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  .form-review__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .address-field__row {
+    grid-template-columns: minmax(0, 1fr) 5.5rem;
+  }
+
+  .address-field__street {
+    grid-column: auto;
+  }
 }
 
 /* Home contact panel: photo cut by a diagonal, then a navy stripe with
@@ -2364,8 +2937,8 @@ body:has(.page-subnav) .header--scrolled {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--icon-size-xl);
+  height: var(--icon-size-xl);
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   color: var(--color-text-on-primary);
@@ -2429,69 +3002,64 @@ body:has(.page-subnav) .header--scrolled {
 }
 
 /* ---------------------------------------------------------------- */
-/* PROPOSAL POP-UP: project-specific, BV Seguros (DECISIONS.md       */
-/* 2026-09-30, round 3). The form opens in a native dialog instead   */
-/* of living on the page; pages end with a short call to action.    */
+/* REQUEST PAGES: project-specific, BV Seguros (DECISIONS.md         */
+/* 2026-10-01). The proposal and claim forms take the whole page,    */
+/* like the Fidelidade simulator: a minimal bar instead of the site  */
+/* menu, and the form across the full container in 2 columns.       */
 /* ---------------------------------------------------------------- */
 
-html.has-modal-open {
-  overflow: hidden;
-}
-
-/* No padding on the dialog itself: a click that lands on the dialog
-   element (not on .proposal-dialog__inner) is a click on the backdrop. */
-.proposal-dialog {
-  /* margin:auto centres the modal dialog; the global reset zeroes it. */
-  margin: auto;
-  width: min(40rem, calc(100% - 2 * var(--space-md)));
-  max-height: calc(100dvh - 2 * var(--space-lg));
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-xl);
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-xl);
-  overflow: hidden;
-  /* Anchor for the pinned close button. */
-  position: fixed;
-}
-
-.proposal-dialog::backdrop {
-  background-color: rgb(2 6 23 / 55%);
-}
-
-.proposal-dialog[open] {
-  animation: proposal-in var(--duration-normal) var(--easing-emphasized);
-}
-
-@keyframes proposal-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-}
-
-.proposal-dialog__inner {
-  max-height: inherit;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--space-lg);
-}
-
-.proposal-dialog__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  padding-right: var(--space-xl);
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-md);
+.pedido__barra {
   border-bottom: var(--border-width-thin) solid var(--color-border);
+  background-color: var(--color-surface);
 }
 
-.proposal-dialog__context {
-  display: inline-block;
-  margin-top: var(--space-2xs);
+.pedido__barra-conteudo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 4.5rem;
+}
+
+.pedido__sair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-body-small);
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.pedido__sair:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.pedido__sair:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Abertura de secção: centrada, como as outras do site. */
+.pedido__cabecalho {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xs);
+  max-width: var(--measure-intro);
+  margin: 0 auto var(--space-xl);
+  text-align: center;
+}
+
+.pedido__titulo {
+  font-size: var(--font-size-h2);
+  color: var(--color-primary);
+}
+
+.pedido__contexto {
   padding: var(--space-3xs) var(--space-xs);
   border-radius: var(--radius-full);
   background-color: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
@@ -2500,69 +3068,12 @@ html.has-modal-open {
   font-weight: var(--font-weight-semibold);
 }
 
-.proposal-dialog__title {
-  font-size: var(--font-size-h3);
-  color: var(--color-primary);
-  margin-bottom: var(--space-3xs);
+/* Ao mudar de passo, o formulário sobe até ao topo com uma folga. */
+.form-wizard {
+  scroll-margin-top: var(--space-md);
 }
 
-/* Pinned to the dialog (not to the scrolling inner), so it never scrolls away. */
-.proposal-dialog__close {
-  position: absolute;
-  top: var(--space-sm);
-  right: var(--space-sm);
-  /* Above the sticky header of the phone layout. */
-  z-index: var(--z-overlay);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-full);
-  background-color: var(--color-surface);
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-sm);
-  transition: background-color var(--duration-fast) var(--easing-standard);
-}
-
-.proposal-dialog__close:hover {
-  background-color: var(--color-surface-alt);
-  color: var(--color-text-primary);
-}
-
-/* Phones: a bottom sheet that uses the whole height. */
-@media (max-width: 639px) {
-  .proposal-dialog {
-    width: 100%;
-    max-width: none;
-    max-height: 100dvh;
-    height: 100dvh;
-    margin: 0;
-    border-radius: 0;
-  }
-
-  .proposal-dialog__inner {
-    height: 100%;
-    padding: var(--space-md);
-  }
-
-  .proposal-dialog__header {
-    position: sticky;
-    top: calc(-1 * var(--space-md));
-    z-index: var(--z-sticky);
-    margin: calc(-1 * var(--space-md)) calc(-1 * var(--space-md)) var(--space-md);
-    padding: var(--space-md);
-    background-color: var(--color-surface);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .proposal-dialog[open] {
-    animation: none;
-  }
-}
-
-/* End-of-page call to action that opens the pop-up. */
+/* End-of-page call to action that leads to the request page. */
 .proposal-cta {
   display: flex;
   flex-direction: column;
@@ -2621,18 +3132,11 @@ html.has-modal-open {
   outline-offset: 2px;
 }
 
-/* The picker options are buttons (they open the pop-up). */
-button.ramo-picker__option {
+/* The picker options are links to the request page of each ramo. */
+a.ramo-picker__option {
   width: 100%;
-  font: inherit;
-  cursor: pointer;
   text-align: center;
-}
-
-button.ramo-picker__option {
   background-color: var(--color-surface);
-  font-size: var(--font-size-body-small);
-  font-weight: var(--font-weight-medium);
 }
 
 /* Claim form: the 112 / "not the official claim" notice on top. */

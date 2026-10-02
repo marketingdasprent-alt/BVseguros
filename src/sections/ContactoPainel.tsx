@@ -5,7 +5,8 @@ import Button from "../components/ui/Button";
 import LineIcon from "../components/ui/LineIcon";
 import MapaGoogle from "../components/ui/MapaGoogle";
 import PorConfirmar from "../components/ui/PorConfirmar";
-import { abrirProposta, abrirSinistro } from "../app/proposta";
+import Link from "../app/Link";
+import { hrefProposta, hrefSinistro } from "../app/proposta";
 import { CANAIS, MORADA_CONFIRMADA } from "../data/apoio";
 
 /**
@@ -48,21 +49,21 @@ export default function ContactoPainel() {
               ))}
             </ul>
 
-            <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
-              <Button onClick={() => abrirProposta()}>
+            <div className="cluster mt-lg">
+              <Button as={Link} href={hrefProposta()}>
                 Pedir proposta
               </Button>
-              <Button onClick={() => abrirSinistro()} variant="secondary">
+              <Button as={Link} href={hrefSinistro()} variant="secondary">
                 Participar sinistro
               </Button>
             </div>
-            <p className="text-caption text-muted" style={{ marginTop: "var(--space-md)" }}>
+            <p className="text-caption text-muted mt-md">
               Mediação de seguros: <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>
             </p>
           </div>
         </div>
 
-        <div style={{ marginTop: "var(--space-xl)" }}>
+        <div className="mt-xl">
           <MapaGoogle morada={MORADA_CONFIRMADA} />
         </div>
       </Container>

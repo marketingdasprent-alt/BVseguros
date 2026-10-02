@@ -163,7 +163,31 @@ optional `formatar` tidies the value on blur (`aa00aa` becomes
 `AA-00-AA`, `1000001` becomes `1000-001`). Form fields in
 `src/data/formularios*.ts` opt in with `validar` / `formatar`. Rules
 that need two fields (driving licence year vs. date of birth) run in the
-form's submit handler. Tests: `npm test`.
+form's step validation (`regras` in `FORMULARIOS`). `filtrar` cleans
+the value keystroke by keystroke (digits only in NIF fields). Empty,
+out-of-range and externally set errors also show as a sentence under the
+field (`mensagemNativa`), never as the browser bubble. Tests: `npm test`.
+
+Special fields, same contract (error under the field, after blur or a
+"Próximo"):
+
+- **CampoMatricula**: three 2-character boxes on a plate with a "P" strip
+  (`.plate`), 6 characters at most. Typing jumps to the next box,
+  Backspace on an empty box goes back, and pasting or autofill in any box
+  splits the whole plate across the three from the first
+  (`repartirMatricula`). The value travels in a hidden `d_matricula`
+  (`AA-00-AA`). Optional "Ainda não tenho matrícula" toggle.
+- **CampoCodigoPostal**: `0000-000` mask while typing, then a lookup on
+  moradas.dev: shows the locality, or "Este código postal não existe".
+  No answer (rate limit, network): format check only, never blocks.
+- **CampoMorada**: combobox (arrows, Enter, Escape) with moradas.dev
+  suggestions; picking a street fills the linked postal code, or asks for
+  the door number when the street has several.
+- **CampoPessoas**: one card per insured person, age only, "+ Acrescentar
+  pessoa" / "Remover", focus moved to the new box or back to the add
+  button.
+- **Option cards** (`.option-card` inside `CardGrid`): a large radio for
+  the first choice of a step, with a one-line description.
 
 ### CaixaVerificacao: `src/components/forms/VerificacaoHumana.tsx`
 
@@ -202,6 +226,9 @@ on `Escape`.
 Branding block, up to N nav columns (from `footerNav` in
 `src/data/navigation.ts`), social links, and a bottom bar with
 copyright + legal links. Single column on mobile, multi-column ≥768px.
+Background is `--color-surface-inverse` (navy family), text and borders use
+the `--color-text-on-dark-*` / `--color-border-on-dark*` tokens. `minimo`
+(`<Footer minimo />`, used on the request pages) renders only the bottom bar.
 
 ### CookieConsent: `src/components/feedback/CookieConsent.tsx`
 
@@ -211,11 +238,14 @@ granular multi-category CMP (see `DECISIONS.md` for why that scope was
 deliberately left out; add categories only when a real integration needs
 them).
 
-**Button hierarchy is deliberate**: Accept all (`primary`) and Necessary
-only (`secondary`) share a row; Manage preferences (`ghost`, full width) sits
-below on its own. Don't reorder this without a reason: it exists so the
-optional-cookie decision isn't buried and the neutral path isn't visually
-dominant.
+**Button hierarchy is deliberate**: Accept all and Necessary only share a
+row with the **same weight** (both `primary`, BV Seguros override of
+2026-10-01, see `DECISIONS.md`: refusing must be as easy as accepting);
+Manage preferences (`ghost`) sits below on its own. From 768px the banner
+lays out as text on the left and buttons on the right, to take less height.
+While it is open, `body` reserves its height at the bottom
+(`--cookie-banner-altura`, measured with a `ResizeObserver`), so the end of
+any page can always be scrolled clear of it.
 
 **Opening the dialog from elsewhere** (a footer link, a settings page): don't
 prop-drill or add a Context provider for what is a rare, one-way signal.
@@ -347,9 +377,11 @@ docs/QA page rather than demonstrate the pattern).
 Project-specific (Level 2), see `DECISIONS.md` 2026-09-29.
 
 - **MegaMenu** (`src/components/navigation/MegaMenu.tsx`): the nav link
-  still navigates; a separate chevron button (`aria-expanded`,
-  `aria-controls`) opens the panel for keyboard and touch, mouse hover
-  opens it too. Escape closes and returns focus to the button; click
+  navigates and carries `aria-expanded` / `aria-controls`. Mouse hover
+  opens the panel, and so does keyboard focus on the link (Tab then goes
+  into the panel). No chevron button (client asked for no arrows on the
+  site, 01/10/2026): on touch the link goes to the Seguros page, which
+  lists everything. Escape closes and returns focus to the link; click
   outside, focus leaving the menu and route changes close it. Hidden
   below 1024px, where the mobile panel shows the same groups in a
   native `<details>`. Fed by `primaryNav[].submenu`.
@@ -372,12 +404,29 @@ Project-specific (Level 2), see `DECISIONS.md` 2026-09-29.
   top passed 35% of the viewport (scroll + rAF, `useSecaoAtiva`); marked
   with `aria-current="true"` and scrolled into view when the bar
   overflows horizontally.
-- **ContactoForm por ramo** (rendered inside ModalProposta; `src/sections/ContactoForm.tsx` +
-  `src/components/forms/CamposRamo.tsx`): with `ramoFixo` the ramo select
-  disappears and the fields of `FORMULARIOS[ramo]` render in a 2-column
-  `.form-grid` (`largura: "meia"`); single choices are radio pills in a
-  `fieldset`/`legend`. Field names carry the `d_` prefix. On submit the
-  values go into the lead message via `montarMensagem`.
+- **ContactoForm por passos** (rendered on the request page, PaginaPedido;
+  `src/sections/ContactoForm.tsx` + `src/components/forms/CamposRamo.tsx`),
+  modelled on the Fidelidade simulators: one topic per screen, a step bar
+  (`PassosProgresso`: only the current step shows its name, the others a
+  number or a tick joined by equal lines, always one row; done steps are
+  clickable; "Passo 2 de 5, Nome" below 640px), "Anterior" / "Próximo",
+  and a last "Rever e enviar" step with a
+  summary per block and "Alterar" (`ResumoPedido`). Steps: the insurance
+  type in option cards (generic form only, `EscolhaRamo`: a mouse or touch
+  choice moves on, arrow keys only select and Enter moves on), the ramo's
+  `passos` from `FORMULARIOS`, the personal data (NIF and postal code
+  required), then the review with consent and Turnstile. All steps stay
+  mounted in one `<form noValidate>`, hidden with `hidden`; "Próximo"
+  validates only the current step and focuses the first error; Enter in a
+  field or an option moves on instead of submitting. Side by side, text,
+  date and select boxes share one height (`.form-grid` rule) and radio
+  pills start at the same line as the boxes. Fields can appear only in
+  some cases (`mostrarSe`, `obrigatorioSe`), read from the DOM on every
+  change (`lerValores`); a hidden field is not rendered, so it is neither
+  sent nor validated. Field names carry the `d_` prefix. On submit the
+  answers go into the lead message by block (`[O veículo]`, then
+  "Rótulo: valor") via `montarMensagem`. Nothing is sent before the last
+  step.
 - **ContactoPainel** (`src/sections/ContactoPainel.tsx`): Home contact
   block, `id="contacto"`. Photo clipped by a diagonal with a navy/accent
   stripe (`clip-path`, turns horizontal below 768px), contacts from
@@ -385,18 +434,49 @@ Project-specific (Level 2), see `DECISIONS.md` 2026-09-29.
 - **MapaGoogle** (`src/components/ui/MapaGoogle.tsx`): three states:
   no confirmed address (placeholder card, no request), address without
   Marketing consent (card + "Mostrar mapa"), loaded iframe.
-- **ModalProposta** (`src/components/feedback/ModalProposta.tsx`): the
-  only place the site forms render, in two modes: proposal
-  (`abrirProposta(ramo | null)`, ContactoForm) and claim
-  (`abrirSinistro(ramo | null)`, SinistroForm), from `src/app/proposta.ts`.
-  Without a fixed ramo, both forms start with the insurance type and show
-  that ramo's questions below it (SeletorRamo, announced via aria-live); closes on the
-  X, Escape, a backdrop click or "Fechar" after sending, and returns
-  focus to the button that opened it. Centred card on desktop,
-  full-height sheet with a sticky header below 640px. Page scroll is
-  locked (`html.has-modal-open`) while open.
+- **PaginaPedido** (`src/pages/PaginaPedido.tsx`): the only place the
+  site forms render, as a whole page like the Fidelidade simulator (no
+  pop-up, client's choice 01/10/2026): `/pedir-proposta` and
+  `/participar-sinistro`, with the ramo in the path
+  (`/pedir-proposta/automovel`); the level chosen on a ramo page travels
+  as `?nivel=`. URLs come from `hrefProposta` / `hrefSinistro`
+  (`src/app/proposta.ts`); `abrirProposta` / `abrirSinistro` navigate to
+  them from buttons. The page swaps the site header for a minimal bar
+  (logo and "Sair", back to where the request usually starts), keeps the
+  footer, and lays the form across the standard container in 2 columns.
+  Without a fixed ramo, both forms start with the insurance type as their
+  first step. The claim form is the same step form (`ContactoForm` with
+  the claim `Modalidade`: `FORMULARIOS_SINISTRO`, 112 notice on top,
+  optional NIF, no postal code, sent to pedidos_sinistro): plate (car),
+  ocorrência, apólice, descrição, dados, rever. Nothing opens below in
+  any form: changing step slides the page sideways (from the right
+  going forward, from the left going back; no motion under
+  prefers-reduced-motion). A question that decides what comes next sits
+  in its own step and moves on by itself once answered (`avancaQuando`):
+  the plate (big and centred, `destaque`) when complete or with "Ainda
+  não tenho matrícula", and the choice cards when picked with mouse or
+  touch (arrow keys only select; Enter or "Próximo" moves on). What
+  depends on it goes in the next step, or in a step that only exists in
+  that case (`mostrarSe` on the step, e.g. "Quem fica com o seguro").
 - **LineIcon** (`src/components/ui/LineIcon.tsx`): stroke icons shared by
-  sections, same drawing rules as `RamoIcon`.
+  sections. `IconeTraco` (same file) is the one base: `LineIcon` and
+  `RamoIcon` are both maps of paths drawn through it (24x24, stroke 1.75).
+  Chip and glyph sizes come from `--icon-size-sm/md/lg/xl/2xl`.
+- **HeroFotos** (`src/components/layout/HeroFotos.tsx`): the dark hero with
+  rotating photos, shared by Home, Seguros, each ramo page and Sinistros.
+  Props: `slides`, `pontos`, `topo` (breadcrumb), `rotulo`, `titulo`,
+  `lede`, `acoes`, `nota`, `children` (full-width content inside the hero,
+  e.g. the Home ramo picker). Change the hero here, never per page.
+- **Card surface**: `.card`, `.spotlight-card`, `.claim-card`,
+  `.channel-card`, `.coverage-item` and `.level-card` share one rule for
+  background, border and radius; each variant only sets its inside.
+- **Utilities** (`utilities.css`): `.mt-2xs/sm/md/lg/xl` and
+  `.col-span-6/7`, instead of repeated `style={{ marginTop }}` /
+  `gridColumn`.
+- **Vocabulary**: the one name per action is in
+  `docs/refinamento-ux-ui.md` (glossary, section E): "Pedir proposta",
+  "Participar sinistro", "Ver seguro", "Ver todos os seguros", "Fale
+  connosco", "Pedido recebido.", "você" throughout.
 
 ## Not yet implemented
 

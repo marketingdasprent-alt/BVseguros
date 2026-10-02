@@ -5,7 +5,7 @@ export type SlideHero = {
   /** Caminho sem tamanho nem extensão: "/images/hero/auto-1". */
   foto: string;
   /** Legenda com ação (Home e Seguros): o seguro em destaque nesse banner. */
-  legenda?: { titulo: string; acao: string; href?: string; onClick?: () => void };
+  legenda?: { titulo: string; acao: string; href: string };
 };
 
 /**

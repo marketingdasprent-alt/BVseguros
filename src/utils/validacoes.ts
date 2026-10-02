@@ -35,6 +35,15 @@ export const validarNif: Validador = (valor) => {
   return null;
 };
 
+/** NIPC: tem de ser de empresa (acidentes de trabalho com trabalhadores). */
+export const validarNipc: Validador = (valor) => {
+  const nif = soDigitos(valor);
+  if (!nif) return null;
+  if (nif.length !== 9) return "O NIPC tem 9 dígitos.";
+  if (!nifValido(nif)) return "Este NIPC não é válido. Confirme os dígitos.";
+  return nifDeEmpresa(nif) ? null : "Indique o NIPC da empresa, não um NIF de pessoa.";
+};
+
 // ---------------------------------------------------------------- Contactos
 
 /**
@@ -59,6 +68,15 @@ export const validarTelefone: Validador = (valor) => {
   return digitos >= 8 && digitos <= 15 ? null : "Confirme o número e o indicativo do país.";
 };
 
+/** Só para mostrar: "912345678" passa a "912 345 678" e "+351912345678" a "+351 912 345 678". */
+export function formatarTelefone(valor: string): string {
+  const m = /^(\+351)?([239]\d{8})$/.exec(normalizarTelefone(valor));
+  if (!m) return valor.trim();
+  const n = m[2];
+  const nacional = `${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6)}`;
+  return m[1] ? `+351 ${nacional}` : nacional;
+}
+
 // Igual à regra de criar_lead_site, mais um domínio com pelo menos 2 letras no fim.
 export const validarEmail: Validador = (valor) => {
   const e = valor.trim();
@@ -68,11 +86,42 @@ export const validarEmail: Validador = (valor) => {
   return null;
 };
 
+const DOMINIOS_COMUNS = [
+  "gmail.com", "hotmail.com", "outlook.com", "outlook.pt", "sapo.pt",
+  "yahoo.com", "icloud.com", "live.com.pt", "msn.com",
+];
+
+/** Distância de edição 1: uma letra trocada, a mais ou a menos, ou duas vizinhas trocadas. */
+function aUmaLetra(a: string, b: string): boolean {
+  if (a === b || Math.abs(a.length - b.length) > 1) return false;
+  if (a.length === b.length) {
+    const dif = [...a].map((c, i) => (c === b[i] ? -1 : i)).filter((i) => i >= 0);
+    if (dif.length === 1) return true;
+    return dif.length === 2 && dif[1] === dif[0] + 1 && a[dif[0]] === b[dif[1]] && a[dif[1]] === b[dif[0]];
+  }
+  const [curta, longa] = a.length < b.length ? [a, b] : [b, a];
+  for (let i = 0; i < longa.length; i++) {
+    if (longa.slice(0, i) + longa.slice(i + 1) === curta) return true;
+  }
+  return false;
+}
+
+/** "nome@gmial.com" devolve "nome@gmail.com"; se o domínio não parecer engano, null. */
+export function sugestaoEmail(valor: string): string | null {
+  const e = valor.trim();
+  const arroba = e.lastIndexOf("@");
+  if (arroba < 1) return null;
+  const dominio = e.slice(arroba + 1).toLowerCase();
+  if (DOMINIOS_COMUNS.includes(dominio)) return null;
+  const certo = DOMINIOS_COMUNS.find((d) => aUmaLetra(dominio, d));
+  return certo ? `${e.slice(0, arroba)}@${certo}` : null;
+}
+
 export const validarNome: Validador = (valor) => {
   const n = valor.trim();
   if (!n) return null;
   if ((n.match(/\p{L}/gu) ?? []).length < 2) return "Indique o nome com letras.";
-  if (/\d/.test(n)) return "O nome não leva números.";
+  if (/\d/.test(n)) return "Escreva o nome sem números.";
   return null;
 };
 
@@ -82,6 +131,12 @@ export const validarNome: Validador = (valor) => {
 export function formatarCodigoPostal(valor: string): string {
   const d = soDigitos(valor);
   return d.length === 7 ? `${d.slice(0, 4)}-${d.slice(4)}` : valor.trim();
+}
+
+/** Enquanto se escreve: só dígitos, e o hífen entra sozinho depois do 4.º ("10000" fica "1000-0"). */
+export function mascaraCodigoPostal(valor: string): string {
+  const d = soDigitos(valor).slice(0, 7);
+  return d.length > 4 ? `${d.slice(0, 4)}-${d.slice(4)}` : d;
 }
 
 export const validarCodigoPostal: Validador = (valor) => {
@@ -108,6 +163,21 @@ export const validarMatricula: Validador = (valor) => {
   return FORMATOS_MATRICULA.some((f) => f.test(m)) ? null : "Confirme a matrícula (ex.: AA-00-AA ou 00-AA-00).";
 };
 
+/** Maiúsculas e só letras e dígitos: "aa-00 aa" fica "AA00AA". */
+export function limparMatricula(valor: string): string {
+  return valor.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+/**
+ * Reparte o que se cola (ou o preenchimento automático) pelas três caixas
+ * da matrícula, sempre a partir da primeira. `sobra` diz se havia mais de 6
+ * caracteres, para avisar em vez de cortar em silêncio.
+ */
+export function repartirMatricula(valor: string): { partes: [string, string, string]; sobra: boolean } {
+  const m = limparMatricula(valor);
+  return { partes: [m.slice(0, 2), m.slice(2, 4), m.slice(4, 6)], sobra: m.length > 6 };
+}
+
 // ---------------------------------------------------------------- Datas e idades
 
 /** Idade em anos completos numa data (aaaa-mm-dd, como devolve o input type="date"). */
@@ -128,6 +198,27 @@ export const validarNascimentoCondutor: Validador = (valor) => {
   return null;
 };
 
+/** aaaa-mm-dd de hoje, na hora local (o toISOString daria o dia em UTC). */
+export function hojeIso(hoje = new Date()): string {
+  const m = String(hoje.getMonth() + 1).padStart(2, "0");
+  const d = String(hoje.getDate()).padStart(2, "0");
+  return `${hoje.getFullYear()}-${m}-${d}`;
+}
+
+/** Para datas (aaaa-mm-dd) e meses (aaaa-mm) que não podem ser depois de hoje. */
+export function naoFutura(mensagem: string, hoje = new Date()): Validador {
+  return (valor) => (valor && valor > hojeIso(hoje).slice(0, valor.length) ? mensagem : null);
+}
+
+/** Dias desde uma data aaaa-mm-dd, ou aaaa-mm (conta a partir do dia 1). */
+export function diasDesde(data: string, hoje = new Date()): number | null {
+  const [a, m, d = 1] = data.split("-").map(Number);
+  if (!a || !m) return null;
+  const inicio = Date.UTC(a, m - 1, d);
+  const fim = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  return Math.floor((fim - inicio) / 86_400_000);
+}
+
 /** "38, 36" ou "40 38 9": cada idade entre 0 e 120. */
 export const validarIdades: Validador = (valor) => {
   const t = valor.trim();
@@ -139,10 +230,20 @@ export const validarIdades: Validador = (valor) => {
 
 // ---------------------------------------------------------------- Entre campos
 
-/** A carta B tira-se a partir dos 17 anos (condução acompanhada): antes disso, não bate certo. */
-export function validarCartaVsNascimento(anoCarta: string, nascimento: string): string | null {
-  const ano = Number(anoCarta);
-  const anoNascimento = Number(nascimento.slice(0, 4));
-  if (!ano || !anoNascimento) return null;
-  return ano - anoNascimento < 17 ? "O ano da carta não bate com a data de nascimento do condutor." : null;
+/**
+ * A carta B tira-se a partir dos 17 anos (condução acompanhada): antes disso,
+ * não bate certo. Aceita o ano da carta ("2005") ou a data ("2005-06-01").
+ */
+export function validarCartaVsNascimento(carta: string, nascimento: string): string | null {
+  if (!carta || !nascimento) return null;
+  if (/^\d{4}$/.test(carta)) {
+    const anoNascimento = Number(nascimento.slice(0, 4));
+    if (!anoNascimento) return null;
+    return Number(carta) - anoNascimento < 17 ? "O ano da carta não bate com a data de nascimento do condutor." : null;
+  }
+  const [a, m, d] = carta.split("-").map(Number);
+  if (!a || !m || !d) return null;
+  const anos = idade(nascimento, new Date(a, m - 1, d));
+  if (anos === null) return null;
+  return anos < 17 ? "A data da carta não bate com a data de nascimento: a carta tira-se a partir dos 17 anos." : null;
 }

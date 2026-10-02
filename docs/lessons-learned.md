@@ -203,3 +203,16 @@ that includes `apple-touch-icon` and a web manifest (this Blueprint's
 current baseline covers favicon + robots + sitemap + OG tags only; the
 manifest and `apple-touch-icon` are a gap to close on any project that
 needs full SEO/PWA-adjacent polish).
+
+## Drift between client rounds (BV Seguros, 2026-10-01)
+
+Each round of client changes was right on its own, and after five rounds
+the same action had five labels, the hero had four copies and dark
+surfaces had a dozen loose `rgba` values. What caught it was a pass
+across the whole site, not another page-level fix: list every CTA label
+and every repeated block, then give each one a single name and a single
+home (a component, a token, a glossary). Do this pass before launch and
+after any run of several quick rounds. When a rule from the diagnosis
+meets a documented decision (here, the dark middle card and the
+client-requested lines), the documented decision wins unless it is
+reopened explicitly.

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, MouseEvent } from "react";
+import type { ComponentPropsWithRef, MouseEvent } from "react";
 import { navigate } from "./router";
 
 /**
@@ -6,7 +6,7 @@ import { navigate } from "./router";
  * routes (href starting with "/") and falls back to native behavior
  * for anchors, external links, and modified clicks (cmd/ctrl/etc).
  */
-export default function Link({ href, onClick, ...rest }: ComponentPropsWithoutRef<"a">) {
+export default function Link({ href, onClick, ...rest }: ComponentPropsWithRef<"a">) {
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     if (onClick) onClick(event);
     if (event.defaultPrevented) return;

@@ -4,7 +4,8 @@ import Button from "../components/ui/Button";
 import FlowLines from "../components/ui/FlowLines";
 import LineIcon from "../components/ui/LineIcon";
 import PorConfirmar from "../components/ui/PorConfirmar";
-import { abrirProposta, abrirSinistro } from "../app/proposta";
+import Link from "../app/Link";
+import { hrefProposta, hrefSinistro } from "../app/proposta";
 import { FORMULARIOS } from "../data/formularios";
 import type { Seguro } from "../data/seguros";
 
@@ -21,9 +22,9 @@ const PROMESSAS_SINISTRO = [
 ];
 
 /**
- * Fecho de página com o convite a pedir proposta. O formulário abre num
- * pop-up (ModalProposta), para não quebrar a leitura da página. Com
- * `seguro`, abre o formulário próprio desse ramo.
+ * Fecho de página com o convite a pedir proposta. O formulário fica na
+ * página do pedido (/pedir-proposta), para não quebrar a leitura desta. Com
+ * `seguro`, leva ao formulário próprio desse ramo.
  */
 export default function ContactoSecao({
   titulo = "Fale connosco sobre o seu seguro.",
@@ -63,9 +64,13 @@ export default function ContactoSecao({
             ))}
           </ul>
           {sinistro ? (
-            <Button onClick={() => abrirSinistro()}>Participar sinistro</Button>
+            <Button as={Link} href={hrefSinistro()}>
+              Participar sinistro
+            </Button>
           ) : (
-            <Button onClick={() => abrirProposta(seguro?.key ?? null)}>Pedir proposta</Button>
+            <Button as={Link} href={hrefProposta(seguro?.key ?? null)}>
+              Pedir proposta
+            </Button>
           )}
           <p className="text-caption text-muted">
             Mediação de seguros: <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>

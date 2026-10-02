@@ -22,12 +22,12 @@ export default function NotFound() {
             O link que seguiu pode estar errado, ou a página já não existe.
             Volte à página inicial ou fale connosco se precisar de ajuda.
           </p>
-          <div className="cluster cluster--center" style={{ marginTop: "var(--space-sm)" }}>
+          <div className="cluster cluster--center mt-sm">
             <Button as={Link} href="/">
               Voltar ao início
             </Button>
             <Button as={Link} href="/#contacto" variant="secondary">
-              Falar connosco
+              Fale connosco
             </Button>
           </div>
         </div>

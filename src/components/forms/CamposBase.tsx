@@ -1,15 +1,71 @@
+import { useRef, useState } from "react";
 import InputValidado from "./InputValidado";
-import { validarEmail, validarNif, validarNome, validarTelefone } from "../../utils/validacoes";
+import CampoCodigoPostal from "./CampoCodigoPostal";
+import type { ValorExterno } from "./CampoCodigoPostal";
+import {
+  formatarTelefone,
+  sugestaoEmail,
+  validarEmail,
+  validarNif,
+  validarNome,
+  validarTelefone,
+} from "../../utils/validacoes";
 import Link from "../../app/Link";
-import type { RamoCrm } from "../../utils/enviarContacto";
 
-/** Nome, NIF, email e telefone: iguais no pedido de proposta e no de sinistro. */
-export function CamposContacto() {
+const soDigitos = (v: string) => v.replace(/\D/g, "");
+
+/** Email com "Quis dizer nome@gmail.com?" quando o domínio parece um engano. Não impede o envio. */
+function CampoEmail() {
+  const ref = useRef<HTMLInputElement>(null);
+  const [sugestao, setSugestao] = useState<string | null>(null);
+  return (
+    <div className="form-grid__half email-field">
+      <InputValidado
+        ref={ref}
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        required
+        maxLength={254}
+        validar={validarEmail}
+        formatar={(v) => v.trim()}
+        onBlur={(e) => setSugestao(validarEmail(e.currentTarget.value) ? null : sugestaoEmail(e.currentTarget.value))}
+        onInput={() => setSugestao(null)}
+      />
+      {sugestao && (
+        <button
+          type="button"
+          className="email-field__suggestion"
+          onClick={() => {
+            if (ref.current) ref.current.value = sugestao;
+            setSugestao(null);
+            ref.current?.focus();
+          }}
+        >
+          Quis dizer <strong>{sugestao}</strong>?
+        </button>
+      )}
+    </div>
+  );
+}
+
+export type CamposContactoProps = {
+  /** Pedido de proposta: o NIF é obrigatório (pedido do João, 01/10/2026). */
+  nifObrigatorio?: boolean;
+  /** Pedido de proposta: código postal obrigatório, confirmado pela moradas.dev. */
+  comCodigoPostal?: boolean;
+  /** Código postal já conhecido (ex.: o do imóvel), posto no campo. */
+  codigoPostalExterno?: ValorExterno;
+};
+
+/** Nome, NIF, email e telefone (e código postal no pedido de proposta). */
+export function CamposContacto({ nifObrigatorio = false, comCodigoPostal = false, codigoPostalExterno }: CamposContactoProps) {
   return (
     <div className="form-grid">
       <InputValidado
         className="form-grid__half"
-        label="Nome"
+        label="Nome completo"
         name="nome"
         type="text"
         autoComplete="name"
@@ -21,25 +77,16 @@ export function CamposContacto() {
       />
       <InputValidado
         className="form-grid__half"
-        label="NIF (opcional)"
+        label={nifObrigatorio ? "NIF" : "NIF (opcional)"}
         name="nif"
         inputMode="numeric"
         autoComplete="off"
-        maxLength={11}
+        maxLength={9}
+        required={nifObrigatorio}
         validar={validarNif}
-        formatar={(v) => v.replace(/\D/g, "")}
+        filtrar={soDigitos}
       />
-      <InputValidado
-        className="form-grid__half"
-        label="Email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        required
-        maxLength={254}
-        validar={validarEmail}
-        formatar={(v) => v.trim()}
-      />
+      <CampoEmail />
       <InputValidado
         className="form-grid__half"
         label="Telefone"
@@ -49,7 +96,30 @@ export function CamposContacto() {
         required
         maxLength={20}
         validar={validarTelefone}
+        formatar={formatarTelefone}
       />
+      {comCodigoPostal && (
+        <CampoCodigoPostal
+          className="form-grid__half"
+          name="codigo_postal"
+          label="Código postal"
+          required
+          valorExterno={codigoPostalExterno}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Porque pedimos os dados, como a caixa da Fidelidade junto aos dados pessoais. */
+export function PorquePedimos({ texto }: { texto: string }) {
+  return (
+    <div className="form-why" role="note">
+      <p className="form-why__title">Porque pedimos estes dados?</p>
+      <p>
+        {texto} Saiba mais na{" "}
+        <Link href="/privacy">política de privacidade</Link>.
+      </p>
     </div>
   );
 }
@@ -70,49 +140,5 @@ export function CamposFecho({ finalidade }: { finalidade: string }) {
         </span>
       </label>
     </>
-  );
-}
-
-/**
- * Tipo de seguro, o primeiro campo: escolhê-lo faz aparecer as perguntas
- * desse ramo por baixo. A frase em aria-live anuncia-as ao leitor de ecrã.
- */
-export function SeletorRamo({
-  rotulo,
-  ramos,
-  valor,
-  onChange,
-  anuncio,
-}: {
-  rotulo: string;
-  ramos: { valor: RamoCrm; nome: string }[];
-  valor: RamoCrm | "";
-  onChange: (valor: RamoCrm | "") => void;
-  anuncio: string;
-}) {
-  return (
-    <div className="field">
-      <label className="field__label" htmlFor="ramo">
-        {rotulo}
-      </label>
-      <select
-        id="ramo"
-        name="ramo"
-        className="field__control"
-        required
-        value={valor}
-        onChange={(e) => onChange(e.target.value as RamoCrm | "")}
-      >
-        <option value="">Escolha o tipo de seguro</option>
-        {ramos.map((ramo) => (
-          <option key={ramo.valor} value={ramo.valor}>
-            {ramo.nome}
-          </option>
-        ))}
-      </select>
-      <p className="visually-hidden" aria-live="polite">
-        {anuncio}
-      </p>
-    </div>
   );
 }

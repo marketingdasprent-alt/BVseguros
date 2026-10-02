@@ -1,18 +1,19 @@
 import Container from "../components/layout/Container";
 import CardGrid from "../components/layout/CardGrid";
 import Section from "../components/layout/Section";
+import HeroFotos from "../components/layout/HeroFotos";
 import FlowLines from "../components/ui/FlowLines";
 import Button from "../components/ui/Button";
 import PorConfirmar from "../components/ui/PorConfirmar";
 import RamoIcon from "../components/ui/RamoIcon";
 import Breadcrumb from "../components/navigation/Breadcrumb";
-import { abrirSinistro } from "../app/proposta";
+import Link from "../app/Link";
+import { hrefSinistro } from "../app/proposta";
 import ApoioSecao from "../sections/ApoioSecao";
 import ContactoSecao from "../sections/ContactoSecao";
 import type { Pergunta } from "../data/apoio";
 import type { RamoKey } from "../data/seguros";
 import useDocumentTitle from "../hooks/useDocumentTitle";
-import useHeroFotos from "../hooks/useHeroFotos";
 import { slidesDe } from "../data/fotosHero";
 
 const SLIDES = slidesDe("sinistros");
@@ -97,34 +98,25 @@ export default function Sinistros() {
     "Participar sinistro | BV Seguros",
     "O que fazer em caso de acidente, danos em casa ou despesas de saúde, e como a BV Seguros acompanha a participação do sinistro."
   );
-  const heroFotos = useHeroFotos(SLIDES);
 
   return (
     <>
-      <Section className="hero-dark hero-fotos" variant="compact">
-        {heroFotos.fundo}
-        <Container>
-          <Breadcrumb itens={[{ label: "Início", href: "/" }, { label: "Sinistros" }]} />
-          <div className="grid hero-fotos__grelha" style={{ marginTop: "var(--space-md)" }}>
-            <div style={{ gridColumn: "span 7" }}>
-              <h1>Teve um sinistro? Ajudamos a tratar de tudo.</h1>
-              <p className="text-body-large text-secondary" style={{ marginTop: "var(--space-sm)" }}>
-                Veja o que fazer nas primeiras horas e fale connosco: participamos
-                à seguradora consigo e acompanhamos o processo até ao fim.
-              </p>
-              <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
-                <Button onClick={() => abrirSinistro()}>
-                  Participar sinistro
-                </Button>
-                <Button as="a" href="#por-ramo" variant="secondary">
-                  O que fazer por tipo de seguro
-                </Button>
-              </div>
-            </div>
-            <div className="hero-fotos__lado">{heroFotos.controlos}</div>
-          </div>
-        </Container>
-      </Section>
+      <HeroFotos
+        slides={SLIDES}
+        topo={<Breadcrumb itens={[{ label: "Início", href: "/" }, { label: "Sinistros" }]} />}
+        titulo="Teve um sinistro? Ajudamos a tratar de tudo."
+        lede="Veja o que fazer nas primeiras horas e fale connosco: participamos à seguradora consigo e acompanhamos o processo até ao fim."
+        acoes={
+          <>
+            <Button as={Link} href={hrefSinistro()}>
+              Participar sinistro
+            </Button>
+            <Button as="a" href="#por-ramo" variant="secondary">
+              O que fazer por tipo de seguro
+            </Button>
+          </>
+        }
+      />
 
       <Section variant="compact" className="section-decor">
         <FlowLines variante="bordas" />
@@ -167,7 +159,7 @@ export default function Sinistros() {
               </li>
             ))}
           </CardGrid>
-          <p className="text-caption text-center" style={{ marginTop: "var(--space-lg)" }}>
+          <p className="text-caption text-center mt-lg">
             <PorConfirmar>
               Por confirmar: linhas de assistência 24 horas das seguradoras com
               quem a BV trabalha.

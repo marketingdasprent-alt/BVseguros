@@ -23,7 +23,7 @@ export default function LegalLayout({ title, updatedAt, children }: LegalLayoutP
       <Container variant="narrow">
         <header className="legal-header">
           <Link href="/" className="legal-header__back">
-            <span aria-hidden="true">&larr;</span> Voltar
+            Voltar
           </Link>
           <h1 className="legal-header__title">{title}</h1>
           <p className="legal-header__updated">Última atualização: {updatedAt}</p>
