@@ -21,6 +21,19 @@
       ],
       "port": 5190,
       "autoPort": true
+    },
+    {
+      "name": "site-build",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "../node_modules/vite/bin/vite.js",
+        "preview",
+        "..",
+        "--port",
+        "4173",
+        "--strictPort"
+      ],
+      "port": 4173
     }
   ]
 }

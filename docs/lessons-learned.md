@@ -216,3 +216,16 @@ after any run of several quick rounds. When a rule from the diagnosis
 meets a documented decision (here, the dark middle card and the
 client-requested lines), the documented decision wins unless it is
 reopened explicitly.
+
+## Relative `base` breaks deep links in production (BV Seguros, 2026-10-02)
+
+With `base: './'` in `vite.config.ts`, every route with a subpath
+(`/seguros/automovel`, `/pedir-proposta/automovel`) asked for
+`/seguros/assets/index-….js`. The SPA rewrite answered with
+`index.html`, the browser refused it as a module, and the page stayed
+blank, but only when opened from a direct link or refreshed: in-app
+navigation, the dev server and `qa:layout` (which runs on the dev
+server) all looked fine. A site served from the domain root uses
+`base: '/'`. `npm run qa` now fails on a relative base, and before a
+deploy it is worth opening one deep route of the production build
+(`vite preview`) directly.

@@ -39,7 +39,9 @@ function apiLocal(env: Record<string, string>): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: './',
+  // Absoluto: com './' as páginas em subcaminho (/seguros/automovel) pediam /seguros/assets/… e,
+  // ao abrir o link direto ou recarregar, a Vercel devolvia o index.html em vez do script.
+  base: '/',
   plugins: [react(), tailwindcss(), apiLocal({ ...loadEnv(mode, process.cwd(), ''), ...(process.env as Record<string, string>) })],
   // 5190 por omissão; PORT deixa correr um segundo servidor (ex.: preview do Claude) sem conflito.
   server: { port: Number(process.env.PORT) || 5190 },
