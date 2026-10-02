@@ -12,42 +12,91 @@ export function dataPt(valor: string): string {
   return a && m && d ? `${d}/${m}/${a}` : valor;
 }
 
-function valorLegivel(campo: Campo, valores: Valores): string {
+const formatoEuros = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+
+/** "150000" passa a "150 000 €"; texto que não é número fica como está. */
+export function euros(valor: string | undefined): string | undefined {
+  if (!valor) return undefined;
+  const n = Number(valor);
+  return Number.isFinite(n) ? formatoEuros.format(n) : valor;
+}
+
+function valorLegivel(campo: Campo, valores: Valores, curto: boolean): string {
   const v = (valores[campo.nome] ?? "").trim();
   if (!v) return "";
   if (campo.tipo === "data") return dataPt(v);
   if (campo.tipo === "codigo_postal") {
     const local = (valores[`${campo.nome}_local`] ?? "").trim();
-    return local ? `${v} (${local})` : v;
+    if (!local) return v;
+    return curto ? `${v} ${local}` : `${v} (${local})`;
   }
+  if (!curto) return v;
+  if (campo.resumoValores?.[v]) return campo.resumoValores[v];
+  if (campo.tipo === "numero" && campo.rotulo.includes("(€)")) return euros(v) ?? v;
+  if (campo.tipo === "numero" && campo.rotulo.includes("(m²)")) return `${v} m²`;
   return v;
 }
 
-/** Os passos do ramo como blocos "Rótulo: valor", só com o que foi respondido. */
-export function blocosDosPassos(passos: PassoRamo[], valores: Valores): Bloco[] {
-  return passos
-    .map((p) => ({
-      titulo: p.nome,
-      passo: p.id,
-      linhas: p.campos
-        .map((c) => ({ rotulo: c.rotulo, valor: valorLegivel(c, valores) }))
-        .filter((l) => l.valor !== ""),
-    }))
-    .filter((b) => b.linhas.length > 0);
+/** No CRM: o rótulo curto, ou a pergunta sem "?" final. */
+function rotuloCurto(campo: Campo): string {
+  return campo.resumo ?? campo.rotulo.replace(/\?\s*$/, "");
 }
 
 /**
- * Junta o contexto já escolhido na página (ex.: nível de proteção) e os
- * blocos do ramo num texto "[Passo]" e "Rótulo: valor" legível no CRM,
- * seguido da mensagem livre. Se passar do limite, corta a mensagem livre
- * (as respostas do ramo são o que a BV precisa para pedir propostas).
+ * Os passos do ramo como blocos "Rótulo: valor", só com o que foi respondido.
+ * `curto`: títulos e rótulos de resumo para o CRM (passos seguidos com o mesmo
+ * `bloco` juntam-se); sem ele, os do formulário, para o ecrã "Confirme o pedido".
  */
-export function montarMensagem(blocos: Bloco[], livre: string, contexto: string[] = []): string {
+export function blocosDosPassos(passos: PassoRamo[], valores: Valores, { curto = false } = {}): Bloco[] {
+  const blocos = passos
+    .map((p) => ({
+      titulo: curto ? (p.bloco ?? p.nome) : p.nome,
+      passo: p.id,
+      linhas: p.campos
+        .map((c) => ({ rotulo: curto ? rotuloCurto(c) : c.rotulo, valor: valorLegivel(c, valores, curto) }))
+        .filter((l) => l.valor !== ""),
+    }))
+    .filter((b) => b.linhas.length > 0);
+  if (!curto) return blocos;
+  return blocos.reduce<Bloco[]>((juntos, b) => {
+    const anterior = juntos[juntos.length - 1];
+    if (anterior && anterior.titulo === b.titulo) anterior.linhas.push(...b.linhas);
+    else juntos.push({ ...b, linhas: [...b.linhas] });
+    return juntos;
+  }, []);
+}
+
+export type Cabecalho = {
+  /** Nome do ramo e o essencial do pedido, por ordem (vazios saem). */
+  destaques?: (string | undefined)[];
+  /** Nível escolhido na página do ramo, para quando o formulário não pergunta o nível. */
+  nivel?: string | null;
+};
+
+/**
+ * A mensagem do lead, em texto simples que se lê sozinho e que o CRM interpreta:
+ * uma linha de resumo ("Automóvel · BT-84-HL · Essencial"), depois os blocos
+ * "[Título]" com "Rótulo: valor", separados por uma linha em branco, e por fim a
+ * mensagem livre. Se passar do limite, corta-se a mensagem livre: as respostas
+ * do ramo são o que a BV precisa para pedir propostas.
+ */
+export function montarMensagem(blocos: Bloco[], livre: string, { destaques = [], nivel }: Cabecalho = {}): string {
+  const comNivel = [...blocos];
+  const temNivel = blocos.some((b) => b.linhas.some((l) => l.rotulo === "Nível"));
+  if (nivel && !temNivel) {
+    const antesDoFim = comNivel.length && comNivel[comNivel.length - 1].titulo === "Quem pede" ? comNivel.length - 1 : comNivel.length;
+    comNivel.splice(antesDoFim, 0, { titulo: "Proteção", linhas: [{ rotulo: "Nível", valor: nivel }] });
+  }
+
+  const resumo = [...destaques, temNivel ? undefined : (nivel ?? undefined)]
+    .filter((d): d is string => Boolean(d?.trim()))
+    .filter((d, i, todos) => todos.indexOf(d) === i)
+    .join(" · ");
   const partes = [
-    ...contexto,
-    ...blocos.flatMap((b) => [`[${b.titulo}]`, ...b.linhas.map((l) => `${l.rotulo}: ${l.valor}`)]),
+    ...(resumo ? [resumo] : []),
+    ...comNivel.map((b) => [`[${b.titulo}]`, ...b.linhas.map((l) => `${l.rotulo}: ${l.valor}`)].join("\n")),
   ];
-  const detalhes = partes.join("\n");
+  const detalhes = partes.join("\n\n");
   const texto = livre.trim();
   if (!texto) return detalhes.slice(0, MAX_MENSAGEM);
   if (!detalhes) return texto.slice(0, MAX_MENSAGEM);

@@ -2291,3 +2291,48 @@ contract (docs/design-system.md CookieConsent updated).
 DATE:
 2026-10-01
 ```
+
+---
+
+```
+DECISION:
+BV Seguros: format of the proposal request message sent to the CRM
+(PROMPT-MASTER-MENSAGEM-PEDIDO.md, diagnosis in docs/mensagem-pedido.md).
+Still plain text in leads.mensagem (option A, no migration, 2000 chars),
+now with a summary line on top ("Automóvel · BT-84-HL · Completo"),
+short block titles (Veículo, Condutor habitual, Tomador do seguro,
+Proteção, Seguro de vida, Pessoas seguras, Preferências, Imóvel,
+Empresa, Pedido, Quem pede), consecutive steps merged by `bloco`, short
+statement labels (`resumo`, otherwise the question without "?"), values
+rewritten where an option alone means nothing (`resumoValores`, e.g.
+"Situação: Sim" becomes "Trabalhador independente"), euros and m²
+formatted, a blank line between blocks. The "Confirme o pedido" screen
+keeps the form's own titles. Car protection levels now use the ramo
+page names (Essencial, Intermédio, Completo) and the level chosen on the
+page comes pre-selected; when a form does not ask the level, the page
+level goes into a Proteção block. CRM reads both the new and the old
+format (lib/mensagemSite.ts) and shows it as blocks with copy buttons
+(MensagemSite) in the lead modal; the Kanban card shows only the summary;
+the admin email highlights the summary and block titles.
+
+REASON:
+The mediator read a technical-looking dump ("Veículo importado?: Não",
+blocks of one line, the level near the end, two different names for the
+same car level). A fixed, readable text keeps option A (no schema
+change) and still lets the CRM render structure, including for leads
+already stored in the old format.
+
+SCOPE:
+Site: data/formularios.ts (resumo, resumoValores, bloco, destaques, car
+levels), utils/montarMensagem.ts, sections/ContactoForm.tsx (nivel
+instead of contexto, "Quem pede"), pages/PaginaPedido.tsx (level
+pre-selected), tests/mensagem.test.mjs. CRM: lib/mensagemSite.ts (+test),
+components/crm/MensagemSite.tsx, NovoLeadModal, LeadCard, index.css,
+api/aviso-lead.js (+test; RAMOS.outro is "Outros seguros").
+
+LEVEL:
+Project-specific (Level 2).
+
+DATE:
+2026-10-02
+```
