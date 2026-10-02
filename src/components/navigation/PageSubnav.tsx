@@ -11,7 +11,7 @@ export default function PageSubnav({
   acao,
 }: {
   itens: { id: string; label: string }[];
-  /** Botão à direita da barra (ex.: "Simular", que abre o pop-up). */
+  /** Botão à direita da barra (ex.: "Pedir proposta", que leva ao pedido de proposta). */
   acao?: { label: string; onClick: () => void };
 }) {
   const ativa = useSecaoAtiva(itens.map((i) => i.id));

@@ -69,7 +69,7 @@ export function NovoLeadModal({ aCriar, onFechar, onCriar, inicial, onApagar, on
 
         {onConverter && (
           <Notice tone="info" icon={UserCheck}
-            action={<Button type="button" variant="secondary" size="sm" disabled={aCriar} onClick={onConverter}>Converter</Button>}>
+            action={<Button type="button" variant="secondary" size="sm" disabled={aCriar} onClick={onConverter}>Converter em cliente</Button>}>
             Este lead está pronto a passar a cliente?
           </Notice>
         )}

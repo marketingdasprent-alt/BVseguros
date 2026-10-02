@@ -46,7 +46,8 @@ export default function Layout() {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error: unknown) {
-      toast({ title: 'Não foi possível terminar a sessão', description: error instanceof Error ? error.message : 'Tente novamente.', variant: 'destructive' });
+      console.error(error);
+      toast({ title: 'Não foi possível terminar a sessão', description: 'Verifique a ligação e tente novamente.', variant: 'destructive' });
     } finally { setSigningOut(false); }
   };
   const brand = <div className="sidebar-brand"><img src="/brand/logo-icon-branco.png" alt="BV Seguros" width={36} height={40} /></div>;

@@ -1,5 +1,5 @@
 import Link from "../app/Link";
-import { abrirProposta } from "../app/proposta";
+import { hrefProposta } from "../app/proposta";
 import LineIcon from "../components/ui/LineIcon";
 import RamoIcon from "../components/ui/RamoIcon";
 import { ACESSOS_RAPIDOS } from "../data/apoio";
@@ -7,7 +7,7 @@ import { SEGUROS } from "../data/seguros";
 
 /**
  * "Vamos encontrar o seu seguro": cartão dentro do hero da Home, para estar
- * logo no primeiro ecrã. Cada ramo abre o pop-up com o formulário desse
+ * logo no primeiro ecrã. Cada ramo leva ao pedido de proposta desse
  * ramo; por baixo, os atalhos para o resto do site.
  */
 export default function PedirPropostaPara() {
@@ -18,12 +18,12 @@ export default function PedirPropostaPara() {
       <ul className="ramo-picker__list" role="list">
         {SEGUROS.map((s) => (
           <li key={s.key}>
-            <button type="button" className="ramo-picker__option" onClick={() => abrirProposta(s.key)}>
+            <Link href={hrefProposta(s.key)} className="ramo-picker__option">
               <span className="ramo-picker__icon">
                 <RamoIcon tipo={s.key} />
               </span>
               {s.nome}
-            </button>
+            </Link>
           </li>
         ))}
       </ul>

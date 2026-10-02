@@ -32,7 +32,7 @@ export function EditarNomeModal({ utilizador, aGuardar, onFechar, onGuardar }: E
       <form onSubmit={handleSubmit} className="space-y-5">
         <ContextoFormulario itens={[{ rotulo: 'Conta', valor: utilizador.email }]} />
         <Campo label="Nome" required
-          extra={restantes < 20 ? <span className="text-[11px] font-normal text-muted tabular-nums">{restantes} caracteres</span> : undefined}>
+          extra={restantes < 20 ? <span className="text-meta font-normal text-muted tabular-nums">{restantes} caracteres</span> : undefined}>
           <input required maxLength={NOME_MAX} value={nome} onChange={(e) => setNome(e.target.value)}
             placeholder="Nome e apelido" className={CLASSE_INPUT} />
         </Campo>

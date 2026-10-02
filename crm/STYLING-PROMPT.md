@@ -1,4 +1,9 @@
-# CRM BV Seguros — Prompt de Estilização (nível 10/10)
+# CRM BV Seguros: Prompt de Estilização (nível 10/10)
+
+> **Histórico.** Anterior ao redesign: fala em Plus Jakarta Sans e em valores que já
+> não são os reais. A referência atual é `STYLING-PROMPT-NOVAS-FUNCIONALIDADES.md`
+> secção 2 e o `:root` de `src/index.css` (refinamento de 01/10/2026,
+> `REFINAMENTO-UX-UI.md`).
 
 > Documento de referência para a passagem de estilo completa do CRM
 > (`crm/`), antes do próximo commit/PR. Não é um pedido de "deixar bonito";

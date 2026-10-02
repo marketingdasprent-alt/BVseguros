@@ -1,63 +1,54 @@
-import { useSyncExternalStore } from "react";
-import type { RamoKey } from "../data/seguros";
+import { navigate } from "./router";
+import { SEGUROS } from "../data/seguros";
+import type { RamoKey, Seguro } from "../data/seguros";
 
 /**
- * Estado do pop-up de formulários: um só modal montado no App, aberto de
- * qualquer botão (cartões, hero, header, níveis), em modo proposta ou sinistro. Estado de módulo
- * com useSyncExternalStore, como o useCookieConsent, em vez de um Context.
+ * Os pedidos (proposta e sinistro) são páginas inteiras, como o simulador da
+ * Fidelidade, não um pop-up (João e Thiago, 01/10/2026): /pedir-proposta e
+ * /participar-sinistro, com o ramo no caminho (/pedir-proposta/automovel).
+ * O nível de proteção escolhido numa página de ramo segue em ?nivel=.
  */
-/** "proposta": pedir uma proposta; "sinistro": pedir ajuda com um sinistro (pedidos_sinistro no CRM). */
-export type ModoPopup = "proposta" | "sinistro";
+export type ModoPedido = "proposta" | "sinistro";
 
-type EstadoProposta =
-  | { aberto: false }
-  | {
-      aberto: true;
-      modo: ModoPopup;
-      ramo: RamoKey | null;
-      /** Linhas "Rótulo: valor" já escolhidas na página (ex.: o nível de proteção), para a mensagem do lead. */
-      contexto: string[];
-      origem: HTMLElement | null;
-    };
+export const CAMINHO_PEDIDO: Record<ModoPedido, string> = {
+  proposta: "/pedir-proposta",
+  sinistro: "/participar-sinistro",
+};
 
-let estado: EstadoProposta = { aberto: false };
-const listeners = new Set<() => void>();
+const slugDe = (ramo: RamoKey | null | undefined) => (ramo ? SEGUROS.find((s) => s.key === ramo)?.slug : undefined);
 
-function notificar() {
-  for (const listener of listeners) listener();
+/** Sem ramo: o pedido genérico, que começa pela escolha do seguro. */
+export function hrefProposta(ramo: RamoKey | null = null, nivel?: string): string {
+  const slug = slugDe(ramo);
+  const base = slug ? `${CAMINHO_PEDIDO.proposta}/${slug}` : CAMINHO_PEDIDO.proposta;
+  return nivel ? `${base}?nivel=${encodeURIComponent(nivel)}` : base;
 }
 
-function abrir(modo: ModoPopup, ramo: RamoKey | null, contexto: string[] = []) {
-  const origem = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  estado = { aberto: true, modo, ramo, contexto, origem };
-  notificar();
+/** Com ramo, o tipo de seguro já vem escolhido. */
+export function hrefSinistro(ramo: RamoKey | null = null): string {
+  const slug = slugDe(ramo);
+  return slug ? `${CAMINHO_PEDIDO.sinistro}/${slug}` : CAMINHO_PEDIDO.sinistro;
 }
 
-/** Sem ramo: formulário genérico, com a escolha do seguro. */
-export function abrirProposta(ramo: RamoKey | null = null, contexto: string[] = []) {
-  abrir("proposta", ramo, contexto);
+/** Para botões que fazem outra coisa antes (ex.: marcar o nível escolhido). */
+export function abrirProposta(ramo: RamoKey | null = null, nivel?: string) {
+  navigate(hrefProposta(ramo, nivel));
 }
 
-/** Pedido de sinistro; com ramo, o tipo de seguro já vem escolhido. */
 export function abrirSinistro(ramo: RamoKey | null = null) {
-  abrir("sinistro", ramo);
+  navigate(hrefSinistro(ramo));
 }
 
-export function fecharProposta() {
-  if (!estado.aberto) return;
-  const { origem } = estado;
-  estado = { aberto: false };
-  notificar();
-  // Devolve o foco ao botão que abriu, se ainda existir na página.
-  if (origem && document.contains(origem)) origem.focus();
-}
-
-export function usePropostaAberta() {
-  return useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    () => estado
-  );
+/** Que pedido mostra um caminho: null se não for uma página de pedido (ou o ramo não existir). */
+export function pedidoPorCaminho(pathname: string): { modo: ModoPedido; seguro?: Seguro } | null {
+  const limpo = pathname.replace(/(.)\/+$/, "$1");
+  for (const modo of ["proposta", "sinistro"] as const) {
+    const base = CAMINHO_PEDIDO[modo];
+    if (limpo === base) return { modo };
+    if (limpo.startsWith(`${base}/`)) {
+      const seguro = SEGUROS.find((s) => s.slug === limpo.slice(base.length + 1));
+      return seguro ? { modo, seguro } : null;
+    }
+  }
+  return null;
 }

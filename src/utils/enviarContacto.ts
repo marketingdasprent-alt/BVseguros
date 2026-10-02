@@ -20,7 +20,8 @@ export type ErroContacto = "dados_invalidos" | "limite_excedido" | "verificacao_
 
 /** Texto para o visitante, por motivo de erro devolvido por /api/pedido. */
 export const MENSAGEM_ERRO: Record<ErroContacto, string> = {
-  dados_invalidos: "Verifique os dados do formulário e tente novamente.",
+  dados_invalidos:
+    "Não conseguimos aceitar um dos dados. Reveja o resumo e envie de novo, ou escreva-nos para geral@bvseguros.pt.",
   limite_excedido:
     "Recebemos vários pedidos seguidos deste contacto ou desta ligação. Tente novamente mais tarde, ou escreva-nos para geral@bvseguros.pt.",
   verificacao_falhou:

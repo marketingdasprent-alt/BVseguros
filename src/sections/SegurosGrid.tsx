@@ -2,9 +2,8 @@ import { useState } from "react";
 import Link from "../app/Link";
 import CardGrid from "../components/layout/CardGrid";
 import Button from "../components/ui/Button";
-import { abrirProposta } from "../app/proposta";
+import { hrefProposta } from "../app/proposta";
 import RamoIcon from "../components/ui/RamoIcon";
-import LineIcon from "../components/ui/LineIcon";
 import SegmentTabs from "../components/navigation/SegmentTabs";
 import { hrefSeguro, SEGMENTOS, SEGUROS } from "../data/seguros";
 import type { Segmento } from "../data/seguros";
@@ -38,7 +37,7 @@ export default function SegurosGrid({
         id="seguros-painel"
         role="tabpanel"
         aria-labelledby={`seguros-tab-${filtro}`}
-        style={{ marginTop: "var(--space-lg)" }}
+        className="mt-lg"
       >
         {visiveis.map((seguro) => (
           <article
@@ -67,18 +66,17 @@ export default function SegurosGrid({
               </Heading>
               <p className="text-secondary">{seguro.descricao}</p>
               <div className="media-card__actions">
-                <Button size="sm" onClick={() => abrirProposta(seguro.key)} aria-label={`Simular seguro ${seguro.nome.toLowerCase()}`}>
-                  Simular
+                <Button as={Link} href={hrefProposta(seguro.key)} size="sm" aria-label={`Pedir proposta de seguro ${seguro.nome.toLowerCase()}`}>
+                  Pedir proposta
                 </Button>
                 <Button
                   as={Link}
                   href={hrefSeguro(seguro)}
                   size="sm"
                   variant="secondary"
-                  aria-label={`Ver detalhes: ${seguro.nome}`}
+                  aria-label={`Ver seguro: ${seguro.nome}`}
                 >
-                  Ver detalhes
-                  <LineIcon nome="seta" size={16} />
+                  Ver seguro
                 </Button>
               </div>
             </div>

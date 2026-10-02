@@ -1,11 +1,10 @@
-import { AlertTriangle, Crown, History, KeyRound, PenLine, UserCheck, Users, ShieldCheck, ShieldOff, User, UserPlus, UserX, type LucideIcon } from 'lucide-react'
+import { Crown, History, KeyRound, PenLine, UserCheck, Users, ShieldCheck, ShieldOff, User, UserPlus, UserX, type LucideIcon } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
-import { Button } from '@/components/ui/Button'
-import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatarDataRelativa } from '@/lib/format'
 import { ROTULOS_ALTERACAO } from '@/lib/types'
 import type { AlteracaoRegistada, EventoAcesso } from '@/lib/types'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 interface HistoricoAcessosProps {
   eventos: EventoAcesso[]
@@ -41,10 +40,7 @@ export function HistoricoAcessos({ eventos, isLoading, error, onTentarNovamente 
       {isLoading && <div className="flex min-h-[160px] items-center justify-center"><Spinner /></div>}
       {error && (
         <div className="p-6">
-          <Notice tone="danger" icon={AlertTriangle} alerta
-            action={<Button variant="secondary" size="sm" onClick={onTentarNovamente}>Tentar novamente</Button>}>
-            Não foi possível carregar o histórico: {error.message}
-          </Notice>
+          <ErroCarregar oQue="o histórico" erro={error} onTentarNovamente={onTentarNovamente} />
         </div>
       )}
       {!isLoading && !error && eventos.length === 0 && (
@@ -56,7 +52,7 @@ export function HistoricoAcessos({ eventos, isLoading, error, onTentarNovamente 
             const Icone = ICONES[e.alteracao] ?? History
             return (
               <li key={e.id} className="activity-row">
-                <Icone size={16} className="shrink-0 text-[#72839a]" aria-hidden="true" />
+                <Icone size={16} className="shrink-0 text-muted-soft" aria-hidden="true" />
                 <div className="min-w-0">
                   <strong>
                     <span className="font-semibold">{e.realizado_por_nome ?? 'Supabase (SQL)'}</span>{' '}

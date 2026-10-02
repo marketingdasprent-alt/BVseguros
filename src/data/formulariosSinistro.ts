@@ -1,6 +1,7 @@
-import type { Campo } from "./formularios";
+import { matriculaCompleta } from "./formularios";
+import type { Campo, FormularioRamo, PassoRamo } from "./formularios";
 import type { RamoKey } from "./seguros";
-import { formatarMatricula, validarMatricula } from "../utils/validacoes";
+import { naoFutura } from "../utils/validacoes";
 
 const SIM_NAO = ["Sim", "Não"];
 
@@ -13,7 +14,6 @@ const SIM_NAO = ["Sim", "Não"];
  */
 export const CAMPOS_SINISTRO: Record<RamoKey, Campo[]> = {
   auto: [
-    { nome: "matricula", rotulo: "Matrícula do seu veículo", tipo: "texto", placeholder: "AA-00-AA", maxLength: 12, largura: "meia", validar: validarMatricula, formatar: formatarMatricula },
     { nome: "outro_veiculo", rotulo: "Houve outro veículo envolvido?", tipo: "radio", opcoes: SIM_NAO, largura: "meia" },
     { nome: "declaracao_amigavel", rotulo: "Preencheu a Declaração Amigável?", tipo: "radio", opcoes: SIM_NAO, largura: "meia" },
     { nome: "feridos", rotulo: "Houve feridos?", tipo: "radio", opcoes: SIM_NAO, largura: "meia" },
@@ -52,4 +52,83 @@ export const CAMPOS_SINISTRO: Record<RamoKey, Campo[]> = {
     },
   ],
   outros: [{ nome: "tipo_seguro", rotulo: "Que seguro é?", tipo: "texto", placeholder: "Ex.: responsabilidade civil, viagem", maxLength: 80 }],
+};
+
+/** Campos que vão em colunas próprias de pedidos_sinistro; o resto segue em `detalhes`. */
+export const CAMPOS_FIXOS_SINISTRO = ["numero_apolice", "seguradora", "data_ocorrencia", "local", "descricao"];
+
+// A matrícula em destaque, como no pedido de proposta. Opcional: quem não a souber de cor avança.
+const MATRICULA: PassoRamo = {
+  id: "matricula",
+  nome: "A matrícula",
+  titulo: "Qual é a matrícula do seu carro?",
+  texto: "Se não a souber de cor, avance: encontramos o carro pela apólice.",
+  destaque: "matricula",
+  avancaQuando: (v) => matriculaCompleta(v.matricula ?? ""),
+  campos: [{ nome: "matricula", rotulo: "Matrícula do seu veículo", tipo: "matricula" }],
+};
+
+const ocorrencia = (ramo: RamoKey): PassoRamo => ({
+  id: "ocorrencia",
+  nome: "A ocorrência",
+  titulo: "Quando e onde aconteceu?",
+  campos: [
+    {
+      nome: "data_ocorrencia",
+      rotulo: "Data da ocorrência",
+      tipo: "data",
+      obrigatorio: true,
+      min: "ha_dois_anos",
+      max: "hoje",
+      validar: naoFutura("A data da ocorrência não pode ser no futuro."),
+      largura: "meia",
+    },
+    { nome: "local", rotulo: "Local", tipo: "texto", placeholder: "Ex.: Lisboa, A5", maxLength: 160, largura: "meia" },
+    ...CAMPOS_SINISTRO[ramo],
+  ],
+});
+
+const APOLICE: PassoRamo = {
+  id: "apolice",
+  nome: "A apólice",
+  titulo: "Que apólice vai acionar?",
+  texto: "Se não souber, deixe em branco: encontramos a apólice pelo seu NIF ou nome.",
+  campos: [
+    { nome: "numero_apolice", rotulo: "Nº da apólice, se souber", tipo: "texto", maxLength: 60, largura: "meia" },
+    { nome: "seguradora", rotulo: "Seguradora, se souber", tipo: "texto", maxLength: 80, largura: "meia" },
+  ],
+};
+
+const DESCRICAO: PassoRamo = {
+  id: "descricao",
+  nome: "O que aconteceu",
+  titulo: "Conte-nos o que aconteceu.",
+  campos: [
+    {
+      nome: "descricao",
+      rotulo: "Descreva o que aconteceu",
+      tipo: "textarea",
+      obrigatorio: true,
+      minLength: 10,
+      maxLength: 1500,
+      ajuda: "Não inclua informação sobre lesões ou saúde: tratamos disso diretamente consigo.",
+    },
+  ],
+};
+
+const formulario = (ramo: RamoKey): FormularioRamo => ({
+  titulo: "Participar sinistro.",
+  texto: "Conte-nos o que aconteceu. Um mediador da BV fala consigo e acompanha o processo junto da seguradora.",
+  semMensagemLivre: true,
+  passos: [...(ramo === "auto" ? [MATRICULA] : []), ocorrencia(ramo), APOLICE, DESCRICAO],
+});
+
+/** Passos do pedido de sinistro de cada ramo, com o mesmo padrão do pedido de proposta. */
+export const FORMULARIOS_SINISTRO: Record<RamoKey, FormularioRamo> = {
+  auto: formulario("auto"),
+  vida: formulario("vida"),
+  saude: formulario("saude"),
+  habitacao: formulario("habitacao"),
+  trabalho: formulario("trabalho"),
+  outros: formulario("outros"),
 };

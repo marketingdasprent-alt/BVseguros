@@ -31,7 +31,12 @@ const WIDTHS = [375, 768, 1024, 1280, 1440];
 // Routes: the fixed pages plus one page per ramo, read from the data file.
 const seguros = readFileSync(path.join(ROOT, "src/data/seguros.ts"), "utf8");
 const slugs = [...seguros.matchAll(/slug: "([^"]+)"/g)].map((m) => m[1]);
-const ROUTES = ["/", "/seguros", ...slugs.map((s) => `/seguros/${s}`), "/sinistros", "/privacy", "/terms", "/cookies"];
+// Pedidos: o genérico, o de um ramo com mais passos (automóvel) e o de sinistro.
+const ROUTES = [
+  "/", "/seguros", ...slugs.map((s) => `/seguros/${s}`), "/sinistros",
+  "/pedir-proposta", "/pedir-proposta/automovel", "/participar-sinistro",
+  "/privacy", "/terms", "/cookies",
+];
 
 const CANDIDATES = [
   process.env.CHROME_PATH,

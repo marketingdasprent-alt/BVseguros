@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Archive, Mail, Phone, RotateCcw, UserCheck } from 'lucide-react'
+import { Archive, CheckCircle2, Mail, Phone, RotateCcw, UserCheck } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -10,7 +10,8 @@ import { rotuloDetalhe } from '@/lib/pedidosSinistro'
 import { ESTADOS_PEDIDO_SINISTRO, RAMOS } from '@/lib/types'
 import type { Apolice, Cliente, EstadoPedidoSinistro, PedidoSinistro } from '@/lib/types'
 import { TONE_ESTADO_PEDIDO_SINISTRO } from '@/lib/tone'
-import { formatarData } from '@/lib/format'
+import { formatarData, SEM_VALOR } from '@/lib/format'
+import { Notice } from '@/components/ui/Notice'
 
 interface PedidoSinistroModalProps {
   pedido: PedidoSinistro
@@ -41,10 +42,10 @@ export function PedidoSinistroModal({ pedido, clientes, apolices, podeEditar, aG
         </div>
 
         <ContextoFormulario itens={[
-          { rotulo: 'Seguro', valor: RAMOS.find((r) => r.valor === pedido.ramo)?.rotulo ?? pedido.ramo },
+          { rotulo: 'Ramo', valor: RAMOS.find((r) => r.valor === pedido.ramo)?.rotulo ?? pedido.ramo },
           { rotulo: 'Data da ocorrência', valor: formatarData(pedido.data_ocorrencia) },
-          { rotulo: 'Local', valor: pedido.local ?? '—' },
-          { rotulo: 'Apólice / seguradora indicadas', valor: [pedido.numero_apolice, pedido.seguradora].filter(Boolean).join(' · ') || '—' },
+          { rotulo: 'Local', valor: pedido.local ?? SEM_VALOR },
+          { rotulo: 'Apólice / seguradora indicadas', valor: [pedido.numero_apolice, pedido.seguradora].filter(Boolean).join(' · ') || SEM_VALOR },
         ]} />
 
         <div>
@@ -64,10 +65,10 @@ export function PedidoSinistroModal({ pedido, clientes, apolices, podeEditar, aG
         )}
 
         {pedido.estado === 'convertido' && (
-          <p className="rounded-lg bg-success-bg p-3 text-sm text-success-text">
+          <Notice tone="success" icon={CheckCircle2}>
             Convertido em sinistro{cliente && <> de <Link to={`/clientes/${cliente.id}`} className="font-medium underline">{cliente.nome}</Link></>}.
             {' '}Acompanhe-o no quadro de Sinistros.
-          </p>
+          </Notice>
         )}
 
         {podeEditar && (

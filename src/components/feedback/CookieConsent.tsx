@@ -41,6 +41,7 @@ export default function CookieConsent() {
   const [analyticsChecked, setAnalyticsChecked] = useState(hasAnalyticsConsent(consent ?? "necessary"));
   const [marketingChecked, setMarketingChecked] = useState(hasMarketingConsent(consent ?? "necessary"));
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const analyticsId = useId();
   const marketingId = useId();
@@ -49,7 +50,17 @@ export default function CookieConsent() {
 
   useEffect(() => {
     document.body.classList.toggle("has-cookie-banner", bannerVisible);
-    return () => document.body.classList.remove("has-cookie-banner");
+    // A página reserva a altura do banner no fundo, para nenhum botão (ex.: "Próximo" nos pedidos) ficar tapado.
+    const banner = bannerRef.current;
+    const observador = banner
+      ? new ResizeObserver(() => document.body.style.setProperty("--cookie-banner-altura", `${banner.offsetHeight}px`))
+      : null;
+    if (banner) observador?.observe(banner);
+    return () => {
+      observador?.disconnect();
+      document.body.classList.remove("has-cookie-banner");
+      document.body.style.removeProperty("--cookie-banner-altura");
+    };
   }, [bannerVisible]);
 
   const openDialog = useCallback(
@@ -86,6 +97,7 @@ export default function CookieConsent() {
     <>
       {bannerVisible && (
         <div
+          ref={bannerRef}
           className="cookie-banner"
           role="region"
           aria-label={COPY.title}
@@ -96,8 +108,9 @@ export default function CookieConsent() {
             <Button variant="primary" onClick={() => setConsent("all")}>
               {COPY.acceptAll}
             </Button>
+            {/* Recusar tem o mesmo peso visual que aceitar (boa prática RGPD). */}
             <Button
-              variant="secondary"
+              variant="primary"
               onClick={() => setConsent("necessary")}
             >
               {COPY.necessaryOnly}

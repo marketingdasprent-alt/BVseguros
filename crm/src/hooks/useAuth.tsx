@@ -68,6 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     const { data: listener } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
+      // Outra pessoa entrou noutro separador: recarregar, para não ficar com dados da
+      // anterior em memória. Em /acesso é a própria página que muda a sessão e navega.
+      const outroUtilizador = novaSessao && userIdCarregado.current && novaSessao.user.id !== userIdCarregado.current
+      if (outroUtilizador && window.location.pathname !== '/acesso') {
+        window.location.reload()
+        return
+      }
       setSession(novaSessao)
       if (novaSessao) {
         if (novaSessao.user.id !== userIdCarregado.current) carregarProfile(novaSessao.user.id)
@@ -105,11 +112,9 @@ export function useAuth() {
 }
 
 // A resposta é igual exista ou não a conta: não se revela quem tem acesso ao CRM.
-// O link volta ao CRM com type=recovery, que o DefinirSenha já trata.
+// O link do email (template recuperar-senha.html) abre /acesso?type=recovery.
 export async function pedirRecuperacaoSenha(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-    redirectTo: window.location.origin,
-  })
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase())
   if (!error) return
   const msg = error.message || ''
   if (/security purposes|after \d+ seconds/i.test(msg)) {

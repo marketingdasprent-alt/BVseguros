@@ -12,10 +12,15 @@ import { lerImportacao, MODELOS, type ResultadoLeitura, type TipoImportacao, typ
 import { escreverCsv } from '@/lib/csv'
 import { descarregarCsv } from '@/lib/descarregar'
 import { mensagemErro } from '@/lib/erros'
+import { Segmented } from '@/components/ui/Segmented'
 
 type Leitura = ResultadoLeitura<LinhaCliente | LinhaApolice>
 const TIPOS: { valor: TipoImportacao; rotulo: string }[] = [{ valor: 'clientes', rotulo: 'Clientes' }, { valor: 'apolices', rotulo: 'Apólices' }]
-const ACEITES = '.csv,.txt,.pdf,.png,.jpg,.jpeg,.webp,text/csv,text/plain,application/pdf,image/png,image/jpeg,image/webp'
+// Leitura com IA desligada (posta de lado a 01/10/2026). O código fica: voltar a true reativa PDF, imagem e texto.
+const IA_ATIVA = false
+const ACEITES = IA_ATIVA
+  ? '.csv,.txt,.pdf,.png,.jpg,.jpeg,.webp,text/csv,text/plain,application/pdf,image/png,image/jpeg,image/webp'
+  : '.csv,text/csv'
 const SO_IA = /\.(pdf|png|jpe?g|webp|txt)$/i
 
 const ler = (tipo: TipoImportacao, csv: string): Leitura => (tipo === 'clientes' ? lerImportacao('clientes', csv) : lerImportacao('apolices', csv))
@@ -56,14 +61,20 @@ export default function Importar() {
   const handleFicheiro = async (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f) return
-    if (!/\.csv$/i.test(f.name) && !SO_IA.test(f.name)) {
-      toast({ title: 'Ficheiro não suportado', description: 'Use CSV, PDF, imagem (PNG, JPG, WEBP) ou texto. Uma folha do Excel pode ser guardada como CSV UTF-8.', variant: 'destructive' })
+    if (!/\.csv$/i.test(f.name) && !(IA_ATIVA && SO_IA.test(f.name))) {
+      toast({
+        title: 'Ficheiro não suportado',
+        description: IA_ATIVA
+          ? 'Use CSV, PDF, imagem (PNG, JPG, WEBP) ou texto. Uma folha do Excel pode ser guardada como CSV UTF-8.'
+          : 'Use um ficheiro CSV no modelo. Uma folha do Excel pode ser guardada como CSV UTF-8.',
+        variant: 'destructive',
+      })
       e.target.value = ''
       return
     }
     setFicheiro(f); setResultado(null); setLidoPorIA(false); setLeitura(null)
     // CSV no modelo lê-se aqui, sem IA; PDF, imagem e texto só a IA consegue ler.
-    if (SO_IA.test(f.name)) await handleLerComIA(f)
+    if (IA_ATIVA && SO_IA.test(f.name)) await handleLerComIA(f)
     else setLeitura(ler(tipo, await f.text()))
   }
 
@@ -90,16 +101,12 @@ export default function Importar() {
   return (
     <div className="space-y-6">
       <PageHeader title="Importar carteira"
-        description="Traga clientes e apólices de uma folha de cálculo, PDF ou imagem. Importe primeiro os clientes: as apólices ligam-se a eles pelo NIF." />
+        description={`Traga clientes e apólices de uma folha de cálculo${IA_ATIVA ? ', PDF ou imagem' : ' (CSV)'}. Importe primeiro os clientes: as apólices ligam-se a eles pelo NIF.`} />
 
       <section className="panel form-panel space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div role="group" aria-label="O que importar" className="segmented">
-            {TIPOS.map((t) => (
-              <button key={t.valor} type="button" aria-pressed={tipo === t.valor} disabled={ocupado}
-                onClick={() => { setTipo(t.valor); recomecar() }}>{t.rotulo}</button>
-            ))}
-          </div>
+          <Segmented rotulo="O que importar" opcoes={TIPOS} valor={tipo} disabled={ocupado}
+            onChange={(v) => { setTipo(v); recomecar() }} />
           <Button variant="secondary" icon={<Download />}
             onClick={() => descarregarCsv(`modelo-${tipo}.csv`, [MODELOS[tipo].cabecalho, MODELOS[tipo].exemplo])}>
             Descarregar modelo
@@ -111,7 +118,7 @@ export default function Importar() {
           {tipo === 'clientes'
             ? 'O NIF é validado pelo dígito de controlo e não se repetem clientes com o mesmo NIF. Sem responsável indicado, o cliente fica consigo.'
             : 'Datas em dd/mm/aaaa, valores como 1.234,56, ramo e estado pelo nome (ex.: Automóvel, Ativa). Apólices com número já existente não são duplicadas.'}
-          {' '}Um CSV no modelo é lido diretamente. PDF, imagem, texto ou um CSV com outras colunas são lidos com IA (até 3 MB).
+          {' '}Use o CSV do modelo (botão Descarregar modelo); uma folha do Excel pode ser guardada como CSV UTF-8.
         </Notice>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -128,9 +135,9 @@ export default function Importar() {
       {leitura && !resultado && (
         <>
           {csvForaDoModelo && ficheiro && (
-            <Notice tone="info" icon={Sparkles}
-              action={<Button size="sm" icon={<Sparkles />} loading={aLerIA} onClick={() => handleLerComIA(ficheiro)}>Ler com IA</Button>}>
-              Este CSV não tem as colunas do modelo. A IA pode identificar as colunas e ler os dados por si.
+            // Sem o botão "Ler com IA": a integração com IA foi posta de lado (01/10/2026).
+            <Notice tone="info" icon={Info}>
+              Este CSV não tem as colunas do modelo. Descarregue o modelo, copie os dados para as colunas certas e carregue o ficheiro de novo.
             </Notice>
           )}
           {lidoPorIA && (
@@ -148,7 +155,7 @@ export default function Importar() {
 
           <div className="flex flex-wrap items-center justify-end gap-3">
             {aImportar && <span className="text-sm text-muted tabular-nums">{progresso} de {leitura.validas.length}…</span>}
-            <Button variant="secondary" icon={<RotateCcw />} disabled={ocupado} onClick={recomecar}>Cancelar</Button>
+            <Button variant="secondary" icon={<RotateCcw />} disabled={ocupado} onClick={recomecar}>Recomeçar</Button>
             <Button icon={<Upload />} loading={aImportar} disabled={leitura.validas.length === 0 || aLerIA} onClick={handleImportar}>
               Importar {leitura.validas.length} {leitura.validas.length === 1 ? 'linha' : 'linhas'}
             </Button>

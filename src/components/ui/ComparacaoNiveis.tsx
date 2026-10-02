@@ -22,7 +22,7 @@ export default function ComparacaoNiveis({
   onPedirProposta,
 }: {
   dados: NiveisProtecao;
-  /** Abre o pop-up com o formulário do ramo, com o nível escolhido. */
+  /** Leva ao pedido de proposta do ramo, com o nível escolhido. */
   onPedirProposta: (nivel: string) => void;
 }) {
   const grupo = useId();
@@ -114,10 +114,9 @@ export default function ComparacaoNiveis({
           </tbody>
         </table>
       </div>
-      <p className="text-caption text-muted" style={{ marginTop: "var(--space-sm)" }}>
-        Níveis ilustrativos para orientar a conversa. Cada seguradora tem as
-        suas próprias opções: a proposta real depende da seguradora e do seu
-        caso.
+      <p className="text-caption text-muted mt-sm">
+        Cada seguradora tem as suas próprias opções: a proposta real depende
+        da seguradora e do seu caso.
       </p>
     </>
   );

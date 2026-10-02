@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AlertTriangle, ArrowLeft, Pencil, Plus, UserX } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, UserX } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
-import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Pessoa } from '@/components/ui/Pessoa'
 import { FichaResumo } from '@/components/crm/FichaResumo'
@@ -25,9 +24,10 @@ import { useToast } from '@/hooks/useToast'
 import { useSeguradoras } from '@/hooks/useSeguradoras'
 import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { resumirCliente } from '@/lib/fichaCliente'
-import { dataLocalIso } from '@/lib/format'
+import { dataLocalIso, SEM_VALOR } from '@/lib/format'
 import { mensagemErro } from '@/lib/erros'
 import type { ApoliceInsert, AtividadeInsert, ClienteEdicao } from '@/lib/types'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 type Formulario = 'apolice' | 'atividade' | null
 
@@ -81,14 +81,12 @@ export default function ClienteFicha() {
   }
   if (error || !data || !resumo) {
     return (
-      <Notice tone="danger" icon={AlertTriangle} alerta action={<Button variant="secondary" size="sm" onClick={() => recarregar()}>Tentar novamente</Button>}>
-        Não foi possível carregar o cliente{error ? `: ${error.message}` : '.'}
-      </Notice>
+      <ErroCarregar oQue="o cliente" erro={error} onTentarNovamente={() => recarregar()} />
     )
   }
 
   const { cliente } = data
-  const numeroApolice = (apoliceId: string) => data.apolices.find((a) => a.id === apoliceId)?.numero_apolice ?? '—'
+  const numeroApolice = (apoliceId: string) => data.apolices.find((a) => a.id === apoliceId)?.numero_apolice ?? SEM_VALOR
   const contactos = [cliente.nif && `NIF ${cliente.nif}`, cliente.telefone, cliente.email, cliente.morada].filter(Boolean).join(' · ')
 
   return (
@@ -98,7 +96,7 @@ export default function ClienteFicha() {
         title={cliente.nome}
         description={<>
           <span className="block">{contactos}</span>
-          <span className="mt-2 inline-flex items-center gap-2 text-[12px]">Responsável:
+          <span className="mt-2 inline-flex items-center gap-2 text-small">Responsável:
             <Pessoa nome={cliente.responsavel_id ? nomePorId.get(cliente.responsavel_id) ?? 'Atribuído' : null} />
           </span>
         </>}
@@ -112,7 +110,7 @@ export default function ClienteFicha() {
 
       {formulario === 'apolice' && (
         <NovoApoliceForm seguradoras={seguradoras} clientes={[cliente]} aCriar={aGuardar}
-          onCriar={(dados: ApoliceInsert) => guardar(() => criarApolice(dados), 'Apólice criada', 'Erro ao criar apólice', () => setFormulario(null))} />
+          onCriar={(dados: ApoliceInsert) => guardar(() => criarApolice(dados), 'Apólice criada', 'Não foi possível criar apólice', () => setFormulario(null))} />
       )}
       {pode('apolices', 'ver') && <FichaApolices apolices={data.apolices} />}
 
@@ -121,7 +119,7 @@ export default function ClienteFicha() {
 
       {formulario === 'atividade' && (
         <NovaAtividadeForm leads={[]} clientes={[cliente]} clienteFixoId={cliente.id} responsavelId={profile?.id ?? null} aCriar={aGuardar}
-          onCriar={(dados: AtividadeInsert) => guardar(() => criarAtividade(dados), 'Atividade registada', 'Erro ao registar atividade', () => setFormulario(null))} />
+          onCriar={(dados: AtividadeInsert) => guardar(() => criarAtividade(dados), 'Atividade registada', 'Não foi possível registar atividade', () => setFormulario(null))} />
       )}
       {pode('atividades', 'ver') && <FichaAtividades atividades={data.atividades} onEditar={edicaoAtividade.editar}
         acao={pode('atividades', 'editar') && <Button variant="secondary" size="sm" icon={<Plus />} onClick={() => setFormulario(formulario === 'atividade' ? null : 'atividade')}>Registar atividade</Button>} />}
@@ -137,7 +135,7 @@ export default function ClienteFicha() {
           textoGuardar="Guardar alterações"
           aGuardar={aGuardar}
           onFechar={() => setAEditar(false)}
-          onGuardar={async (dados: ClienteEdicao) => { await guardar(() => atualizarCliente(cliente.id, dados), 'Cliente atualizado', 'Erro ao guardar cliente', () => setAEditar(false)) }}
+          onGuardar={async (dados: ClienteEdicao) => { await guardar(() => atualizarCliente(cliente.id, dados), 'Cliente atualizado', 'Não foi possível guardar cliente', () => setAEditar(false)) }}
           onApagar={pode('clientes', 'apagar') ? () => {
             setAEditar(false)
             pedirConfirmacao({

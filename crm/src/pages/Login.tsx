@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole, MailCheck, ShieldCheck } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { linkAntigo, supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { pedirRecuperacaoSenha } from '@/hooks/useAuth';
 import { mensagemErro } from '@/lib/erros';
@@ -50,6 +50,7 @@ export default function Login() {
       {vista === 'entrar' && <form onSubmit={handleEntrar} className="auth-form">
         <span className="auth-badge"><ShieldCheck size={13} />Área reservada</span>
         <h1>Bem-vindo de volta</h1><p>Entre na sua conta para continuar a gerir a sua carteira.</p>
+        {linkAntigo && <p role="status" className="mt-4 rounded-lg bg-warning-bg p-3 text-sm text-warning-text">Este link já não é válido. Se era um convite, peça a um administrador que o reenvie; se queria mudar a senha, use "Esqueci a senha".</p>}
         {campoEmail}
         <div className="auth-field">
           <span className="flex items-baseline justify-between gap-3">

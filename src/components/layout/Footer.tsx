@@ -12,7 +12,8 @@ import { OPEN_PREFERENCES_EVENT } from "../../hooks/useCookieConsent";
  * fixed bottom-of-screen elements (BackToTop) can avoid covering it
  * instead of overlapping its links. See DECISIONS.md.
  */
-export default function Footer() {
+/** `minimo`: só a linha legal, para as páginas de pedido (que já tiram o menu do site). */
+export default function Footer({ minimo = false }: { minimo?: boolean }) {
   const year = new Date().getFullYear();
   const columns = Object.values(footerNav);
   const footerRef = useRef<HTMLElement>(null);
@@ -33,14 +34,15 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="footer" ref={footerRef}>
+    <footer className={"footer" + (minimo ? " footer--minimo" : "")} ref={footerRef}>
       <Container>
+        {!minimo && (
         <div className="footer__grid">
           <div className="footer__brand">
             <span className="footer__logo">BV Seguros</span>
             <p className="footer__description">
               Corretora de seguros independente. Comparamos propostas de
-              várias seguradoras e acompanhamos o cliente do orçamento ao
+              várias seguradoras e acompanhamos o cliente do pedido de proposta ao
               sinistro.
             </p>
             {socialLinks.length > 0 && (
@@ -74,6 +76,7 @@ export default function Footer() {
             </div>
           ))}
         </div>
+        )}
 
         <div className="footer__bottom">
           <p>&copy; {year} BV Seguros. Todos os direitos reservados.</p>

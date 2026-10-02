@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { Button } from '@/components/ui/Button'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -26,16 +27,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <div className="panel form-panel max-w-md text-center space-y-4">
             <h1 className="font-display text-xl font-bold text-navy">Ocorreu um erro inesperado</h1>
             <p className="text-sm text-muted">
-              A aplicação encontrou um problema e não pode continuar. Recarregue a página — se o erro
+              A aplicação encontrou um problema e não pode continuar. Recarregue a página. Se o erro
               persistir, contacte o suporte.
             </p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="button inline-flex items-center justify-center rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-dark transition-colors"
-            >
-              Recarregar página
-            </button>
+            <Button onClick={() => window.location.reload()}>Recarregar página</Button>
           </div>
         </div>
       )

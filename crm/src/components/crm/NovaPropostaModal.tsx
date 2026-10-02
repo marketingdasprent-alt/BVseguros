@@ -96,12 +96,12 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, 
           <label className="block min-w-0 space-y-2">
             <span className="block text-xs font-medium text-ink">
               {origem === 'lead' ? 'Lead' : 'Cliente'}
-              <span className="text-danger"> *</span>
+              <span className="text-danger-text" aria-hidden="true"> *</span>
             </span>
             <select
               value={origemId}
               onChange={(e) => setOrigemId(e.target.value)}
-              className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+              className={CLASSE_INPUT}
             >
               {listaOrigem.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -118,7 +118,7 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, 
           <select
             value={ramo}
             onChange={(e) => setRamo(e.target.value as Ramo)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           >
             {RAMOS.map((r) => (
               <option key={r.valor} value={r.valor}>
@@ -139,7 +139,7 @@ export function NovaPropostaModal({ leads, clientes, aCriar, onFechar, onCriar, 
             step="0.01"
             value={premio}
             onChange={(e) => setPremio(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           />
         </label>
 

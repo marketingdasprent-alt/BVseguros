@@ -80,7 +80,7 @@ export const CANAIS: Canal[] = [
 /** Atalhos no cartão "Vamos encontrar o seu seguro" do hero (o pedido de proposta é o próprio cartão). */
 export const ACESSOS_RAPIDOS = [
   { label: "Participar sinistro", descricao: "O que fazer e como ajudamos", href: "/sinistros", icone: "sinistro" },
-  { label: "Ver seguros", descricao: "Particulares e empresas", href: "/seguros", icone: "seguros" },
+  { label: "Ver todos os seguros", descricao: "Particulares e empresas", href: "/seguros", icone: "seguros" },
   { label: "Perguntas frequentes", descricao: "Respostas rápidas", href: "#apoio", icone: "perguntas" },
 ] as const;
 

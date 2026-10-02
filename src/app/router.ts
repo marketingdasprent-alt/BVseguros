@@ -13,7 +13,8 @@ export function navigate(to: string) {
   const hashIndex = to.indexOf("#");
   const path = hashIndex === -1 ? to : to.slice(0, hashIndex);
   const hash = hashIndex === -1 ? "" : to.slice(hashIndex + 1);
-  const samePage = path === window.location.pathname;
+  // A query conta (ex.: ?nivel= nos pedidos): outra query é outra página.
+  const samePage = path === window.location.pathname + window.location.search;
 
   if (samePage && !hash) return;
 
@@ -54,4 +55,21 @@ export function usePathname() {
   }, []);
 
   return pathname;
+}
+
+/** A query atual (ex.: "?nivel=Completo"), que muda com navigate e com o voltar do browser. */
+export function useSearch() {
+  const [search, setSearch] = useState(window.location.search);
+
+  useEffect(() => {
+    const onChange = () => setSearch(window.location.search);
+    window.addEventListener("popstate", onChange);
+    listeners.add(onChange);
+    return () => {
+      window.removeEventListener("popstate", onChange);
+      listeners.delete(onChange);
+    };
+  }, []);
+
+  return search;
 }

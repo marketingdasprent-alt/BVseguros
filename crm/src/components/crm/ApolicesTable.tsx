@@ -3,7 +3,7 @@ import { RAMOS, ESTADOS_APOLICE } from '@/lib/types'
 import type { Apolice, Cliente } from '@/lib/types'
 import { Badge } from '@/components/ui/Badge'
 import { TONE_ESTADO_APOLICE } from '@/lib/tone'
-import { formatarMoeda } from '@/lib/format'
+import { formatarMoeda, SEM_VALOR } from '@/lib/format'
 import { Button } from '@/components/ui/Button'
 
 interface ApolicesTableProps {
@@ -13,7 +13,7 @@ interface ApolicesTableProps {
 }
 
 export function ApolicesTable({ apolices, clientes, onEditar }: ApolicesTableProps) {
-  const nomeCliente = (id: string) => clientes.find((c) => c.id === id)?.nome ?? '—'
+  const nomeCliente = (id: string) => clientes.find((c) => c.id === id)?.nome ?? SEM_VALOR
   const rotuloRamo = (ramo: Apolice['ramo']) => RAMOS.find((r) => r.valor === ramo)?.rotulo ?? ramo
   const rotuloEstado = (estado: Apolice['estado']) =>
     ESTADOS_APOLICE.find((e) => e.valor === estado)?.rotulo ?? estado
@@ -56,7 +56,7 @@ export function ApolicesTable({ apolices, clientes, onEditar }: ApolicesTablePro
                 <td className="whitespace-nowrap">{rotuloRamo(a.ramo)}</td>
                 <td className="whitespace-nowrap">{a.seguradora}</td>
                 <td className="text-right tabular-nums whitespace-nowrap">
-                  {a.premio_anual != null ? formatarMoeda(a.premio_anual) : '—'}
+                  {a.premio_anual != null ? formatarMoeda(a.premio_anual) : SEM_VALOR}
                 </td>
                 <td className="whitespace-nowrap">
                   <Badge tone={TONE_ESTADO_APOLICE[a.estado]}>{rotuloEstado(a.estado)}</Badge>

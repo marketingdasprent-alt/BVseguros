@@ -61,18 +61,12 @@ export default function useHeroFotos(slides: SlideHero[], pontos = slides.length
   const controlos: ReactNode =
     total < 2 ? null : (
       <div className="hero-fotos__controlos">
-        {legenda &&
-          (legenda.href ? (
-            <Link href={legenda.href} className="hero-fotos__legenda">
-              <span className="hero-fotos__legenda-acao">{legenda.acao}</span>
-              <span className="hero-fotos__legenda-titulo">{legenda.titulo} <span aria-hidden="true">&rarr;</span></span>
-            </Link>
-          ) : (
-            <button type="button" className="hero-fotos__legenda" onClick={legenda.onClick}>
-              <span className="hero-fotos__legenda-acao">{legenda.acao}</span>
-              <span className="hero-fotos__legenda-titulo">{legenda.titulo} <span aria-hidden="true">&rarr;</span></span>
-            </button>
-          ))}
+        {legenda && (
+          <Link href={legenda.href} className="hero-fotos__legenda">
+            <span className="hero-fotos__legenda-acao">{legenda.acao}</span>
+            <span className="hero-fotos__legenda-titulo">{legenda.titulo}</span>
+          </Link>
+        )}
         <div className="hero-fotos__navegacao">
           <div className="hero-fotos__pontos">
             {Array.from({ length: Math.min(pontos, total) }, (_, k) => {

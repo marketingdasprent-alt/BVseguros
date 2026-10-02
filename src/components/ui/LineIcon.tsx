@@ -11,8 +11,6 @@ export type LineIconName =
   | "sinistro"
   | "seguros"
   | "perguntas"
-  | "chevron"
-  | "seta"
   | "check";
 
 const PATHS: Record<LineIconName, string[]> = {
@@ -24,12 +22,11 @@ const PATHS: Record<LineIconName, string[]> = {
   sinistro: ["M12 3 2.5 20h19Z", "M12 10v4", "M12 17h.01"],
   seguros: ["M12 3c-2.7 1.8-5.4 2.2-8 2.5v6.5c0 5 3.2 8.4 8 10 4.8-1.6 8-5 8-10V5.5c-2.6-.3-5.3-.7-8-2.5Z"],
   perguntas: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14", "M12 17h.01"],
-  chevron: ["m6 9 6 6 6-6"],
-  seta: ["M5 12h14", "m13 6 6 6-6 6"],
   check: ["m5 12.5 4.5 4.5L19 7"],
 };
 
-export default function LineIcon({ nome, size = 24 }: { nome: LineIconName; size?: number }) {
+/** Base comum a LineIcon e RamoIcon: um ícone de traço a partir de paths. */
+export function IconeTraco({ paths, size }: { paths: readonly string[]; size?: number }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -43,9 +40,13 @@ export default function LineIcon({ nome, size = 24 }: { nome: LineIconName; size
       aria-hidden="true"
       style={{ flex: "none" }}
     >
-      {PATHS[nome].map((d) => (
+      {paths.map((d) => (
         <path key={d} d={d} />
       ))}
     </svg>
   );
+}
+
+export default function LineIcon({ nome, size = 24 }: { nome: LineIconName; size?: number }) {
+  return <IconeTraco paths={PATHS[nome]} size={size} />;
 }

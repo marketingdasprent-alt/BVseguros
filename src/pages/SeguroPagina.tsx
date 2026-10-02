@@ -1,6 +1,7 @@
 import Container from "../components/layout/Container";
 import CardGrid from "../components/layout/CardGrid";
 import Section from "../components/layout/Section";
+import HeroFotos from "../components/layout/HeroFotos";
 import FlowLines from "../components/ui/FlowLines";
 import Button from "../components/ui/Button";
 import Link from "../app/Link";
@@ -9,14 +10,13 @@ import RamoIcon from "../components/ui/RamoIcon";
 import ComparacaoNiveis from "../components/ui/ComparacaoNiveis";
 import Breadcrumb from "../components/navigation/Breadcrumb";
 import PageSubnav from "../components/navigation/PageSubnav";
-import { abrirProposta } from "../app/proposta";
+import { abrirProposta, hrefProposta } from "../app/proposta";
 import ApoioSecao from "../sections/ApoioSecao";
 import ContactoSecao from "../sections/ContactoSecao";
 import SeguradorasFaixa from "../sections/SeguradorasFaixa";
 import { hrefSeguro, PASSOS, SEGUROS } from "../data/seguros";
 import type { Seguro } from "../data/seguros";
 import useDocumentTitle from "../hooks/useDocumentTitle";
-import useHeroFotos from "../hooks/useHeroFotos";
 import { slidesDe } from "../data/fotosHero";
 
 const RAZOES = [
@@ -35,7 +35,6 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
   const nomeSeguro = seguro.key === "outros" ? "outros seguros" : `seguro ${seguro.nome.toLowerCase()}`;
   useDocumentTitle(`${nomeSeguro[0].toUpperCase()}${nomeSeguro.slice(1)} | BV Seguros`, seguro.intro);
   const outros = SEGUROS.filter((s) => s.key !== seguro.key);
-  const heroFotos = useHeroFotos(slidesDe(seguro.key));
 
   const subnav = [
     ...(seguro.niveis ? [{ id: "niveis", label: "Níveis de proteção" }] : []),
@@ -46,9 +45,9 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
 
   return (
     <>
-      <Section className="hero-dark hero-fotos" variant="compact">
-        {heroFotos.fundo}
-        <Container>
+      <HeroFotos
+        slides={slidesDe(seguro.key)}
+        topo={
           <Breadcrumb
             itens={[
               { label: "Início", href: "/" },
@@ -56,28 +55,23 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
               { label: seguro.nome },
             ]}
           />
-          <div className="grid hero-fotos__grelha" style={{ marginTop: "var(--space-md)" }}>
-            <div style={{ gridColumn: "span 7" }}>
-              <p className="text-label">{seguro.publico}</p>
-              <h1 style={{ marginTop: "var(--space-2xs)" }}>{seguro.titulo}</h1>
-              <p className="text-body-large text-secondary" style={{ marginTop: "var(--space-sm)" }}>
-                {seguro.intro}
-              </p>
-              <div className="cluster" style={{ marginTop: "var(--space-lg)" }}>
-                <Button onClick={() => abrirProposta(seguro.key)}>
-                  Pedir proposta
-                </Button>
-                <Button as="a" href={seguro.niveis ? "#niveis" : "#coberturas"} variant="secondary">
-                  {seguro.niveis ? "Comparar níveis" : "Ver coberturas"}
-                </Button>
-              </div>
-            </div>
-            <div className="hero-fotos__lado">{heroFotos.controlos}</div>
-          </div>
-        </Container>
-      </Section>
+        }
+        rotulo={seguro.publico}
+        titulo={seguro.titulo}
+        lede={seguro.intro}
+        acoes={
+          <>
+            <Button as={Link} href={hrefProposta(seguro.key)}>
+              Pedir proposta
+            </Button>
+            <Button as="a" href={seguro.niveis ? "#niveis" : "#coberturas"} variant="secondary">
+              {seguro.niveis ? "Comparar níveis" : "Ver coberturas"}
+            </Button>
+          </>
+        }
+      />
 
-      <PageSubnav itens={subnav} acao={{ label: "Simular", onClick: () => abrirProposta(seguro.key) }} />
+      <PageSubnav itens={subnav} acao={{ label: "Pedir proposta", onClick: () => abrirProposta(seguro.key) }} />
 
       <Section variant="compact" className="section-decor">
         <FlowLines variante="bordas" />
@@ -86,9 +80,8 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
             Porquê tratar do seu {seguro.key === "outros" ? "seguro" : nomeSeguro} connosco
           </h2>
           <CardGrid as="ul" className="reasons" role="list">
-            {RAZOES.map((r, i) => (
+            {RAZOES.map((r) => (
               <li key={r.titulo} className="reasons__item">
-                <span className="reasons__number">{String(i + 1).padStart(2, "0")}</span>
                 <h3>{r.titulo}</h3>
                 <p className="text-secondary">{r.descricao}</p>
               </li>
@@ -104,11 +97,12 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
             <div className="section-intro section-intro--wide">
               <h2>Escolha o nível de proteção.</h2>
               <p className="text-secondary">
-                Uma forma simples de começar a conversa: diga-nos qual se
-                aproxima mais do que procura e comparamos as propostas.
+                Níveis ilustrativos, para começar a conversa: diga-nos qual se
+                aproxima mais do que procura e comparamos as propostas das
+                seguradoras.
               </p>
             </div>
-            <ComparacaoNiveis dados={seguro.niveis} onPedirProposta={(nivel) => abrirProposta(seguro.key, [`Nível de proteção pretendido: ${nivel}`])} />
+            <ComparacaoNiveis dados={seguro.niveis} onPedirProposta={(nivel) => abrirProposta(seguro.key, nivel)} />
           </Container>
         </Section>
       )}
@@ -136,7 +130,7 @@ export default function SeguroPagina({ seguro }: { seguro: Seguro }) {
               </li>
             ))}
           </CardGrid>
-          <p className="text-caption text-center" style={{ marginTop: "var(--space-lg)" }}>
+          <p className="text-caption text-center mt-lg">
             <PorConfirmar>
               Por confirmar: seguradoras com quem a BV trabalha neste ramo e
               coberturas que coloca.

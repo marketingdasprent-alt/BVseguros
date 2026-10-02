@@ -29,3 +29,34 @@
   width: 100vw;
   margin-inline: calc(50% - 50vw);
 }
+
+/* Espaço acima de um bloco, na escala de tokens. Substitui o
+   `style={{ marginTop: "var(--space-*)" }}` repetido nas páginas. */
+.mt-2xs {
+  margin-top: var(--space-2xs);
+}
+
+.mt-sm {
+  margin-top: var(--space-sm);
+}
+
+.mt-md {
+  margin-top: var(--space-md);
+}
+
+.mt-lg {
+  margin-top: var(--space-lg);
+}
+
+.mt-xl {
+  margin-top: var(--space-xl);
+}
+
+/* Colunas da .grid de 12 (em mobile a .grid passa a uma coluna). */
+.col-span-6 {
+  grid-column: span 6;
+}
+
+.col-span-7 {
+  grid-column: span 7;
+}

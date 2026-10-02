@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import Link from "../../app/Link";
-import LineIcon from "../ui/LineIcon";
 import type { PrimaryNavItem } from "../../data/navigation";
 
 /**
- * Entrada do menu principal com mega-menu (desktop). O link continua a
- * navegar para a página do item; o botão ao lado abre o painel, para
- * teclado e toque. Com rato, abre também ao passar por cima.
+ * Entrada do menu principal com mega-menu (desktop). O link navega para a
+ * página do item; o painel abre ao passar o rato por cima ou quando o foco
+ * do teclado chega ao link (Tab entra no painel, Escape fecha). Sem botão
+ * com seta, a pedido do cliente: no toque, o link leva à página, que tem tudo.
  */
 export default function MegaMenu({
   item,
@@ -21,7 +21,9 @@ export default function MegaMenu({
   onToggle: (aberto: boolean) => void;
 }) {
   const raiz = useRef<HTMLDivElement>(null);
-  const botao = useRef<HTMLButtonElement>(null);
+  const link = useRef<HTMLAnchorElement>(null);
+  // O foco devolvido pelo Escape não pode voltar a abrir o painel.
+  const ignorarFoco = useRef(false);
   const fecharDepois = useRef<number | undefined>(undefined);
   const painelId = `mega-${item.href.replace(/\W/g, "")}`;
 
@@ -33,7 +35,10 @@ export default function MegaMenu({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       onToggle(false);
-      botao.current?.focus();
+      if (document.activeElement !== link.current) {
+        ignorarFoco.current = true;
+        link.current?.focus();
+      }
     }
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -67,20 +72,24 @@ export default function MegaMenu({
       }}
     >
       <div className="mega__trigger">
-        <Link href={item.href} className="header__link" aria-current={atual ? "page" : undefined}>
-          {item.label}
-        </Link>
-        <button
-          ref={botao}
-          type="button"
-          className="mega__toggle"
+        <Link
+          ref={link}
+          href={item.href}
+          className="header__link"
+          aria-current={atual ? "page" : undefined}
           aria-expanded={aberto}
           aria-controls={painelId}
-          aria-label={`${aberto ? "Fechar" : "Abrir"} submenu ${item.label}`}
-          onClick={() => onToggle(!aberto)}
+          // Só o foco do teclado abre: um clique de rato já abriu ao passar por cima.
+          onFocus={(event) => {
+            if (ignorarFoco.current) {
+              ignorarFoco.current = false;
+              return;
+            }
+            if (event.currentTarget.matches(":focus-visible")) onToggle(true);
+          }}
         >
-          <LineIcon nome="chevron" size={16} />
-        </button>
+          {item.label}
+        </Link>
       </div>
 
       <div id={painelId} className="mega__panel" hidden={!aberto}>
@@ -105,10 +114,10 @@ export default function MegaMenu({
               Conte-nos o seu caso e comparamos as opções por si.
             </p>
             <Link href={item.href} className="mega__cta">
-              Ver todos os seguros <LineIcon nome="seta" size={16} />
+              Ver todos os seguros
             </Link>
             <Link href="/sinistros" className="mega__cta">
-              Participar sinistro <LineIcon nome="seta" size={16} />
+              Participar sinistro
             </Link>
           </div>
         </div>

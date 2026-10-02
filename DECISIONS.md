@@ -2078,3 +2078,216 @@ Project-specific (Level 2: one new brand colour role).
 DATE:
 2026-10-01
 ```
+
+---
+
+```
+DECISION:
+BV Seguros: the proposal form becomes a step-by-step form modelled on the
+Fidelidade and Multicare simulators (analysed 01/10/2026,
+PROMPT-MASTER-FORMULARIOS-FIDELIDADE.md): step bar, one topic per
+screen, review step. Number plate in three 2-character boxes (6 max),
+with "Ainda não tenho matrícula"; pasting splits the plate across the
+boxes (Fidelidade only keeps the first two characters). NIF and postal
+code required in every proposal (NIF stays optional in claims). Postal
+code checked and street suggested by moradas.dev, called with fetch, not
+its widget. Insured people as cards with age only. Not copied: gender,
+"recuperar simulação", agent by postal code, saving partial answers.
+
+REASON:
+Client request (João, 01/10): "pega os formulários da Fidelidade como
+base"; the plate field took more than 6 characters, cars without a
+plate had no path, and the NIF cannot be optional. The broker shows no
+price, so the simulators' price screens become a review of the request.
+moradas.dev is free, keyless and CORS-open, but beta: every lookup fails
+open. Age instead of birth date is enough to ask for quotes and is less
+personal data. The privacy policy names moradas.dev as a recipient of
+the postal code / address text and the IP.
+
+SCOPE:
+Site only (crm/ and the database unchanged; answers still go in
+p_mensagem, option A). data/formularios.ts (passos, mostrarSe,
+obrigatorioSe, regras, nifParticular), sections/ContactoForm.tsx,
+components/forms (CamposRamo, CamposBase, InputValidado, Input ref,
+CampoMatricula, CampoCodigoPostal, CampoMorada, CampoPessoas,
+EscolhaRamo, PassosProgresso, ResumoPedido, valores, mensagemNativa),
+utils/validacoes.ts, utils/moradas.ts, utils/montarMensagem.ts,
+data/formulariosSinistro.ts (plate), pages/legal/Privacy.tsx,
+components.css, tests/validacoes + moradas.
+
+LEVEL:
+Project-specific (Level 2: new form patterns, no new token).
+
+DATE:
+2026-10-01
+```
+
+---
+
+```
+DECISION:
+BV Seguros: no arrows on the site. Removed the "→" after the hero
+captions, the "←" before "Voltar" on legal pages, the arrow icons after
+"Ver todos os seguros", "Participar sinistro" (mega-menu) and "Ver
+detalhes" (insurance cards), and the chevron button next to "Seguros"
+in the header. The mega-menu now opens on mouse hover and on keyboard
+focus of the link. The back-to-top button keeps its arrow (client's
+choice). The unused "seta" and "chevron" icons left LineIcon.
+
+REASON:
+Client request (01/10/2026). Without the chevron button, keyboard users
+would lose the panel, so keyboard focus on the link opens it; on touch
+the link goes to /seguros, which lists every insurance.
+
+SCOPE:
+Site: useHeroFotos, LegalLayout, MegaMenu, SegurosGrid, LineIcon,
+app/Link (accepts ref), components.css (.mega__toggle removed).
+
+LEVEL:
+Project-specific (Level 2).
+
+DATE:
+2026-10-01
+```
+
+---
+
+```
+DECISION:
+BV Seguros: the proposal and claim forms leave the pop-up and take a
+whole page, like the Fidelidade simulator: /pedir-proposta(/ramo) and
+/participar-sinistro(/ramo), with ?nivel= for the level chosen on a ramo
+page. The page has a minimal bar (logo, "Sair") instead of the site
+menu, keeps the footer, and lays the form across the standard container
+in 2 columns. Nothing opens below: changing step slides the page
+sideways, and a question that decides what comes next has its own step
+and moves on by itself once answered (the plate, big and centred, when
+complete; choice cards when clicked). What depends on it goes in the
+next step, or in a step that exists only in that case (e.g. "Quem fica
+com o seguro" after "Não"). Steps per ramo: auto matrícula, sem
+matrícula (if none), veículo, condutor, tomador (if not the driver),
+proteção, extras; vida finalidade, seguro; saúde para quem, pessoas,
+necessidade, detalhes; trabalho independente, atividade. ModalProposta and its CSS
+are gone; buttons that opened it are links now (Header CTA, hero
+captions, ramo picker, cards, CTAs), except the ones that do something
+first (level buttons, PageSubnav "Simular"), which call navigate.
+
+REASON:
+Client feedback (João and Thiago, 01/10/2026): "não era transformar o
+modal em full page e sim o formulário em full page"; "colocar a placa
+grande no centro da página, depois que o cliente colocar os dados da
+placa abrir os outros campos em 2 colunas para ocupar a tela toda";
+then "ao preencher a placa, não abrir para baixo, passar a página para
+o lado", "em todos os formulários manter esse padrão".
+Real links also open in a new tab and can be shared. A first attempt
+(form in a narrow card under the normal site header) was undone the
+same day.
+
+SCOPE:
+Site: app/proposta.ts (URLs instead of a modal store), app/router.ts
+(query-aware navigate, useSearch), App.tsx, pages/PaginaPedido.tsx (new),
+ContactoForm (no semCartao, scroll to the form, h2 step titles),
+CamposRamo + CampoMatricula (destaque, big plate), data/formularios.ts
+(PassoRamo mostrarSe / avancaQuando / destaque, steps split),
+SinistroForm, ResumoPedido (h3), Home, SeguroPagina, Sinistros,
+ContactoPainel, ContactoSecao, PedirPropostaPara, SegurosGrid,
+useHeroFotos + fotosHero (captions are links), components.css,
+scripts/qa-layout.mjs and public/sitemap.xml (new routes).
+ModalProposta.tsx removed.
+
+LEVEL:
+Project-specific (Level 2).
+
+DATE:
+2026-10-01
+```
+
+---
+
+```
+DECISION:
+BV Seguros: the claim form follows the same pattern as the proposal. It
+is the same step form (ContactoForm) with a claim "modality"
+(FORMULARIOS_SINISTRO, texts, 112 notice on top, optional NIF, no postal
+code, sent to pedidos_sinistro with the fixed fields in their columns
+and the ramo answers in `detalhes`). Steps: insurance type (if not
+fixed), plate (car only, big and centred, moves on when complete),
+ocorrência (date, place and the ramo questions), apólice, descrição,
+dados, rever. SeletorRamo and anuncioPerguntas are gone: nothing shows
+the ramo questions below a select any more.
+
+REASON:
+Client (01/10/2026): "todos os formulários devem manter o mesmo
+padrão". One step machine for both forms keeps validation, sideways
+slide, auto-advance and the review identical, instead of two copies.
+The detail keys are the ones the CRM already labels.
+
+SCOPE:
+Site: sections/ContactoForm.tsx (Modalidade, EnvioPedido, PROPOSTA),
+sections/SinistroForm.tsx (SINISTRO modality, thin wrapper),
+data/formulariosSinistro.ts (FORMULARIOS_SINISTRO), data/formularios.ts
+(minLength, "ha_dois_anos", matriculaCompleta exported), CamposRamo
+(help text and minLength on text areas), CamposBase (PorquePedimos
+text; SeletorRamo removed), mensagemNativa (too short),
+utils/anuncioPerguntas.ts removed.
+
+LEVEL:
+Project-specific (Level 2).
+
+DATE:
+2026-10-01
+```
+
+---
+
+```
+DECISION:
+BV Seguros, UX/UI refinement pass (PROMPT-MASTER-REFINAMENTO-UX-UI.md,
+diagnosis in docs/refinamento-ux-ui.md). (1) One label per action:
+"Pedir proposta" everywhere ("Simular", "Pedir contacto", "Pedir uma
+proposta" and "orçamento" gone), "Ver seguro", "Ver todos os seguros",
+"Fale connosco", "Pedido recebido.", "você" in the steps. (2) Insurer
+voice toned down (section title, a coverage verb, two ramo titles), the
+"illustrative levels" notice moved next to the levels title. (3) Hero
+markup in one component (HeroFotos) and repeated inline margins/spans as
+utilities. (4) Dark surfaces as tokens (--color-surface-inverse = navy
+active, --color-text-on-dark-secondary/muted, --color-border-on-dark*):
+the footer moves from neutral-950 to the navy family. (5) Override of the
+Blueprint cookie banner hierarchy: "Só os necessários" now has the same
+weight as "Aceitar todos"; compact desktop layout; body reserves the
+banner height. (6) Request pages: minimal footer, "Voltar ao site" on
+the success screen. (7) Decorative lines on Home use the margin variants
+(they no longer cross headings and FAQ); all five decorated sections
+keep them. (8) No 01/02/03 on the ramo reasons. (9) One card surface
+rule, one icon-size scale, RamoIcon on the LineIcon base. (10)
+Breakpoints only 480/640/768/1024 (max-width one pixel below). (11) 44px
+touch targets on coarse pointers. (12) Dead CSS removed
+(.split-section*, .contact-form-card, .form-section-title).
+
+REASON:
+The site grew by client rounds and each round solved its own problem;
+the same action had five names, the same block four copies, and the
+broker story got lost in insurer language. Equal-weight consent buttons
+follow EU guidance (refusing as easy as accepting). Kept on purpose:
+green hero CTA, rotating photos, "Proteção a sério", the dark middle
+spotlight card (documented rhythm break), the decorative lines (client
+request, 2026-09-22).
+
+SCOPE:
+Site only: App.tsx, pages (Home, Seguros, SeguroPagina, Sinistros,
+NotFound), sections (SegurosGrid, ContactoForm, ContactoPainel),
+components (layout/HeroFotos new, layout/Footer, feedback/CookieConsent,
+ui/LineIcon, ui/RamoIcon, ui/ComparacaoNiveis, forms/CampoMatricula,
+forms/mensagemNativa, navigation/PageSubnav comment), data (seguros,
+apoio, formularios), utils (enviarContacto, validacoes), styles
+(tokens, components, utilities, responsive). Left for the client:
+who files the formal claim (copy conflict between /sinistros and the
+claim form), the insurer list, the hero headline. CRM untouched.
+
+LEVEL:
+Project-specific (Level 2); item 5 overrides a Blueprint component
+contract (docs/design-system.md CookieConsent updated).
+
+DATE:
+2026-10-01
+```

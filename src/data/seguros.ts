@@ -93,7 +93,7 @@ export const SEGUROS: Seguro[] = [
     },
     coberturas: [
       { titulo: "Responsabilidade civil", descricao: "Obrigatória para circular. Cobre os danos causados a terceiros, pessoas e bens." },
-      { titulo: "Danos próprios", descricao: "Choque, colisão e capotamento: repara o seu carro mesmo quando a culpa é sua." },
+      { titulo: "Danos próprios", descricao: "Choque, colisão e capotamento: cobre a reparação do carro mesmo quando a culpa é sua." },
       { titulo: "Furto ou roubo", descricao: "Indemnização se o carro for furtado, e os danos de uma tentativa de furto." },
       { titulo: "Incêndio e fenómenos da natureza", descricao: "Incêndio, raio, explosão, tempestades e inundações." },
       { titulo: "Quebra isolada de vidros", descricao: "Reparação ou substituição de para-brisas, vidros laterais e óculo traseiro." },
@@ -174,7 +174,7 @@ export const SEGUROS: Seguro[] = [
     slug: "saude",
     nome: "Saúde",
     descricao: "Acesso a rede de cuidados privados, com e sem internamento.",
-    titulo: "Seguro de saúde com acesso rápido a médicos e hospitais.",
+    titulo: "Seguro de saúde com a rede de médicos e hospitais que procura.",
     intro:
       "Consultas, exames e internamento em rede privada, com copagamentos previsíveis. Os planos variam muito entre seguradoras, por isso comparamos o que cada um cobre na prática.",
     imagem: "/images/ramos/saude.jpg",
@@ -279,7 +279,7 @@ export const SEGUROS: Seguro[] = [
     slug: "acidentes-de-trabalho",
     nome: "Acidentes de trabalho",
     descricao: "Obrigatório para quem tem trabalhadores a cargo. Tratamos do processo todo.",
-    titulo: "Seguro de acidentes de trabalho, obrigatório e sem complicações.",
+    titulo: "Seguro de acidentes de trabalho, obrigatório e tratado por nós.",
     intro:
       "Obrigatório para empresas com trabalhadores e para trabalhadores independentes. Tratamos da apólice, das atualizações de salários e do acompanhamento quando há um acidente.",
     imagem: "/images/ramos/trabalho.jpg",
@@ -361,15 +361,15 @@ export function seguroPorCaminho(pathname: string): Seguro | undefined {
 
 export const PASSOS = [
   {
-    titulo: "Conta-nos o que precisa",
-    descricao: "Preenche o formulário ou liga-nos. Sem compromisso, sem letras miúdas.",
+    titulo: "Diga-nos o que precisa",
+    descricao: "Preencha o formulário ou ligue‑nos. Sem compromisso, sem letras miúdas.",
   },
   {
-    titulo: "Comparamos por si",
+    titulo: "Pedimos as propostas",
     descricao: "Analisamos propostas de várias seguradoras para o seu caso concreto.",
   },
   {
-    titulo: "Escolhe com confiança",
+    titulo: "Escolha com tudo explicado",
     descricao: "Explicamos as opções em português simples. Você decide, nós tratamos do resto.",
   },
 ];

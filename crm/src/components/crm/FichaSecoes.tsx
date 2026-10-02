@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { formatarData, formatarDataRelativa, formatarMoeda } from '@/lib/format'
+import { formatarData, formatarDataRelativa, formatarMoeda, SEM_VALOR } from '@/lib/format'
 import { ESTADOS_APOLICE, ESTADOS_PROPOSTA, ESTADOS_SINISTRO, RAMOS, TIPOS_ATIVIDADE } from '@/lib/types'
 import type { Apolice, Atividade, Proposta, Sinistro } from '@/lib/types'
 import { TONE_ESTADO_APOLICE, TONE_ESTADO_PROPOSTA, TONE_ESTADO_SINISTRO } from '@/lib/tone'
@@ -44,8 +44,8 @@ export function FichaApolices({ apolices, acao }: { apolices: Apolice[]; acao?: 
                   <td className="whitespace-nowrap">{a.numero_apolice}</td>
                   <td className="whitespace-nowrap">{rotulo(RAMOS, a.ramo)}</td>
                   <td className="whitespace-nowrap">{a.seguradora}</td>
-                  <td className="whitespace-nowrap text-right tabular-nums">{a.premio_anual != null ? formatarMoeda(a.premio_anual) : '—'}</td>
-                  <td className="whitespace-nowrap tabular-nums">{a.data_fim ? formatarData(a.data_fim) : '—'}</td>
+                  <td className="whitespace-nowrap text-right tabular-nums">{a.premio_anual != null ? formatarMoeda(a.premio_anual) : SEM_VALOR}</td>
+                  <td className="whitespace-nowrap tabular-nums">{a.data_fim ? formatarData(a.data_fim) : SEM_VALOR}</td>
                   <td className="whitespace-nowrap"><Badge tone={TONE_ESTADO_APOLICE[a.estado]}>{rotulo(ESTADOS_APOLICE, a.estado)}</Badge></td>
                 </tr>
               ))}
@@ -60,7 +60,7 @@ export function FichaApolices({ apolices, acao }: { apolices: Apolice[]; acao?: 
 function Linha({ icone: Icone, titulo, detalhe, direita }: { icone: LucideIcon; titulo: ReactNode; detalhe: ReactNode; direita?: ReactNode }) {
   return (
     <li className="activity-row">
-      <Icone size={16} className="shrink-0 text-[#72839a]" aria-hidden="true" />
+      <Icone size={16} className="shrink-0 text-muted-soft" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <strong>{titulo}</strong>
         <small>{detalhe}</small>

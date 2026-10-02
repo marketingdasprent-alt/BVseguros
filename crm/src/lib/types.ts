@@ -17,7 +17,7 @@ export const RAMOS: { valor: Ramo; rotulo: string }[] = [
   { valor: 'saude', rotulo: 'Saúde' },
   { valor: 'multirriscos', rotulo: 'Multirriscos habitação' },
   { valor: 'acidentes_trabalho', rotulo: 'Acidentes de trabalho' },
-  { valor: 'outro', rotulo: 'Outro' },
+  { valor: 'outro', rotulo: 'Outros seguros' },
 ]
 
 export type OrigemLead = 'manual' | 'site'
@@ -141,7 +141,7 @@ export const ROTULOS_ALTERACAO: Record<AlteracaoRegistada, string> = {
   tornado_mediador: 'tornou mediador',
   nome_alterado: 'mudou o nome para',
   convidado: 'convidou',
-  excluido: 'excluiu a conta de',
+  excluido: 'apagou a conta de',
   grupo_alterado: 'mudou o grupo de',
   conta_criada: 'criou com senha a conta de',
   senha_definida: 'definiu a senha de',
@@ -192,7 +192,7 @@ export type EstadoRenovacao = 'pendente' | 'contactado' | 'renovada' | 'nao_reno
 
 export const ESTADOS_RENOVACAO: { valor: EstadoRenovacao; rotulo: string }[] = [
   { valor: 'pendente', rotulo: 'Pendente' },
-  { valor: 'contactado', rotulo: 'Contactado' },
+  { valor: 'contactado', rotulo: 'Contactada' },
   { valor: 'renovada', rotulo: 'Renovada' },
   { valor: 'nao_renovada', rotulo: 'Não renovada' },
 ]

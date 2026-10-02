@@ -37,7 +37,7 @@ export function NomeSeguradoraModal({ atual, existentes, aGuardar, onFechar, onG
         )}
         {!atual && igual && <Notice icon={Info}>«{igual.nome}» já está na lista.</Notice>}
         <RodapeFormulario aGuardar={aGuardar} onCancelar={onFechar}
-          textoGuardar={atual ? (igual ? 'Juntar' : 'Guardar alterações') : 'Adicionar'}
+          textoGuardar={atual ? (igual ? 'Juntar' : 'Guardar alterações') : 'Criar seguradora'}
           desativarGuardar={limpo.length < 2 || limpo === atual?.nome || (!atual && !!igual)} />
       </form>
     </Modal>

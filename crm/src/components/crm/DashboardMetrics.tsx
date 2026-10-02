@@ -1,5 +1,6 @@
 import { Users, Contact, Shield, TrendingUp } from 'lucide-react';
 import type { Lead } from '@/lib/types';
+import { SEM_VALOR } from '@/lib/format'
 
 interface DashboardMetricsProps { leads: Lead[]; clientes: number; apolices: number; }
 
@@ -9,7 +10,7 @@ export function DashboardMetrics({ leads, clientes, apolices }: DashboardMetrics
     { title: 'Leads em carteira', value: leads.length, note: 'Todos os contactos registados', icon: Users },
     { title: 'Clientes', value: clientes, note: 'Na sua carteira de clientes', icon: Contact },
     { title: 'Apólices ativas', value: apolices, note: 'Contratos com estado ativo', icon: Shield },
-    { title: 'Taxa de conversão', value: leads.length ? `${Math.round(converted / leads.length * 100)}%` : '—', note: `${converted} de ${leads.length} leads convertidos`, icon: TrendingUp },
+    { title: 'Taxa de conversão', value: leads.length ? `${Math.round(converted / leads.length * 100)}%` : SEM_VALOR, note: `${converted} de ${leads.length} leads convertidos`, icon: TrendingUp },
   ];
   return <section aria-label="Resumo da carteira" className="metrics-strip">
     {metrics.map(({ title, value, note, icon: Icon }) => <div className="metric" key={title}>

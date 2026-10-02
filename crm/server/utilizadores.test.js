@@ -13,8 +13,9 @@ function falso({
   outrosAdmins = 1,
   erroConvite = null,
   authUser = { email: 'nuno@bv.pt', invited_at: '2026-09-24', email_confirmed_at: null },
+  semSenha = [],
 } = {}) {
-  const chamadas = { convites: [], updates: [], inserts: [], apagados: [], criados: [], senhas: [] }
+  const chamadas = { convites: [], updates: [], inserts: [], apagados: [], criados: [], senhas: [], recuperacoes: [] }
   const client = (_url, _key, opcoes) => {
     const authHeader = opcoes?.global?.headers?.Authorization
     const tabela = (nome) => {
@@ -41,8 +42,13 @@ function falso({
       return q
     }
     return {
+      rpc: async (nome) => (nome === 'contas_sem_senha' ? { data: semSenha, error: null } : { data: null, error: new Error('x') }),
       auth: {
         getUser: async (token) => (token === 'bom' ? { data: { user: ADMIN }, error: null } : { data: {}, error: new Error('x') }),
+        resetPasswordForEmail: async (email) => {
+          chamadas.recuperacoes.push(email)
+          return { error: erroConvite }
+        },
         admin: {
           inviteUserByEmail: async (email, o) => {
             chamadas.convites.push({ email, ...o })
@@ -134,6 +140,12 @@ describe('api/utilizadores: convidar (POST)', () => {
     expect(chamadas.inserts[0].dados).toMatchObject({ alteracao: 'convidado', perfil_nome: 'Nuno Costa', realizado_por: ADMIN.id })
   })
 
+  it('o convidado só entra no CRM depois de definir a senha', async () => {
+    const { client, chamadas } = falso()
+    await pedir(createHandler({ env: ENV, client }))
+    expect(chamadas.updates[0].dados).toMatchObject({ deve_trocar_senha: true })
+  })
+
   it('com grupo, a conta fica ativa já nesse grupo', async () => {
     const { client, chamadas } = falso()
     const grupoId = 'cccccccc-0000-0000-0000-000000000003'
@@ -195,6 +207,11 @@ describe('api/utilizadores: estado das contas (GET)', () => {
     expect(res.corpo.estados.a).toEqual({ convitePendente: false, ultimoAcesso: '2026-09-25T10:00:00Z' })
   })
 
+  it('quem abriu o convite mas nunca definiu senha continua pendente', async () => {
+    const res = await pedir(createHandler({ env: ENV, client: falso({ semSenha: ['a'] }).client }), { method: 'GET', body: undefined })
+    expect(res.corpo.estados.a.convitePendente).toBe(true)
+  })
+
   it('quem não é admin não vê', async () => {
     const { client } = falso({ autor: { nome: 'M', is_admin: false, ativo: true } })
     expect((await pedir(createHandler({ env: ENV, client }), { method: 'GET', body: undefined })).statusCode).toBe(403)
@@ -216,6 +233,15 @@ describe('api/utilizadores: reenviar convite (POST acao=reenviar)', () => {
     const { client, chamadas } = falso({ authUser: { email: 'nuno@bv.pt', invited_at: 'x', email_confirmed_at: 'y' } })
     expect((await pedir(createHandler({ env: ENV, client }), { body: reenviar })).statusCode).toBe(409)
     expect(chamadas.convites).toHaveLength(0)
+  })
+
+  it('a quem abriu o convite sem definir senha envia o link de definir senha', async () => {
+    const { client, chamadas } = falso({ authUser: { email: 'nuno@bv.pt', invited_at: 'x', email_confirmed_at: 'y' }, semSenha: [ALVO_ID] })
+    const res = await pedir(createHandler({ env: ENV, client }), { body: reenviar })
+    expect(res.statusCode).toBe(200)
+    expect(chamadas.convites).toHaveLength(0)
+    expect(chamadas.recuperacoes).toEqual(['nuno@bv.pt'])
+    expect(res.corpo.message).toMatch(/definir a senha/)
   })
 
   it('explica a espera de um minuto entre envios', async () => {

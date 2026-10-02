@@ -21,7 +21,7 @@ export function BarraPesquisa({ valor, onChange, placeholder, rotulo, filtros }:
           onChange={(e) => onChange(e.target.value)}
           aria-label={rotulo}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-border py-2 pl-9 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30 [&::-webkit-search-cancel-button]:hidden"
+          className="w-full rounded-lg border border-border py-2 pl-9 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-navy [&::-webkit-search-cancel-button]:hidden"
         />
         {valor && (
           <button type="button" className="icon-button absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2" aria-label="Limpar pesquisa" onClick={() => onChange('')}>

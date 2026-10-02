@@ -14,6 +14,25 @@ function senhaInvalida(senha) {
   return null
 }
 
+// Contas convidadas que nunca definiram senha (só o Auth sabe; função só para a service role,
+// migração 2026-10-01_convite_sem_senha.sql). Sem a função, comporta-se como antes.
+async function contasSemSenha(admin) {
+  const { data, error } = await admin.rpc('contas_sem_senha')
+  if (error || !Array.isArray(data)) return new Set()
+  return new Set(data.map((linha) => (typeof linha === 'string' ? linha : linha?.contas_sem_senha ?? linha?.id)))
+}
+
+function erroEnvio(erro) {
+  const msg = erro.message || ''
+  if (/security purposes|after \d+ seconds/i.test(msg)) {
+    return [429, 'Acabou de ser enviado um email a esta pessoa. Espere um minuto antes de reenviar.']
+  }
+  const limite = erro.status === 429 || /rate limit/i.test(msg)
+  return limite
+    ? [429, 'O Supabase atingiu o limite de emails por hora. Tente mais tarde ou configure um SMTP próprio.']
+    : [409, 'Não foi possível reenviar o convite. Tente novamente.']
+}
+
 export function createHandler({ env = process.env, client = createClient } = {}) {
   return async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store')
@@ -48,8 +67,10 @@ export function createHandler({ env = process.env, client = createClient } = {})
         // Convite pendente e último acesso só existem no Auth do Supabase, não em profiles.
         const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
         if (error) return res.status(503).json({ error: 'Não foi possível obter o estado das contas.' })
+        // Pendente também quem abriu o link mas nunca definiu senha: o convite não está concluído.
+        const semSenha = await contasSemSenha(admin)
         const estados = Object.fromEntries(data.users.map((u) => [u.id, {
-          convitePendente: !!u.invited_at && !u.email_confirmed_at,
+          convitePendente: !!u.invited_at && (!u.email_confirmed_at || semSenha.has(u.id)),
           ultimoAcesso: u.last_sign_in_at ?? null,
         }]))
         return res.status(200).json({ estados })
@@ -89,29 +110,30 @@ export function createHandler({ env = process.env, client = createClient } = {})
         if (!UUID_VALIDO.test(id)) return res.status(400).json({ error: 'Utilizador inválido.' })
         const { data: alvo, error: alvoError } = await admin.auth.admin.getUserById(id)
         if (alvoError || !alvo?.user?.email) return res.status(404).json({ error: 'Esta conta já não existe. Atualize a página.' })
-        if (alvo.user.email_confirmed_at) return res.status(409).json({ error: 'Esta pessoa já aceitou o convite. Se não se lembra da senha, pode usar "Esqueci a senha" no login.' })
+        // Abriu o link do convite mas nunca definiu senha: ainda pode receber um link novo.
+        const abriuSemSenha = !!alvo.user.email_confirmed_at && (await contasSemSenha(admin)).has(id)
+        if (alvo.user.email_confirmed_at && !abriuSemSenha) return res.status(409).json({ error: 'Esta pessoa já aceitou o convite. Se não se lembra da senha, pode usar "Esqueci a senha" no login.' })
 
         const { data: perfil } = await admin.from('profiles').select('nome').eq('id', id).maybeSingle()
         const nome = perfil?.nome ?? alvo.user.email
-        // O Auth volta a enviar o convite enquanto a conta não estiver confirmada.
-        const { error: conviteError } = await admin.auth.admin.inviteUserByEmail(alvo.user.email, { data: { nome }, redirectTo })
-        if (conviteError) {
-          const msg = conviteError.message || ''
-          if (/security purposes|after \d+ seconds/i.test(msg)) {
-            return res.status(429).json({ error: 'Acabou de ser enviado um convite a esta pessoa. Espere um minuto antes de reenviar.' })
-          }
-          const limite = conviteError.status === 429 || /rate limit/i.test(msg)
-          return res.status(limite ? 429 : 409).json({
-            error: limite
-              ? 'O Supabase atingiu o limite de emails por hora. Tente mais tarde ou configure um SMTP próprio.'
-              : 'Não foi possível reenviar o convite. Tente novamente.',
-          })
+        // Conta por confirmar: o Auth volta a enviar o convite. Já confirmada sem senha: o convite
+        // já não é aceite, por isso vai o email de "definir senha", que abre o mesmo /acesso.
+        const { error: envioError } = abriuSemSenha
+          ? await admin.auth.resetPasswordForEmail(alvo.user.email)
+          : await admin.auth.admin.inviteUserByEmail(alvo.user.email, { data: { nome }, redirectTo })
+        if (envioError) {
+          const [estado, erro] = erroEnvio(envioError)
+          return res.status(estado).json({ error: erro })
         }
         await admin.from('eventos_acesso').insert({
           perfil_id: id, perfil_nome: nome, alteracao: 'convidado',
           realizado_por: auth.user.id, realizado_por_nome: autor.nome,
         })
-        return res.status(200).json({ message: `Convite reenviado para ${alvo.user.email}.` })
+        return res.status(200).json({
+          message: abriuSemSenha
+            ? `Enviado para ${alvo.user.email} um link para definir a senha.`
+            : `Convite reenviado para ${alvo.user.email}.`,
+        })
       }
 
       if (req.method === 'DELETE') {
@@ -192,7 +214,8 @@ export function createHandler({ env = process.env, client = createClient } = {})
         ativo: true,
         ...(grupoId ? { grupo_id: grupoId } : {}),
         ...(comoAdmin ? { is_admin: true } : {}),
-        ...(comSenha ? { deve_trocar_senha: true } : {}),
+        // Com senha do admin, ou por convite: só entra no CRM depois de definir a sua.
+        deve_trocar_senha: true,
       }).eq('id', criado.user.id)
 
       await admin.from('eventos_acesso').insert({

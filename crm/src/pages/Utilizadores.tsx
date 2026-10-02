@@ -12,7 +12,7 @@ import { ConvidarModal } from '@/components/crm/ConvidarModal'
 import { MudarGrupoModal } from '@/components/crm/MudarGrupoModal'
 import { DefinirSenhaModal } from '@/components/crm/DefinirSenhaModal'
 import { useGrupos } from '@/hooks/useGrupos'
-import { AlertTriangle, Info, UserPlus } from 'lucide-react'
+import { Info, UserPlus } from 'lucide-react'
 import { Notice } from '@/components/ui/Notice'
 import { useUtilizadores, useEventosAcesso, useEstadosContas, alterarAcesso, alterarNome, criarUtilizador, definirSenha, excluirUtilizador, reenviarConvite } from '@/hooks/useUtilizadores'
 import { useAuth } from '@/hooks/useAuth'
@@ -21,6 +21,7 @@ import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { mensagemErro } from '@/lib/erros'
 import type { AlteracaoAcesso, Profile } from '@/lib/types'
 import type { NovaConta } from '@/hooks/useUtilizadores'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 interface PedidoAlteracao {
   utilizador: Profile
@@ -67,7 +68,7 @@ export default function Utilizadores() {
       toast({ title: `${descreverAlteracao(pedido, null).titulo}: ${pedido.utilizador.nome}` })
       setPedido(null)
     } catch (err: unknown) {
-      toast({ title: 'Erro ao alterar a conta', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível alterar a conta', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setIdEmAlteracao(null)
     }
@@ -83,7 +84,7 @@ export default function Utilizadores() {
       toast({ title: 'Nome atualizado' })
       setAEditarNome(null)
     } catch (err: unknown) {
-      toast({ title: 'Erro ao guardar o nome', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível guardar o nome', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setAGuardarNome(false)
     }
@@ -97,7 +98,7 @@ export default function Utilizadores() {
       toast({ title: conta.senha ? 'Conta criada' : 'Convite enviado', description: mensagem })
       return true
     } catch (err: unknown) {
-      toast({ title: conta.senha ? 'Erro ao criar a conta' : 'Erro ao convidar', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: conta.senha ? 'Não foi possível criar a conta' : 'Não foi possível convidar', description: mensagemErro(err), variant: 'destructive' })
       return false
     } finally {
       setAEnviarConvite(false)
@@ -111,7 +112,7 @@ export default function Utilizadores() {
       await eventos.recarregar()
       toast({ title: 'Convite reenviado', description: mensagem })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao reenviar convite', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível reenviar convite', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setIdEmAlteracao(null)
     }
@@ -126,7 +127,7 @@ export default function Utilizadores() {
       toast({ title: `Grupo de ${aMudarGrupo.nome}: ${nomeGrupo(grupoId) ?? 'sem grupo'}` })
       setAMudarGrupo(null)
     } catch (err: unknown) {
-      toast({ title: 'Erro ao mudar de grupo', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível mudar de grupo', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setIdEmAlteracao(null)
     }
@@ -141,7 +142,7 @@ export default function Utilizadores() {
       toast({ title: 'Senha definida', description: mensagem })
       setADefinirSenha(null)
     } catch (err: unknown) {
-      toast({ title: 'Erro ao definir a senha', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível definir a senha', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setIdEmAlteracao(null)
     }
@@ -149,7 +150,7 @@ export default function Utilizadores() {
 
   const handlePedirExcluir = (utilizador: Profile) =>
     pedirConfirmacao({
-      acao: 'Excluir conta', mensagemSucesso: 'Conta excluída',
+      acao: 'Apagar conta', mensagemSucesso: 'Conta apagada',
       nome: `a conta de ${utilizador.nome} (${utilizador.email})`,
       aviso: 'A pessoa deixa de conseguir entrar e a conta não pode ser recuperada. Os leads, clientes e atividades de que era responsável ficam sem responsável; nada é apagado. Para bloquear temporariamente, use antes "Retirar acesso".',
       apagar: async () => { await excluirUtilizador(utilizador.id) },
@@ -165,15 +166,12 @@ export default function Utilizadores() {
           {semAcesso > 0 && <strong className="font-medium text-ink">{semAcesso} {semAcesso === 1 ? 'conta à espera' : 'contas à espera'} de acesso. </strong>}
           Quem pode entrar no CRM. Contas criadas por outra via (por exemplo, no painel do Supabase) aparecem aqui sem acesso até lho dar.
         </>}
-        action={<Button icon={<UserPlus />} onClick={() => setAConvidar(true)}>Adicionar utilizador</Button>}
+        action={<Button icon={<UserPlus />} onClick={() => setAConvidar(true)}>Novo utilizador</Button>}
       />
 
       {isLoading && <Spinner />}
       {error && (
-        <Notice tone="danger" icon={AlertTriangle} alerta
-          action={<Button variant="secondary" size="sm" onClick={() => recarregar()}>Tentar novamente</Button>}>
-          Não foi possível carregar os utilizadores: {error.message}
-        </Notice>
+        <ErroCarregar oQue="os utilizadores" erro={error} onTentarNovamente={() => recarregar()} />
       )}
 
       {estadosContas.error && !isLoading && !error && (

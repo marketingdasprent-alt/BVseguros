@@ -3,8 +3,8 @@ import { mensagemErro } from '@/lib/erros'
 
 describe('mensagemErro', () => {
   it('devolve mensagem genérica para valores que não são Error', () => {
-    expect(mensagemErro('qualquer coisa')).toBe('Erro inesperado.')
-    expect(mensagemErro(null)).toBe('Erro inesperado.')
+    expect(mensagemErro('qualquer coisa')).toBe('Ocorreu um erro. Tente novamente.')
+    expect(mensagemErro(null)).toBe('Ocorreu um erro. Tente novamente.')
   })
 
   it('identifica duplicado de NIF', () => {
@@ -29,7 +29,7 @@ describe('mensagemErro', () => {
 
   it('identifica NIF com formato inválido', () => {
     const erro = Object.assign(new Error('violates check constraint "clientes_nif_formato"'), { code: '23514' })
-    expect(mensagemErro(erro)).toBe('NIF inválido — deve ter exatamente 9 dígitos.')
+    expect(mensagemErro(erro)).toBe('NIF inválido: deve ter exatamente 9 dígitos.')
   })
 
   it('identifica nome ou telefone vazios em leads e clientes', () => {

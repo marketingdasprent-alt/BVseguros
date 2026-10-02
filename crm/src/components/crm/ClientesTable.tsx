@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Pessoa } from '@/components/ui/Pessoa'
 import type { Cliente } from '@/lib/types'
+import { SEM_VALOR } from '@/lib/format'
 
 interface ClientesTableProps {
   clientes: Cliente[]
@@ -46,8 +47,8 @@ export function ClientesTable({ clientes, nomePorId, podeAtribuir, onAtribuir, o
                   <Link to={`/clientes/${c.id}`} className="hover:underline underline-offset-2">{c.nome}</Link>
                 </td>
                 <td className="whitespace-nowrap">{c.telefone}</td>
-                <td className="whitespace-nowrap">{c.email ?? '—'}</td>
-                <td className="whitespace-nowrap">{c.nif ?? '—'}</td>
+                <td className="whitespace-nowrap">{c.email ?? SEM_VALOR}</td>
+                <td className="whitespace-nowrap">{c.nif ?? SEM_VALOR}</td>
                 <td className="whitespace-nowrap">
                   <span className="flex items-center gap-3">
                     <Pessoa nome={c.responsavel_id ? nomePorId.get(c.responsavel_id) ?? 'Atribuído' : null} />

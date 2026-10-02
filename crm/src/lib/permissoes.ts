@@ -31,8 +31,8 @@ export interface DefinicaoModulo {
 
 export const MODULOS: DefinicaoModulo[] = [
   { id: 'dashboard', rotulo: 'Dashboard', rota: '/', descricao: 'Resumo, prioridades e atividade recente.', soVer: true },
-  { id: 'leads', rotulo: 'Leads', rota: '/leads', descricao: 'Contactos por converter, incluindo os pedidos do site.', temAtribuir: true },
-  { id: 'propostas', rotulo: 'Propostas', rota: '/propostas', descricao: 'Simulações e propostas enviadas.' },
+  { id: 'leads', rotulo: 'Leads', rota: '/leads', descricao: 'Contactos por converter, incluindo os pedidos de proposta do site.', temAtribuir: true },
+  { id: 'propostas', rotulo: 'Propostas', rota: '/propostas', descricao: 'Propostas pedidas e enviadas.' },
   { id: 'clientes', rotulo: 'Clientes', rota: '/clientes', descricao: 'Clientes e a ficha de cada um.', temAtribuir: true },
   { id: 'apolices', rotulo: 'Apólices', rota: '/apolices', descricao: 'Contratos, prémios e datas.' },
   { id: 'renovacoes', rotulo: 'Renovações', rota: '/renovacoes', descricao: 'Apólices a chegar ao fim e o seu seguimento.' },

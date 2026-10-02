@@ -1849,4 +1849,21 @@ revoke all on function public.criar_pedido_sinistro_site(text, text, text, text,
 grant execute on function public.criar_lead_site(text, text, text, text, text, boolean, text) to service_role;
 grant execute on function public.criar_pedido_sinistro_site(text, text, text, text, text, text, date, text, text, jsonb, boolean, text) to service_role;
 
+-- (de migrations/2026-10-01_convite_sem_senha.sql)
+-- Só o Auth sabe se uma conta convidada já tem senha: /api/utilizadores pergunta aqui
+-- (convite pendente, reenviar). Só a service role.
+create or replace function public.contas_sem_senha()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = public, auth
+as $$
+  select u.id from auth.users u
+  where u.invited_at is not null and coalesce(u.encrypted_password, '') = '';
+$$;
+
+revoke all on function public.contas_sem_senha() from public, anon, authenticated;
+grant execute on function public.contas_sem_senha() to service_role;
+
 notify pgrst, 'reload schema';

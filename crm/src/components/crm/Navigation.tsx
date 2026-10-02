@@ -83,7 +83,8 @@ export function Navigation({ onNavigate, contagens = {} }: NavigationProps) {
           <div className="nav-group-links" id={idLinks}>
           {group.links.map(({ to, label, icon: Icon }) => {
             const n = contagens[to] ?? 0;
-            const descricao = n > 0 ? `${label} (${n} ${n === 1 ? 'pedido do site por tratar' : 'pedidos do site por tratar'})` : label;
+            const tipo = to === '/sinistros' ? 'de sinistro' : 'de proposta';
+            const descricao = n > 0 ? `${label} (${n} ${n === 1 ? `pedido ${tipo} do site por tratar` : `pedidos ${tipo} do site por tratar`})` : label;
             return (
               <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate} aria-label={descricao} title={descricao}
                 className={({ isActive }) => `nav-item${isActive ? ' is-active' : ''}`}>

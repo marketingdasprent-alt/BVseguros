@@ -43,6 +43,15 @@
   --color-text-on-primary: var(--color-neutral-0);
   --color-text-on-dark: var(--color-neutral-0);
 
+  /* Dark surfaces (footer, heros, navy panels): one navy family instead of
+     neutral-950 and loose rgba whites. On --color-surface-inverse:
+     secondary 9.2:1, muted 6.7:1. */
+  --color-surface-inverse: var(--color-primary-active);
+  --color-text-on-dark-secondary: rgba(255, 255, 255, 0.78);
+  --color-text-on-dark-muted: rgba(255, 255, 255, 0.64);
+  --color-border-on-dark: rgba(255, 255, 255, 0.12);
+  --color-border-on-dark-strong: rgba(255, 255, 255, 0.45);
+
   /* Brand roles: navy from the BV Seguros logo (the one confirmed brand
      color). Secondary/accent are systematic derivations from it and the
      neutral ramp, not invented colors: see DECISIONS.md. */
@@ -112,6 +121,18 @@
   --space-xl: clamp(2.5rem, 2rem + 2vw, 4rem);
   --space-2xl: clamp(3.5rem, 2.75rem + 3vw, 6rem);
   --space-3xl: clamp(5rem, 3.75rem + 5vw, 9rem);
+
+  /* ------------------------------------------------------------ */
+  /* ICON SIZES                                                     */
+  /* ------------------------------------------------------------ */
+
+  /* sm/md for the stroke glyph itself, lg/xl/2xl for the chip around it.
+     One scale instead of 18/24/26/28/32/36/40/48px picked per component. */
+  --icon-size-sm: 1.25rem;
+  --icon-size-md: 1.5rem;
+  --icon-size-lg: 2rem;
+  --icon-size-xl: 2.5rem;
+  --icon-size-2xl: 3rem;
 
   /* ------------------------------------------------------------ */
   /* RADIUS                                                         */

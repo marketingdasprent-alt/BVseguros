@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 interface NoticeProps {
-  tone?: 'neutral' | 'info' | 'danger'
+  tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger'
   icon: LucideIcon
   children: ReactNode
   action?: ReactNode

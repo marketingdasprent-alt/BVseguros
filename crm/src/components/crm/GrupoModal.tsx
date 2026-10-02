@@ -7,6 +7,7 @@ import { permissoesVazias } from '@/hooks/useGrupos'
 import { MODULOS, normalizarPermissao } from '@/lib/permissoes'
 import type { Carteira, DefinicaoModulo, Modulo, NivelAcesso, PermissaoModulo } from '@/lib/permissoes'
 import type { GrupoEdicao } from '@/lib/types'
+import { Segmented } from '@/components/ui/Segmented'
 
 interface GrupoModalProps {
   // Sem id é um grupo novo (também ao duplicar).
@@ -58,10 +59,10 @@ export function GrupoModal({ inicial, aGuardar, onGuardar, onFechar, onApagar }:
 
         <fieldset className="space-y-2">
           <legend className="text-xs font-medium text-ink">Carteira</legend>
-          <div role="group" aria-label="Carteira" className="segmented">
-            <button type="button" aria-pressed={carteira === 'toda'} onClick={() => setCarteira('toda')}>Toda a carteira</button>
-            <button type="button" aria-pressed={carteira === 'propria'} onClick={() => setCarteira('propria')}>Só a sua carteira</button>
-          </div>
+          <Segmented rotulo="Carteira" valor={carteira} onChange={setCarteira} opcoes={[
+            { valor: 'toda', rotulo: 'Toda a carteira' },
+            { valor: 'propria', rotulo: 'Só a sua carteira' },
+          ]} />
           <p className="text-xs text-muted">
             {carteira === 'toda'
               ? 'Vê os leads e clientes de toda a equipa (nos módulos que tiver).'
@@ -75,10 +76,11 @@ export function GrupoModal({ inicial, aGuardar, onGuardar, onFechar, onApagar }:
               <h3 id="titulo-permissoes" className="text-sm font-semibold text-ink">Permissões por módulo</h3>
               <p className="text-xs text-muted">O que este grupo pode fazer em cada parte do CRM.</p>
             </div>
-            <div role="group" aria-label="Acesso rápido a todos os módulos" className="segmented">
-              <button type="button" aria-pressed={false} onClick={() => todos('nenhum')}>Nenhum</button>
-              <button type="button" aria-pressed={false} onClick={() => todos('ver')}>Todos ver</button>
-              <button type="button" aria-pressed={false} onClick={() => todos('editar')}>Todos editar</button>
+            {/* Ações de uma vez, não uma escolha: mesmo desenho, sem aria-pressed. */}
+            <div role="group" aria-label="Acesso rápido a todos os módulos" className="segmented segmented--acoes">
+              <button type="button" onClick={() => todos('nenhum')}>Nenhum</button>
+              <button type="button" onClick={() => todos('ver')}>Todos ver</button>
+              <button type="button" onClick={() => todos('editar')}>Todos editar</button>
             </div>
           </div>
 
@@ -93,13 +95,8 @@ export function GrupoModal({ inicial, aGuardar, onGuardar, onFechar, onApagar }:
                       <p id={`modulo-${m.id}`} className="text-sm font-medium text-ink">{m.rotulo}</p>
                       <p className="text-xs text-muted">{m.descricao}</p>
                     </div>
-                    <div role="group" aria-labelledby={`modulo-${m.id}`} className="segmented shrink-0">
-                      {niveis.map((n) => (
-                        <button key={n.valor} type="button" aria-pressed={p.nivel === n.valor} onClick={() => mudar(m, { nivel: n.valor })}>
-                          {n.rotulo}
-                        </button>
-                      ))}
-                    </div>
+                    <Segmented rotuloId={`modulo-${m.id}`} className="shrink-0" opcoes={niveis} valor={p.nivel}
+                      onChange={(nivel) => mudar(m, { nivel })} />
                   </div>
                   {p.nivel === 'editar' && (
                     <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-ink">

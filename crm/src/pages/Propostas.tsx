@@ -22,6 +22,8 @@ import { ESTADOS_PROPOSTA } from '@/lib/types'
 import type { EstadoProposta, Proposta, PropostaEdicao, PropostaInsert } from '@/lib/types'
 import { TONE_ESTADO_PROPOSTA } from '@/lib/tone'
 import { mensagemErro } from '@/lib/erros'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
+import { SEM_VALOR } from '@/lib/format'
 
 export default function Propostas() {
   const { data: propostas, isLoading, error, recarregar, truncado } = usePropostas()
@@ -39,9 +41,9 @@ export default function Propostas() {
   const { pedirConfirmacao, modalApagar } = useConfirmarApagar(recarregar)
 
   const nomeOrigem = (proposta: Proposta) => {
-    if (proposta.lead_id) return leads.find((l) => l.id === proposta.lead_id)?.nome ?? '—'
-    if (proposta.cliente_id) return clientes.find((c) => c.id === proposta.cliente_id)?.nome ?? '—'
-    return '—'
+    if (proposta.lead_id) return leads.find((l) => l.id === proposta.lead_id)?.nome ?? SEM_VALOR
+    if (proposta.cliente_id) return clientes.find((c) => c.id === proposta.cliente_id)?.nome ?? SEM_VALOR
+    return SEM_VALOR
   }
 
   const propostasFiltradas = useMemo(() => propostas.filter((p) => corresponde([nomeOrigem(p), p.seguradora, p.coberturas, p.notas], termo)),
@@ -55,7 +57,7 @@ export default function Propostas() {
         toast({ title: 'Proposta aceite', description: 'Registe a apólice correspondente em Apólices.' })
       }
     } catch (err: unknown) {
-      toast({ title: 'Erro ao mover proposta', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível mudar o estado', description: mensagemErro(err), variant: 'destructive' })
       await recarregar()
     }
   }
@@ -66,9 +68,9 @@ export default function Propostas() {
       await criarProposta(proposta)
       await recarregar()
       setModalAberto(false)
-      toast({ title: 'Proposta criada com sucesso' })
+      toast({ title: 'Proposta criada' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao criar proposta', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível criar proposta', description: mensagemErro(err), variant: 'destructive' })
     } finally {
       setACriar(false)
     }
@@ -82,7 +84,7 @@ export default function Propostas() {
       setAEditar(null)
       toast({ title: 'Proposta atualizada' })
     } catch (err: unknown) {
-      toast({ title: 'Erro ao guardar proposta', description: mensagemErro(err), variant: 'destructive' })
+      toast({ title: 'Não foi possível guardar proposta', description: mensagemErro(err), variant: 'destructive' })
       await recarregar()
     } finally {
       setACriar(false)
@@ -98,12 +100,12 @@ export default function Propostas() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Propostas" description={<> Simulações enviadas a leads e clientes, por estado. </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setModalAberto(true)}>
+      <PageHeader title="Propostas" description={<> Propostas enviadas a leads e clientes, por estado. </>} action={podeEditar && <Button icon={<Plus />} onClick={() => setModalAberto(true)}>
           Nova proposta
         </Button>} />
 
       {carregando && <Spinner />}
-      {error && <p role="alert" className="rounded-lg bg-danger-bg p-4 text-sm text-danger-text">Erro ao carregar propostas: {error.message}</p>}
+      {error && <ErroCarregar oQue="as propostas" erro={error} onTentarNovamente={recarregar} />}
       {!carregando && !error && (
         <>
         <AvisoTruncado truncado={truncado} />

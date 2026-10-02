@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { AlertTriangle, Copy, KeyRound, PenLine, Plus, Trash2 } from 'lucide-react'
+import { Copy, KeyRound, PenLine, Plus, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { RowActions } from '@/components/ui/RowActions'
 import { GrupoModal } from '@/components/crm/GrupoModal'
@@ -16,6 +15,7 @@ import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
 import { mensagemErro } from '@/lib/erros'
 import { MODULOS } from '@/lib/permissoes'
 import type { GrupoComPermissoes, GrupoEdicao } from '@/lib/types'
+import { ErroCarregar } from '@/components/ui/ErroCarregar'
 
 // "Edita 5 · Vê 2": o resumo que cabe numa linha da tabela.
 function resumoAcesso(g: GrupoComPermissoes) {
@@ -67,9 +67,7 @@ export default function Grupos() {
 
       {isLoading && <Spinner />}
       {error && (
-        <Notice tone="danger" icon={AlertTriangle} alerta action={<Button variant="secondary" size="sm" onClick={() => recarregar()}>Tentar novamente</Button>}>
-          Não foi possível carregar os grupos: {error.message}
-        </Notice>
+        <ErroCarregar oQue="os grupos" erro={error} onTentarNovamente={() => recarregar()} />
       )}
       {!isLoading && !error && grupos.length === 0 && (
         <div className="panel">

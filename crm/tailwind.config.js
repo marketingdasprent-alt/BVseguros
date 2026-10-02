@@ -3,20 +3,29 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Valores em src/index.css (:root): uma só definição de cor para CSS e utilitários.
       colors: {
-        navy: '#184070',
-        'navy-dark': '#0F2C4E',
-        sand: '#F5F7FA',
-        ink: '#18283B',
+        navy: 'rgb(var(--navy-rgb) / <alpha-value>)',
+        'navy-dark': 'rgb(var(--navy-dark-rgb) / <alpha-value>)',
+        sand: 'rgb(var(--canvas-rgb) / <alpha-value>)',
+        ink: 'rgb(var(--ink-rgb) / <alpha-value>)',
 
-        border: '#DFE5ED',
-        'border-strong': '#D0D5DD',
-        muted: '#667085',
+        border: 'rgb(var(--border-rgb) / <alpha-value>)',
+        'border-strong': 'rgb(var(--border-strong-rgb) / <alpha-value>)',
+        muted: 'rgb(var(--muted-rgb) / <alpha-value>)',
+        'muted-soft': 'var(--muted-soft)',
 
-        success: { DEFAULT: '#12B76A', bg: '#ECFDF3', text: '#027A48' },
-        warning: { DEFAULT: '#F79009', bg: '#FFFAEB', text: '#B54708' },
-        danger: { DEFAULT: '#F04438', bg: '#FEF3F2', text: '#B42318' },
-        info: { DEFAULT: '#2E90FA', bg: '#EFF8FF', text: '#175CD3' },
+        success: { DEFAULT: 'var(--success)', bg: 'var(--success-bg)', text: 'var(--success-text)' },
+        warning: { DEFAULT: 'var(--warning)', bg: 'var(--warning-bg)', text: 'var(--warning-text)' },
+        danger: { DEFAULT: 'rgb(var(--danger-rgb) / <alpha-value>)', bg: 'var(--danger-bg)', text: 'var(--danger-text)', hover: 'var(--danger-hover)' },
+        info: { DEFAULT: 'var(--info)', bg: 'var(--info-bg)', text: 'var(--info-text)' },
+      },
+      // Mesma escala de texto do index.css (--fs-*): text-meta, text-small, text-body, text-panel.
+      fontSize: {
+        meta: 'var(--fs-meta)',
+        small: 'var(--fs-small)',
+        body: 'var(--fs-body)',
+        panel: 'var(--fs-panel)',
       },
       fontFamily: {
         display: ['Inter', 'Segoe UI', 'sans-serif'],

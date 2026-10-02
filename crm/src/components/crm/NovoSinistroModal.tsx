@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Modal } from '@/components/ui/Modal'
-import { dataLocalIso } from '@/lib/format'
+import { dataLocalIso, SEM_VALOR } from '@/lib/format'
 import { ESTADOS_SINISTRO } from '@/lib/types'
 import type { Apolice, Sinistro, SinistroEdicao, SinistroInsert } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
@@ -71,7 +71,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
       <form onSubmit={handleSubmit} className="space-y-5">
         {inicial ? (
           <ContextoFormulario itens={[
-            { rotulo: 'Apólice', valor: apolices.find((a) => a.id === inicial.apolice_id)?.numero_apolice ?? '—' },
+            { rotulo: 'Apólice', valor: apolices.find((a) => a.id === inicial.apolice_id)?.numero_apolice ?? SEM_VALOR },
             { rotulo: 'Estado', valor: ESTADOS_SINISTRO.find((e) => e.valor === inicial.estado)?.rotulo ?? inicial.estado },
           ]} />
         ) : (
@@ -80,7 +80,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
           <select
             value={apoliceId}
             onChange={(e) => setApoliceId(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           >
             {apolices.map((a) => (
               <option key={a.id} value={a.id}>
@@ -99,7 +99,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
 
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">
-            Data de ocorrência<span className="text-danger"> *</span>
+            Data de ocorrência<span className="text-danger-text" aria-hidden="true"> *</span>
           </span>
           <input
             required
@@ -107,19 +107,19 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
             max={hoje}
             value={dataOcorrencia}
             onChange={(e) => setDataOcorrencia(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           />
         </label>
 
         <label className="block min-w-0 space-y-2">
           <span className="block text-xs font-medium text-ink">
-            Descrição<span className="text-danger"> *</span>
+            Descrição<span className="text-danger-text" aria-hidden="true"> *</span>
           </span>
           <input
             required
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           />
         </label>
 
@@ -130,7 +130,7 @@ export function NovoSinistroModal({ apolices, aCriar, onFechar, onCriar, inicial
             step="0.01"
             value={valorEstimado}
             onChange={(e) => setValorEstimado(e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
+            className={CLASSE_INPUT}
           />
         </label>
 
