@@ -41,6 +41,7 @@ export default function App() {
         Saltar para o conteúdo
       </a>
       {/* No pedido, a página é do formulário: barra mínima própria, sem o menu do site (como a Fidelidade). */}
+      {pedido && <CookieConsent emLinha />}
       {!pedido && <Header cta={{ label: "Pedir proposta", href: hrefProposta(seguro?.key ?? null) }} />}
       <main id="main-content">
         {pedido ? (
@@ -53,7 +54,7 @@ export default function App() {
       </main>
       <Footer minimo={Boolean(pedido)} />
       <BackToTop />
-      <CookieConsent />
+      {!pedido && <CookieConsent />}
     </>
   );
 }

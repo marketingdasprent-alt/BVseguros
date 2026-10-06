@@ -508,6 +508,14 @@ body.has-cookie-banner {
   padding-bottom: calc(var(--cookie-banner-altura, 0px) + var(--space-sm));
 }
 
+/* Nos pedidos o banner fica no topo, dentro da página: sai com o scroll e nunca tapa o formulário. */
+.cookie-banner--em-linha {
+  position: static;
+  width: calc(100% - 2 * var(--space-sm));
+  margin: var(--space-sm) auto 0;
+  box-shadow: none;
+}
+
 /* Desktop: texto à esquerda, botões à direita, para o banner ocupar menos altura. */
 @media (min-width: 768px) {
   .cookie-banner {

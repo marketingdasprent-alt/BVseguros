@@ -334,6 +334,61 @@ function checkAbsoluteBase() {
   }
 }
 
+// --- Lançamento: nada por confirmar quando o site sai do noindex ---
+
+// Lançado = o vercel.json já não tem a regra de noindex sem `missing` (documento.md, secção 4).
+function siteLancado() {
+  const config = path.join(ROOT, "vercel.json");
+  if (!existsSync(config)) return false;
+  const { headers = [] } = JSON.parse(readFileSync(config, "utf8").trimStart());
+  return !headers.some(
+    (regra) => !regra.missing && regra.headers?.some((h) => h.key.toLowerCase() === "x-robots-tag" && /noindex/i.test(h.value)),
+  );
+}
+
+function pendentesLancamento() {
+  const pendentes = [];
+  const empresa = path.join(SRC_DIR, "data", "empresa.ts");
+  const confirmados = new Set();
+  if (existsSync(empresa)) {
+    for (const [, campo, estado] of readFileSync(empresa, "utf8").matchAll(/(\w+):\s*\{\s*valor:\s*"[^"]*",\s*confirmado:\s*(true|false)\s*\}/g)) {
+      if (estado === "true") confirmados.add(campo);
+      else pendentes.push([`Dado da empresa por confirmar: ${campo}.`, "src/data/empresa.ts"]);
+    }
+  }
+  // O MapaGoogle só mostra o seu aviso enquanto a morada estiver por confirmar, já contada acima.
+  const MARCA_GOVERNADA = path.join(SRC_DIR, "components", "ui", "MapaGoogle.tsx");
+  for (const file of walk(SRC_DIR, [".ts", ".tsx"])) {
+    if (file === empresa || file === MARCA_GOVERNADA) continue;
+    forEachLine(file, (line, n) => {
+      if (/fict[ií]ci/i.test(line)) pendentes.push(["Texto fictício.", `${relative(file)}:${n}`]);
+      else if (/Por confirmar:|porConfirmar:\s*true/.test(line)) pendentes.push(["Conteúdo marcado por confirmar.", `${relative(file)}:${n}`]);
+    });
+  }
+  for (const file of walk(path.join(SRC_DIR, "pages", "legal"), [".tsx"])) {
+    forEachLine(file, (line, n) => {
+      if (/\[[A-Za-zÀ-ú]/.test(line)) pendentes.push(["Parênteses retos por preencher na página legal.", `${relative(file)}:${n}`]);
+    });
+  }
+  if (existsSync(INDEX_HTML)) {
+    const html = readFileSync(INDEX_HTML, "utf8");
+    if (/gtag\/js\?id=G-X+"/.test(html)) pendentes.push(["ID do Google Analytics 4 ainda é o placeholder (ou retirar o GA4).", "index.html"]);
+    if (/fbq\('init',\s*'PIXEL_ID_AQUI'\)/.test(html)) pendentes.push(["ID do Meta Pixel ainda é o placeholder (ou retirar o Pixel).", "index.html"]);
+    const jsonLd = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "";
+    if (confirmados.has("telefone") && !/"telephone"/.test(jsonLd)) pendentes.push(["Telefone confirmado mas ausente do JSON-LD.", "index.html"]);
+    if (confirmados.has("morada") && !/"address"/.test(jsonLd)) pendentes.push(["Morada confirmada mas ausente do JSON-LD.", "index.html"]);
+  }
+  return pendentes;
+}
+
+function checkLancamento() {
+  const lancado = siteLancado();
+  for (const [mensagem, local] of pendentesLancamento()) {
+    if (lancado) fail("Lançamento", `${mensagem} O site já não tem noindex.`, local);
+    else warn("Lançamento", mensagem, local);
+  }
+}
+
 // --- Run ---
 
 checkEmDash();
@@ -348,6 +403,7 @@ checkDuplicateIds();
 checkSeoBaseline();
 checkUnusedDependencies();
 checkAbsoluteBase();
+checkLancamento();
 
 const sections = [...new Set(findings.map((f) => f.section))];
 const failCount = findings.filter((f) => f.level === "FAIL").length;

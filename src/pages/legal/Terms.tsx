@@ -1,16 +1,11 @@
 import LegalLayout from "../../components/layout/LegalLayout";
-import PorConfirmar from "../../components/ui/PorConfirmar";
+import DadoEmpresa, { IdentificacaoLegal } from "../../components/ui/DadoEmpresa";
 
 /**
- * Esqueleto genérico de Termos e Condições. Ao contrário de
- * Privacidade/Cookies, os termos são inerentemente específicos ao que
- * a empresa vende: isto é um esqueleto de secções a preencher, não um
- * texto jurídico revisto pronto a usar. A morada e a comarca abaixo
- * são fictícias, propositadamente (mesmo valor usado em Privacy.tsx e
- * no contacto da Home), marcadas com PorConfirmar para nunca serem
- * confundidas com facto real; ver DECISIONS.md. Os restantes
- * parênteses retos são placeholder de conteúdo a escrever, não dados a
- * substituir (docs/anti-ai.md#content-integrity).
+ * Esqueleto genérico de Termos e Condições: secções a preencher, não um
+ * texto jurídico revisto. Os dados da empresa vêm de data/empresa.ts; os
+ * parênteses retos são conteúdo a escrever (docs/anti-ai.md#content-integrity).
+ * Versão curta proposta ao cliente em docs/questionario-cliente.md.
  */
 export default function Terms() {
   return (
@@ -23,9 +18,9 @@ export default function Terms() {
 
       <h2>1. Sobre nós</h2>
       <p>
-        <strong>BV Seguros</strong>,{" "}
-        <PorConfirmar>Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)</PorConfirmar>
-        . Contacto: <a href="mailto:geral@bvseguros.pt">geral@bvseguros.pt</a>.
+        <strong>BV Seguros</strong>
+        <IdentificacaoLegal />, <DadoEmpresa campo="morada" />
+        . Contacto: <DadoEmpresa campo="email" />.
       </p>
 
       <h2>2. Serviços</h2>
@@ -61,7 +56,7 @@ export default function Terms() {
       <p>
         Estes termos regem-se pela lei portuguesa. Qualquer litígio será
         submetido aos tribunais competentes da{" "}
-        <PorConfirmar>Comarca de Lisboa (fictício, por confirmar)</PorConfirmar>.
+        <DadoEmpresa campo="comarca" />.
       </p>
 
       <h2>7. Alterações a estes termos</h2>

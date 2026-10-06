@@ -2372,3 +2372,44 @@ Project-specific (Level 2).
 DATE:
 2026-10-02
 ```
+
+---
+
+```
+DECISION:
+BV Seguros: company data in one place and a pre-launch gate. Name, legal
+name, NIPC, email, phone, WhatsApp, address, ASF registration and court
+district live in src/data/empresa.ts as { valor, confirmado }; the
+contact panels, FAQ channels, legal pages and form error messages read
+from it (component DadoEmpresa: the value, its link once confirmed, or
+the PorConfirmar marker). Legal name and NIPC show only once confirmed.
+`npm run qa` lists every launch blocker (unconfirmed company data,
+"fictício", "Por confirmar:", porConfirmar: true, brackets in legal
+pages, GA4/Pixel placeholder IDs, phone/address missing from JSON-LD
+once confirmed) as warnings, and as failures once vercel.json no longer
+has the unconditional noindex rule. On request pages the cookie banner
+sits at the top of the page, in flow, instead of fixed at the bottom.
+
+REASON:
+The fictitious address and phone were copied in five files, so a client
+answer meant hunting each copy and a missed one could go live. The gate
+ties "launch" to the one change that launches (removing noindex). The
+fixed banner still covered "Próximo" on short screens (refinement item
+9); in flow it never covers a field, at the cost of pushing the form
+down until the visitor answers it. Client questions in
+docs/questionario-cliente.md.
+
+SCOPE:
+Site: data/empresa.ts (new), components/ui/DadoEmpresa.tsx (new),
+data/apoio.ts (Canal.campo), sections/ApoioSecao, ContactoPainel,
+ContactoSecao, pages/legal/Privacy (also: NIF required in proposals,
+postal code, Brevo as processor) and Terms, utils/enviarContacto,
+components/feedback/CookieConsent (emLinha), App.tsx, components.css,
+scripts/qa-audit.mjs.
+
+LEVEL:
+Project-specific (Level 2); CookieConsent gains an in-flow variant.
+
+DATE:
+2026-10-02
+```

@@ -245,7 +245,10 @@ Manage preferences (`ghost`) sits below on its own. From 768px the banner
 lays out as text on the left and buttons on the right, to take less height.
 While it is open, `body` reserves its height at the bottom
 (`--cookie-banner-altura`, measured with a `ResizeObserver`), so the end of
-any page can always be scrolled clear of it.
+any page can always be scrolled clear of it. On the request pages
+(`/pedir-proposta`, `/participar-sinistro`) it renders with `emLinha`
+instead: at the top of the page, in flow (`.cookie-banner--em-linha`), so
+it never covers a form field or "Próximo" (BV Seguros, 2026-10-02).
 
 **Opening the dialog from elsewhere** (a footer link, a settings page): don't
 prop-drill or add a Context provider for what is a rare, one-way signal.

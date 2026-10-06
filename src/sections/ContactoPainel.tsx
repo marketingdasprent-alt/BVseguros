@@ -4,10 +4,11 @@ import FlowLines from "../components/ui/FlowLines";
 import Button from "../components/ui/Button";
 import LineIcon from "../components/ui/LineIcon";
 import MapaGoogle from "../components/ui/MapaGoogle";
-import PorConfirmar from "../components/ui/PorConfirmar";
+import DadoEmpresa from "../components/ui/DadoEmpresa";
 import Link from "../app/Link";
 import { hrefProposta, hrefSinistro } from "../app/proposta";
-import { CANAIS, MORADA_CONFIRMADA } from "../data/apoio";
+import { CANAIS } from "../data/apoio";
+import { MORADA_CONFIRMADA } from "../data/empresa";
 
 /**
  * Contacto da Home, sem formulário (os formulários vivem nas páginas de
@@ -39,11 +40,7 @@ export default function ContactoPainel() {
                   </span>
                   <span>
                     <span className="visually-hidden">{c.titulo}: </span>
-                    {c.confirmado ? (
-                      c.href ? <a href={c.href}>{c.valor}</a> : c.valor
-                    ) : (
-                      <PorConfirmar>{c.valor}</PorConfirmar>
-                    )}
+                    <DadoEmpresa campo={c.campo} />
                   </span>
                 </li>
               ))}
@@ -58,7 +55,7 @@ export default function ContactoPainel() {
               </Button>
             </div>
             <p className="text-caption text-muted mt-md">
-              Mediação de seguros: <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>
+              Mediação de seguros: <DadoEmpresa campo="registoAsf" />
             </p>
           </div>
         </div>
