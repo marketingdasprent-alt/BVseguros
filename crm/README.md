@@ -89,6 +89,20 @@ ficheiro. Aceita `.xlsx`, CSV do Excel em PT (`;`, acentos, `dd/mm/aaaa`, `1.234
 do texto (`lib/tabelaPdf.ts`), sem IA; um PDF digitalizado ou de outro sistema não serve.
 Linhas com problemas não entram e ficam num relatório em Excel.
 
+## Dados pessoais (RGPD)
+
+Só administradores. Precisa da migração `supabase/migrations/2026-10-06_rgpd.sql`.
+
+- **Ficha do cliente → Dados pessoais (RGPD) → Exportar dados:** descarrega um Excel (uma
+  folha por tipo de registo) e um JSON com tudo o que o CRM tem sobre a pessoa, para
+  responder a um pedido de acesso. Fica registado no histórico.
+- **Anonimizar:** para um pedido de apagamento. Pede o nome escrito por extenso; apaga os
+  dados pessoais do cliente, do lead de origem, dos pedidos de sinistro do site, do texto
+  livre e do histórico, e mantém apólices e valores para estatística. Irreversível.
+- **Administração → Revisão de dados:** leads perdidos, pedidos do site sem resposta e
+  pedidos de sinistro arquivados há mais do que o prazo (`PRAZO_REVISAO_MESES` em
+  `src/lib/rgpd.ts`, 12 meses por agora). Nada é apagado sozinho.
+
 ## Aviso por email de leads do site (opcional)
 
 Sem isto, os pedidos do site já aparecem com contador no menu **Leads**. Para receber

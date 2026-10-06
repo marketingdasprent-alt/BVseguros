@@ -416,6 +416,59 @@ async function pedidosSinistro(db, c) {
   })
 }
 
+// RGPD: exportar e anonimizar um cliente; só admin, e no fim não sobra nenhum dado pessoal.
+async function rgpd(db, c) {
+  const p = `[${c}] RGPD:`
+  const novo = async (email) => (await db.query(`insert into auth.users (email, raw_user_meta_data) values ($1, '{"nome":"Conta Teste"}') returning id`, [email])).rows[0].id
+  const [admin, med] = [await novo('adm4@bv.pt'), await novo('med4@bv.pt')]
+  await db.query(`update public.profiles set ativo = true, is_admin = true where id = $1`, [admin])
+  await db.query(`update public.profiles set ativo = true, grupo_id = (select id from public.grupos where nome = 'Mediador') where id = $1`, [med])
+
+  const NOME = 'Beatriz Privada', NIF = '123456789'
+  let cli, lead
+  await como(db, admin, async () => {
+    lead = (await db.query(`insert into public.leads (nome, telefone, email, ramo_interesse, mensagem, notas) values ($1, '913000000', 'bia@ex.pt', 'auto', 'Mensagem com NIF ${NIF}', 'nota do lead') returning id`, [NOME])).rows[0].id
+    cli = (await db.query(`insert into public.clientes (nome, telefone, email, nif, morada, lead_origem_id) values ($1, '913000000', 'bia@ex.pt', $2, 'Rua Privada 1', $3) returning id`, [NOME, NIF, lead])).rows[0].id
+    await db.query(`update public.clientes set morada = 'Rua Privada 2' where id = $1`, [cli])
+    const ap = (await db.query(`insert into public.apolices (cliente_id, numero_apolice, seguradora, ramo, data_inicio, premio_anual) values ($1, 'AP-RGPD', 'Fidelidade', 'auto', '2026-01-01', 300) returning id`, [cli])).rows[0].id
+    await db.query(`insert into public.sinistros (apolice_id, data_ocorrencia, descricao, notas) values ($1, '2026-02-01', 'Toque com o carro da Beatriz', 'nota')`, [ap])
+    await db.query(`insert into public.atividades (tipo, titulo, notas, cliente_id) values ('chamada', 'Ligar à Beatriz', 'nota', $1)`, [cli])
+  })
+
+  await como(db, med, async () => {
+    await espera(`${p} mediador não exporta`, db.query(`select public.exportar_cliente($1)`, [cli]), true, /administrador/)
+    await espera(`${p} mediador não anonimiza`, db.query(`select public.anonimizar_cliente($1, $2)`, [cli, NOME]), true, /administrador/)
+  })
+  await como(db, 'anon', () => espera(`${p} anónimo não exporta`, db.query(`select public.exportar_cliente($1)`, [cli]), true, /permission denied/))
+
+  await como(db, admin, async () => {
+    const exp = (await espera(`${p} admin exporta`, db.query(`select public.exportar_cliente($1) d`, [cli])))?.rows?.[0]?.d
+    exp?.cliente?.nome === NOME && exp.lead_origem?.id === lead && exp.apolices.length === 1 && exp.sinistros.length === 1 && exp.atividades.length === 1 && exp.historico.length > 0
+      ? ok(`${p} exportação traz cliente, lead de origem, apólices, sinistros, atividades e histórico`) : falha(`${p} exportação incompleta: ${JSON.stringify(exp)?.slice(0, 300)}`)
+    const reg = (await db.query(`select count(*)::int n from public.historico_registos where cliente_id = $1 and acao = 'exportado'`, [cli])).rows[0].n
+    reg === 1 ? ok(`${p} a exportação fica no histórico`) : falha(`${p} exportações registadas: ${reg}`)
+
+    await espera(`${p} nome errado não anonimiza`, db.query(`select public.anonimizar_cliente($1, 'Outra Pessoa')`, [cli]), true, /não é igual/)
+    const intacto = (await db.query(`select nome from public.clientes where id = $1`, [cli])).rows[0].nome
+    intacto === NOME ? ok(`${p} com o nome errado nada muda`) : falha(`${p} mudou com o nome errado: ${intacto}`)
+
+    await espera(`${p} admin anonimiza com o nome certo`, db.query(`select public.anonimizar_cliente($1, $2)`, [cli, ` ${NOME} `]))
+  })
+
+  const depois = (await db.query(`select c.nome, c.nif, c.email, c.morada, l.nome lnome, l.mensagem, l.notas, s.descricao, t.titulo, a.numero_apolice, a.premio_anual
+    from public.clientes c join public.leads l on l.id = c.lead_origem_id join public.apolices a on a.cliente_id = c.id
+    join public.sinistros s on s.apolice_id = a.id join public.atividades t on t.cliente_id = c.id where c.id = $1`, [cli])).rows[0]
+  depois?.nome.startsWith('Cliente anonimizado') && !depois.nif && !depois.email && !depois.morada && depois.lnome.startsWith('Lead anonimizado') && !depois.mensagem && !depois.notas
+    && depois.descricao === 'anonimizado' && depois.titulo === 'anonimizado'
+    ? ok(`${p} cliente, lead de origem, sinistro e atividade ficam sem dados pessoais`) : falha(`${p} ainda tem dados: ${JSON.stringify(depois)}`)
+  depois?.numero_apolice === 'AP-RGPD' && Number(depois.premio_anual) === 300 ? ok(`${p} a apólice fica para estatística`) : falha(`${p} apólice mudou: ${JSON.stringify(depois)}`)
+
+  const hist = (await db.query(`select acao, resumo, alteracoes::text alt from public.historico_registos where cliente_id = $1 or registo_id = $2`, [cli, lead])).rows
+  const vaza = hist.filter((h) => [NOME, NIF, 'Privada', 'Beatriz'].some((x) => `${h.resumo} ${h.alt}`.includes(x)))
+  vaza.length === 0 ? ok(`${p} o histórico não guarda o nome, o NIF nem a morada`) : falha(`${p} histórico ainda tem dados: ${JSON.stringify(vaza)}`)
+  hist.some((h) => h.acao === 'anonimizado') ? ok(`${p} fica registado quem anonimizou`) : falha(`${p} sem registo da anonimização`)
+}
+
 try {
   const ordem = ordemMigracoes()
   ok(`ordem das migrações: ${ordem.join(' → ')}`)
@@ -442,6 +495,8 @@ try {
   await pedidosSinistro(await novaBase(producao), 'B')
   await conviteSemSenha(await novaBase(schema), 'A')
   await conviteSemSenha(await novaBase(producao), 'B', ler(join(MIG, '2026-10-01_convite_sem_senha.sql')))
+  await rgpd(await novaBase(schema), 'A')
+  await rgpd(await novaBase(producao), 'B')
 } catch (e) {
   falha(e.message)
 }
