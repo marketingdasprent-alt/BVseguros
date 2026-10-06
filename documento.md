@@ -143,8 +143,12 @@ cria o sinistro. Os pedidos ficam todos guardados (decisão do cliente).
 
 ## 5. Por decidir / por confirmar com o cliente
 
-- [ ] Morada, telefone, NIF, nº de registo na ASF e comarca reais (marcados
-      `PorConfirmar` no site e nas páginas legais)
+Tudo o que depende do cliente está num só documento para enviar, com uma proposta em
+cada ponto: [`docs/questionario-cliente.md`](docs/questionario-cliente.md) (02/10). O
+`npm run qa` lista o que ainda falta e falha se o site sair do `noindex` assim.
+
+- [ ] Denominação social, NIPC, morada, telefone, WhatsApp, nº de registo na ASF e
+      comarca reais (num só sítio: `src/data/empresa.ts`)
 - [ ] Texto institucional real (sobre, diferenciais)
 - [ ] Ramos de seguro definitivos e vocabulário de domínio (ver `crm/AGENTS.md`
       secção 3)

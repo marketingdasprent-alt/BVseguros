@@ -3,7 +3,7 @@ import Section from "../components/layout/Section";
 import Button from "../components/ui/Button";
 import FlowLines from "../components/ui/FlowLines";
 import LineIcon from "../components/ui/LineIcon";
-import PorConfirmar from "../components/ui/PorConfirmar";
+import DadoEmpresa from "../components/ui/DadoEmpresa";
 import Link from "../app/Link";
 import { hrefProposta, hrefSinistro } from "../app/proposta";
 import { FORMULARIOS } from "../data/formularios";
@@ -73,7 +73,7 @@ export default function ContactoSecao({
             </Button>
           )}
           <p className="text-caption text-muted">
-            Mediação de seguros: <PorConfirmar>[nº de registo na ASF por confirmar]</PorConfirmar>
+            Mediação de seguros: <DadoEmpresa campo="registoAsf" />
           </p>
         </div>
       </Container>

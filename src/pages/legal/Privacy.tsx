@@ -1,19 +1,16 @@
 import LegalLayout from "../../components/layout/LegalLayout";
-import PorConfirmar from "../../components/ui/PorConfirmar";
+import DadoEmpresa, { IdentificacaoLegal } from "../../components/ui/DadoEmpresa";
 
 /**
  * Política de Privacidade com estrutura RGPD. Estrutura e referências
  * de base legal portadas de um projeto já em produção (ver
- * DECISIONS.md): o conteúdo dentro de cada secção é placeholder
- * (entre parênteses retos) e tem de ser substituído pelos dados reais
- * da BV Seguros antes de publicar (docs/anti-ai.md#content-integrity).
- * A morada e o telefone são fictícios, propositadamente (mesmo valor
- * usado em Terms.tsx e no contacto da Home), marcados com
- * PorConfirmar. Não publicar com os parênteses retos por preencher.
+ * DECISIONS.md). Os dados da empresa vêm de data/empresa.ts; o que
+ * está entre parênteses retos ainda tem de ser preenchido (o npm run qa
+ * lista-o e impede o lançamento sem ele).
  */
 export default function Privacy() {
   return (
-    <LegalLayout title="Política de Privacidade" updatedAt="1 de outubro de 2026">
+    <LegalLayout title="Política de Privacidade" updatedAt="2 de outubro de 2026">
       <p>
         Esta Política de Privacidade descreve como a{" "}
         <strong>BV Seguros</strong> (&quot;nós&quot;) recolhe, usa e protege
@@ -23,11 +20,10 @@ export default function Privacy() {
 
       <h2>1. Responsável pelo tratamento</h2>
       <p>
-        O responsável pelo tratamento é a <strong>BV Seguros</strong>,{" "}
-        <PorConfirmar>Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)</PorConfirmar>
+        O responsável pelo tratamento é a <strong>BV Seguros</strong>
+        <IdentificacaoLegal />, <DadoEmpresa campo="morada" />
         . Para qualquer questão sobre privacidade, contacte-nos através de{" "}
-        <a href="mailto:geral@bvseguros.pt">geral@bvseguros.pt</a> ou{" "}
-        <PorConfirmar>+351 21 000 0000 (fictício, por confirmar)</PorConfirmar>.
+        <DadoEmpresa campo="email" /> ou <DadoEmpresa campo="telefone" />.
       </p>
 
       <h2>2. Dados pessoais que recolhemos</h2>
@@ -35,8 +31,9 @@ export default function Privacy() {
       <ul>
         <li>
           <strong>Dados de identificação e contacto:</strong> nome, número de
-          telefone, endereço de email e, se o indicar (é opcional nos
-          formulários), o NIF.
+          telefone, endereço de email, NIF (obrigatório no pedido de
+          proposta, opcional no pedido de sinistro) e, no pedido de proposta,
+          o código postal.
         </li>
         <li>
           <strong>Dados relativos ao seguro:</strong> dados necessários para
@@ -114,8 +111,9 @@ export default function Privacy() {
         Não vendemos dados pessoais. Podemos partilhar dados estritamente
         necessários com seguradoras parceiras (para emissão e gestão de
         apólices), subcontratantes que atuam em nosso nome (ex.: alojamento
-        do site, na Vercel, e a base de dados do nosso CRM, no Supabase) ou
-        autoridades públicas quando legalmente exigido. O mapa da nossa
+        do site, na Vercel, a base de dados do nosso CRM, no Supabase, e o
+        envio dos emails que avisam a nossa equipa de um pedido novo, na
+        Brevo) ou autoridades públicas quando legalmente exigido. O mapa da nossa
         localização é fornecido pela Google e só é carregado com o seu
         consentimento (ver a <a href="/cookies">Política de Cookies</a>).
       </p>

@@ -1,3 +1,5 @@
+import type { CampoEmpresa } from "./empresa";
+
 export type Pergunta = {
   pergunta: string;
   resposta: string;
@@ -29,52 +31,19 @@ export const PERGUNTAS_GERAIS: Pergunta[] = [
   },
 ];
 
-/**
- * Morada real do escritório, para o mapa. null até o cliente confirmar:
- * o mapa não carrega com a morada fictícia de CANAIS.
- */
-export const MORADA_CONFIRMADA: string | null = null;
-
 export type Canal = {
   titulo: string;
   descricao: string;
-  valor: string;
-  href?: string;
-  confirmado: boolean;
+  /** O valor e o estado vêm de data/empresa.ts. */
+  campo: CampoEmpresa;
   icone: "telefone" | "email" | "whatsapp" | "morada";
 };
 
-/** Só o email está confirmado; os outros ficam marcados até o cliente os dar. */
 export const CANAIS: Canal[] = [
-  {
-    titulo: "Telefone",
-    descricao: "Para falar já com um mediador.",
-    valor: "+351 21 000 0000 (fictício, por confirmar)",
-    confirmado: false,
-    icone: "telefone",
-  },
-  {
-    titulo: "Email",
-    descricao: "Para enviar apólices ou documentos.",
-    valor: "geral@bvseguros.pt",
-    href: "mailto:geral@bvseguros.pt",
-    confirmado: true,
-    icone: "email",
-  },
-  {
-    titulo: "WhatsApp",
-    descricao: "Para uma dúvida rápida.",
-    valor: "Número por confirmar",
-    confirmado: false,
-    icone: "whatsapp",
-  },
-  {
-    titulo: "Escritório",
-    descricao: "Para falar pessoalmente.",
-    valor: "Rua das Flores, nº 123, 1200-192 Lisboa (fictício, por confirmar)",
-    confirmado: false,
-    icone: "morada",
-  },
+  { titulo: "Telefone", descricao: "Para falar já com um mediador.", campo: "telefone", icone: "telefone" },
+  { titulo: "Email", descricao: "Para enviar apólices ou documentos.", campo: "email", icone: "email" },
+  { titulo: "WhatsApp", descricao: "Para uma dúvida rápida.", campo: "whatsapp", icone: "whatsapp" },
+  { titulo: "Escritório", descricao: "Para falar pessoalmente.", campo: "morada", icone: "morada" },
 ];
 
 /** Atalhos no cartão "Vamos encontrar o seu seguro" do hero (o pedido de proposta é o próprio cartão). */

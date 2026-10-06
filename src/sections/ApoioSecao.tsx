@@ -4,7 +4,7 @@ import Section from "../components/layout/Section";
 import FlowLines from "../components/ui/FlowLines";
 import Accordion from "../components/ui/Accordion";
 import LineIcon from "../components/ui/LineIcon";
-import PorConfirmar from "../components/ui/PorConfirmar";
+import DadoEmpresa from "../components/ui/DadoEmpresa";
 import { CANAIS, PERGUNTAS_GERAIS } from "../data/apoio";
 import type { Pergunta } from "../data/apoio";
 
@@ -45,15 +45,7 @@ export default function ApoioSecao({
                     {c.descricao}
                   </p>
                   <p className="channel-card__value">
-                    {c.confirmado ? (
-                      c.href ? (
-                        <a href={c.href}>{c.valor}</a>
-                      ) : (
-                        c.valor
-                      )
-                    ) : (
-                      <PorConfirmar>{c.valor}</PorConfirmar>
-                    )}
+                    <DadoEmpresa campo={c.campo} />
                   </p>
                 </li>
               ))}

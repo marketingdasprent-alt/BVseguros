@@ -35,7 +35,12 @@ const COPY = {
   close: "Fechar",
 };
 
-export default function CookieConsent() {
+export default function CookieConsent({
+  emLinha = false,
+}: {
+  /** Nos pedidos: banner no topo, dentro da página, para nunca tapar um campo nem o "Próximo". */
+  emLinha?: boolean;
+}) {
   const { consent, setConsent } = useCookieConsent();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [analyticsChecked, setAnalyticsChecked] = useState(hasAnalyticsConsent(consent ?? "necessary"));
@@ -49,6 +54,7 @@ export default function CookieConsent() {
   const bannerVisible = consent === null && !dialogOpen;
 
   useEffect(() => {
+    if (emLinha) return;
     document.body.classList.toggle("has-cookie-banner", bannerVisible);
     // A página reserva a altura do banner no fundo, para nenhum botão (ex.: "Próximo" nos pedidos) ficar tapado.
     const banner = bannerRef.current;
@@ -61,7 +67,7 @@ export default function CookieConsent() {
       document.body.classList.remove("has-cookie-banner");
       document.body.style.removeProperty("--cookie-banner-altura");
     };
-  }, [bannerVisible]);
+  }, [bannerVisible, emLinha]);
 
   const openDialog = useCallback(
     (trigger?: HTMLElement) => {
@@ -98,7 +104,7 @@ export default function CookieConsent() {
       {bannerVisible && (
         <div
           ref={bannerRef}
-          className="cookie-banner"
+          className={"cookie-banner" + (emLinha ? " cookie-banner--em-linha" : "")}
           role="region"
           aria-label={COPY.title}
         >

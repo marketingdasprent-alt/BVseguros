@@ -5,6 +5,10 @@
  * para sinistros. O browser já não fala com o Supabase.
  */
 
+import { EMPRESA } from "../data/empresa";
+
+const EMAIL = EMPRESA.email.valor;
+
 export type RamoCrm = "auto" | "vida" | "saude" | "multirriscos" | "acidentes_trabalho" | "outro";
 
 export type PedidoContacto = {
@@ -21,13 +25,13 @@ export type ErroContacto = "dados_invalidos" | "limite_excedido" | "verificacao_
 /** Texto para o visitante, por motivo de erro devolvido por /api/pedido. */
 export const MENSAGEM_ERRO: Record<ErroContacto, string> = {
   dados_invalidos:
-    "Não conseguimos aceitar um dos dados. Reveja o resumo e envie de novo, ou escreva-nos para geral@bvseguros.pt.",
+    `Não conseguimos aceitar um dos dados. Reveja o resumo e envie de novo, ou escreva-nos para ${EMAIL}.`,
   limite_excedido:
-    "Recebemos vários pedidos seguidos deste contacto ou desta ligação. Tente novamente mais tarde, ou escreva-nos para geral@bvseguros.pt.",
+    `Recebemos vários pedidos seguidos deste contacto ou desta ligação. Tente novamente mais tarde, ou escreva-nos para ${EMAIL}.`,
   verificacao_falhou:
     "Não conseguimos confirmar que o pedido foi feito por uma pessoa. Recarregue a página e tente novamente.",
   falha_envio:
-    "Não foi possível enviar o pedido. Verifique a ligação e tente novamente, ou escreva-nos para geral@bvseguros.pt.",
+    `Não foi possível enviar o pedido. Verifique a ligação e tente novamente, ou escreva-nos para ${EMAIL}.`,
 };
 
 export class EnvioContactoError extends Error {
