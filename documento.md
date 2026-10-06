@@ -71,7 +71,7 @@ Já implementado:
   e histórico de alterações
 - Pesquisa e filtros em todas as listas (sem acentos/maiúsculas, filtros na URL);
   listas completas acima de 1000 registos
-- Importação de clientes e apólices por CSV (Administração → Importar)
+- Importação de clientes e apólices (Administração → Importar): modelo em Excel; aceita .xlsx, CSV e o PDF gerado a partir do modelo (lido sem IA)
 - Aviso de pedidos do site por tratar (contador no menu Leads; email opcional)
 - Histórico de alterações de leads, clientes, apólices, propostas, sinistros e renovações
 - Seguradoras como lista (Administração → Seguradoras), com nomes normalizados
@@ -167,9 +167,13 @@ cada ponto: [`docs/questionario-cliente.md`](docs/questionario-cliente.md) (02/1
 O plano completo de entrega está em [`crm/PROMPT-ENTREGA.md`](crm/PROMPT-ENTREGA.md)
 (fases 1 e 2 feitas em 25/09/2026). Falta:
 
-1. Fase 3 do plano (configuração de produção): Site URL/Redirect URLs, SMTP e templates
-   em PT, backups, Vercel ligada ao GitHub, domínio, e (opcional) aviso por email dos
-   leads do site (ver `crm/README.md`).
+1. Fase 3 do plano (configuração de produção). Feito: Redirect URLs, domínios, aviso por
+   email dos leads do site (06/10: Brevo com `noreply@bvseguros.pt` + webhook
+   `aviso_lead`), variáveis do site confirmadas, SMTP próprio e templates em PT no Supabase
+   (06/10). Pedido real de ponta a ponta em produção (06/10): proposta automóvel com
+   telefone +44 e pedido de sinistro pelo `bvseguros.pt`; chegaram ao CRM no formato novo
+   e o aviso por email aos admins. Falta: passar o Supabase ao plano pago (a 06/10 ainda está em Free, sem cópias
+   de segurança recuperáveis).
 2. Fase 4 (RGPD) com o cliente; preencher os placeholders do site quando chegarem os dados.
 
 ---

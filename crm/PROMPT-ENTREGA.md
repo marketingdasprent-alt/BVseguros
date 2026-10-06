@@ -148,10 +148,10 @@ Supabase/Vercel) · **[cliente]** depende de decisão ou dados do cliente.
 ## Fase 3: configuração de produção [tu]
 
 - [x] Supabase → Authentication → URL Configuration: Redirect URLs do CRM (25/09; "Esqueci a senha" testado em produção).
-- [ ] Supabase → SMTP próprio (email da BV ou Brevo) e templates em PT (convite, recuperar senha).
+- [x] Supabase → SMTP próprio (Brevo, `noreply@bvseguros.pt`) e os 4 templates em PT de `supabase/emails/` (06/10; "Esqueci a senha" testado em produção).
 - [ ] Supabase → confirmar plano e **cópias de segurança** (no gratuito não há backups recuperáveis). Decidido 29/09: vai passar ao plano pago.
-- [ ] Vercel → ligar `bvseguros-crm` ao GitHub (`main`) e domínio `crm.<domínio>` [cliente: domínio]. Fica com o João.
-- [ ] Vercel → `BREVO_API_KEY` e `AVISO_LEAD_SEGREDO` (para 2.5) e Database Webhook no Supabase.
+- [x] Vercel → domínio `crm.bvseguros.pt` ligado. Sem ligação ao GitHub, por decisão (30/09): deploy manual.
+- [x] Vercel → `AVISO_LEAD_SEGREDO`, `BREVO_API_KEY`, `BREVO_REMETENTE` (`noreply@bvseguros.pt`, domínio autenticado na Brevo) e Database Webhook `aviso_lead` no Supabase (06/10; pedido de teste pelo site chegou ao CRM e o email aos admins).
 - [x] Correr as migrações novas e o script de limpeza (1.4) (25/09).
 - [x] Correr `2026-09-28_validar_nome_telefone.sql` no Supabase (28/09; dados antigos já cumpriam).
 - [x] Correr `2026-09-28_grupos_permissoes.sql` no Supabase e publicar o CRM logo a seguir (29/09).
@@ -187,5 +187,5 @@ testes ponta a ponta (Playwright) em CI. Alinhar o `crm/AGENTS.md` com o código
 - [x] Todas as migrações testadas nos dois cenários do PGlite (`npm run test:db`, 28/09).
 - [ ] Percurso completo no browser, desktop e telemóvel: login → recuperar senha →
       importar CSV → ficha de cliente → criar/editar/converter/apagar → convite.
-- [x] Base de produção sem dados de teste; contas com nomes reais (29/09: cliente "teste" apagado, conta geral renomeada para "Administrador").
+- [x] Base de produção sem dados de teste; contas com nomes reais (29/09: cliente "teste" apagado, conta geral renomeada para "Administrador"; 06/10: mais 4 leads, 1 cliente, 2 pedidos de sinistro e a conta "luiz" de teste apagados, confirmado por consulta).
 - [ ] Fase 3 feita por ti; decisões da fase 4 registadas no `documento.md`.

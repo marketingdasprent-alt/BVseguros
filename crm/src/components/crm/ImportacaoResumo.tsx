@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle2, Download } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Notice'
-import type { ErroLinha } from '@/lib/importacao'
+import { valorLegivel, type ErroLinha } from '@/lib/importacao'
 import { SEM_VALOR } from '@/lib/format'
 
 const MAX_ERROS_VISIVEIS = 50
@@ -40,7 +40,7 @@ export function Contagens({ itens }: { itens: { rotulo: string; valor: number; t
 }
 
 // Linhas prontas a importar. Lidas pela IA mostram-se mais para dar para conferir antes de importar.
-export function PreVisualizacao<T>({ validas, cabecalho, maximo }: { validas: { linha: number; dados: T }[]; cabecalho: string[]; maximo: number }) {
+export function PreVisualizacao<T>({ validas, cabecalho, rotulos, maximo }: { validas: { linha: number; dados: T }[]; cabecalho: string[]; rotulos?: string[]; maximo: number }) {
   if (validas.length === 0) return null
   const visiveis = validas.slice(0, maximo)
   return (
@@ -49,13 +49,13 @@ export function PreVisualizacao<T>({ validas, cabecalho, maximo }: { validas: { 
       <div role="region" aria-label="Pré-visualização" tabIndex={0} className="max-h-[28rem] overflow-auto scroll-thin">
         <table className="crm-table w-full text-sm">
           <thead className="text-left text-muted">
-            <tr><th className="font-semibold uppercase">Linha</th>{cabecalho.map((c) => <th key={c} className="whitespace-nowrap font-semibold uppercase">{c.replace(/_/g, ' ')}</th>)}</tr>
+            <tr><th className="font-semibold uppercase">Linha</th>{cabecalho.map((c, i) => <th key={c} className="whitespace-nowrap font-semibold uppercase">{rotulos?.[i] ?? c.replace(/_/g, ' ')}</th>)}</tr>
           </thead>
           <tbody>
             {visiveis.map((v) => (
               <tr key={v.linha} className="border-t border-border">
                 <td className="tabular-nums">{v.linha}</td>
-                {cabecalho.map((c) => <td key={c} className="whitespace-nowrap">{String((v.dados as unknown as Record<string, unknown>)[c] ?? SEM_VALOR)}</td>)}
+                {cabecalho.map((c) => <td key={c} className="whitespace-nowrap">{valorLegivel(c, (v.dados as unknown as Record<string, unknown>)[c]) || SEM_VALOR}</td>)}
               </tr>
             ))}
           </tbody>
