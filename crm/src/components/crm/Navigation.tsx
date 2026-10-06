@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, UserCog, FileUp, Building2, KeyRound } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Users, FileText, Contact, Shield, RefreshCw, AlertTriangle, UserCog, FileUp, Building2, KeyRound, ShieldCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import type { Modulo } from '@/lib/permissoes';
@@ -24,6 +24,7 @@ const groups: GrupoMenu[] = [
 const adminGroup: GrupoMenu = { title: 'Administração', links: [
   { to: '/utilizadores', label: 'Utilizadores', icon: UserCog }, { to: '/grupos', label: 'Grupos', icon: KeyRound },
   { to: '/seguradoras', label: 'Seguradoras', icon: Building2 }, { to: '/importar', label: 'Importar', icon: FileUp },
+  { to: '/revisao-dados', label: 'Revisão de dados', icon: ShieldCheck },
 ] };
 
 interface NavigationProps {

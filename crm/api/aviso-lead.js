@@ -41,7 +41,7 @@ export function montarEmail(lead, crmUrl) {
   const link = crmUrl ? new URL('/leads?responsavel=sem_responsavel', crmUrl).href : null
   const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#1a2a3d">
     <h2 style="color:#184070;margin:0 0 4px">Novo pedido pelo site</h2>
-    <p style="color:#647184;margin:0 0 20px">Chegou um pedido de contacto que ainda não tem responsável.</p>
+    <p style="color:#647184;margin:0 0 20px">Chegou um pedido de proposta que ainda não tem responsável.</p>
     <table style="border-collapse:collapse;margin-bottom:16px">${linhas.map(([k, v]) =>
       `<tr><td style="padding:4px 12px 4px 0;color:#647184">${k}</td><td style="padding:4px 0"><strong>${escaparHtml(v)}</strong></td></tr>`).join('')}</table>
     ${lead.mensagem ? `<div style="background:#f8fafc;border:1px solid #e1e7ee;border-radius:8px;padding:12px;line-height:1.6">${mensagemHtml(lead.mensagem)}</div>` : ''}

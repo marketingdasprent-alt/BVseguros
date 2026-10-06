@@ -431,6 +431,7 @@
   .dashboard-columns { grid-template-columns: 1fr; gap: 20px; }
   .metric { padding: 20px 16px; }
   .metric-value { font-size: var(--fs-h1); }
+  .metric-value--longo { font-size: var(--fs-lead); } /* datas e valores em € cabem na metade do ecrã */
   .metric-label { font-size: var(--fs-meta); }
   .panel-heading { padding: 20px; }
   .pipeline-row { grid-template-columns: 122px minmax(10px, 1fr) 22px; gap: 10px; padding: 14px 20px; font-size: var(--fs-meta); }

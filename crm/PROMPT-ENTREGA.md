@@ -160,6 +160,12 @@ Supabase/Vercel) · **[cliente]** depende de decisão ou dados do cliente.
 
 ## Fase 4: RGPD [cliente + dev]
 
+> **06/10/2026:** a parte [dev] está feita (proposta validada em `RGPD-PROPOSTA.md`):
+> exportar (Excel + JSON) e anonimizar na ficha do cliente, e Administração → Revisão de
+> dados, com prazo provisório de 12 meses. Migração `2026-10-06_rgpd.sql` testada nos dois
+> cenários (`npm run test:db`, 281 ok). Falta: correr a migração no Supabase antes do deploy
+> e o prazo real do cliente (questionário, ponto 7).
+
 - **[cliente]** Prazos de retenção: leads perdidos (ex.: 12 meses), ex-clientes (prazos
   legais do setor), pedidos do site sem resposta.
 - **[dev]** Na ficha do cliente (admin): "Exportar dados" (JSON/CSV com tudo o que o
@@ -187,5 +193,9 @@ testes ponta a ponta (Playwright) em CI. Alinhar o `crm/AGENTS.md` com o código
 - [x] Todas as migrações testadas nos dois cenários do PGlite (`npm run test:db`, 28/09).
 - [ ] Percurso completo no browser, desktop e telemóvel: login → recuperar senha →
       importar CSV → ficha de cliente → criar/editar/converter/apagar → convite.
+      06/10 em produção: login, recuperar senha (desktop), importar (Excel), ficha, criar
+      apólice e lead, editar, converter, e as 10 páginas principais a 375 px sem scroll
+      horizontal. Corrigido: data da "Próxima renovação" partida em telemóvel. Falta (pelo
+      utilizador): apagar os registos "Teste Percurso" e o convite.
 - [x] Base de produção sem dados de teste; contas com nomes reais (29/09: cliente "teste" apagado, conta geral renomeada para "Administrador"; 06/10: mais 4 leads, 1 cliente, 2 pedidos de sinistro e a conta "luiz" de teste apagados, confirmado por consulta).
 - [ ] Fase 3 feita por ti; decisões da fase 4 registadas no `documento.md`.

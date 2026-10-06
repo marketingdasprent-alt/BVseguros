@@ -174,7 +174,10 @@ O plano completo de entrega está em [`crm/PROMPT-ENTREGA.md`](crm/PROMPT-ENTREG
    telefone +44 e pedido de sinistro pelo `bvseguros.pt`; chegaram ao CRM no formato novo
    e o aviso por email aos admins. Falta: passar o Supabase ao plano pago (a 06/10 ainda está em Free, sem cópias
    de segurança recuperáveis).
-2. Fase 4 (RGPD) com o cliente; preencher os placeholders do site quando chegarem os dados.
+2. Fase 4 (RGPD): feita no CRM a 06/10 (exportar, anonimizar, revisão por prazo; ver
+   `crm/README.md`). A migração `crm/supabase/migrations/2026-10-06_rgpd.sql` tem de ser
+   corrida no SQL Editor **antes** do deploy do CRM. Falta o prazo real do cliente, e
+   preencher os placeholders do site quando chegarem os dados.
 
 ---
 

@@ -6,7 +6,7 @@ export interface EntradaHistorico {
   tabela: 'leads' | 'clientes' | 'apolices' | 'propostas' | 'sinistros' | 'renovacoes'
   registo_id: string
   cliente_id: string | null
-  acao: 'criado' | 'alterado' | 'apagado'
+  acao: 'criado' | 'alterado' | 'apagado' | 'exportado' | 'anonimizado'
   resumo: string | null
   alteracoes: Record<string, { antes: unknown; depois: unknown }> | null
   autor_id: string | null

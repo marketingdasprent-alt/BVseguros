@@ -1,4 +1,4 @@
-import { History, PenLine, Plus, Trash2 } from 'lucide-react'
+import { Download, EyeOff, History, PenLine, Plus, Trash2 } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatarDataRelativa } from '@/lib/format'
@@ -13,8 +13,8 @@ interface HistoricoRegistosProps {
   onTentarNovamente: () => void
 }
 
-const ICONE = { criado: Plus, alterado: PenLine, apagado: Trash2 }
-const VERBO = { criado: 'criou', alterado: 'alterou', apagado: 'apagou' }
+const ICONE = { criado: Plus, alterado: PenLine, apagado: Trash2, exportado: Download, anonimizado: EyeOff }
+const VERBO = { criado: 'criou', alterado: 'alterou', apagado: 'apagou', exportado: 'exportou', anonimizado: 'anonimizou' }
 
 // Fechado por omissão: é consulta ocasional e não deve empurrar o resto da ficha.
 export function HistoricoRegistos({ entradas, isLoading, error, nomePessoa, onTentarNovamente }: HistoricoRegistosProps) {
@@ -45,7 +45,7 @@ export function HistoricoRegistos({ entradas, isLoading, error, nomePessoa, onTe
                 <Icone size={16} className="mt-0.5 shrink-0 text-muted-soft" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <strong>
-                    <span className="font-semibold">{e.autor_nome ?? 'Sistema'}</span> {VERBO[e.acao]} {NOME_TABELA[e.tabela]}{' '}
+                    <span className="font-semibold">{e.autor_nome ?? 'Sistema'}</span> {VERBO[e.acao]} {e.acao === 'exportado' ? 'os dados do cliente' : NOME_TABELA[e.tabela]}{' '}
                     <span className="font-semibold">{e.resumo ?? ''}</span>
                   </strong>
                   {detalhes.length > 0 && (

@@ -23,6 +23,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { useSeguradoras } from '@/hooks/useSeguradoras'
 import { useConfirmarApagar } from '@/hooks/useConfirmarApagar'
+import { useRgpdCliente } from '@/hooks/useRgpdCliente'
 import { resumirCliente } from '@/lib/fichaCliente'
 import { dataLocalIso, SEM_VALOR } from '@/lib/format'
 import { mensagemErro } from '@/lib/erros'
@@ -49,6 +50,8 @@ export default function ClienteFicha() {
     clientes: data ? [data.cliente] : [],
     onAlterado: () => Promise.all([recarregar(), historico.recarregar()]),
   })
+
+  const rgpd = useRgpdCliente(data?.cliente ?? null, () => Promise.all([recarregar(), historico.recarregar()]))
 
   const resumo = useMemo(() => data && resumirCliente(data.apolices, data.sinistros, dataLocalIso()), [data])
 
@@ -126,6 +129,7 @@ export default function ClienteFicha() {
 
       <HistoricoRegistos entradas={historico.data} isLoading={historico.isLoading} error={historico.error}
         nomePessoa={(pessoa) => nomePorId.get(pessoa)} onTentarNovamente={() => historico.recarregar()} />
+      {rgpd.painel}
 
       {aEditar && (
         <ClienteFormModal
@@ -149,6 +153,7 @@ export default function ClienteFicha() {
       )}
       {edicaoAtividade.modal}
       {modalApagar}
+      {rgpd.modal}
     </div>
   )
 }

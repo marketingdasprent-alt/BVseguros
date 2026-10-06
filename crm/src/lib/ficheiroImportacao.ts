@@ -1,4 +1,5 @@
 import { lerCsv } from '@/lib/csv'
+import { guardarXlsx, titulo } from '@/lib/folhaExcel'
 import { chaveCabecalho, COLUNAS_OBRIGATORIAS, MODELOS, type TipoImportacao } from '@/lib/importacao'
 import { montarTabelaPdf, type TextoPdf } from '@/lib/tabelaPdf'
 import { ESTADOS_APOLICE, RAMOS } from '@/lib/types'
@@ -60,15 +61,6 @@ export async function lerFicheiro(f: File, tipo: TipoImportacao): Promise<string
   if (formato === 'pdf') return lerPdf(f, tipo)
   return lerCsv(await f.text())
 }
-
-type Folhas = Parameters<typeof import('write-excel-file/browser').default>[0]
-
-async function guardarXlsx(nome: string, folhas: Folhas) {
-  const { default: writeXlsxFile } = await import('write-excel-file/browser')
-  await writeXlsxFile(folhas).toFile(nome)
-}
-
-const titulo = (value: string) => ({ value, fontWeight: 'bold' as const })
 
 /** Modelo em Excel: folha de dados só com os títulos (nada que se importe por engano) e folha de instruções. */
 export async function descarregarModelo(tipo: TipoImportacao) {

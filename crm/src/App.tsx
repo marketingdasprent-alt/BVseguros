@@ -23,6 +23,7 @@ const Renovacoes = lazy(() => import('@/pages/Renovacoes'))
 const Sinistros = lazy(() => import('@/pages/Sinistros'))
 const Utilizadores = lazy(() => import('@/pages/Utilizadores'))
 const Importar = lazy(() => import('@/pages/Importar'))
+const RevisaoDados = lazy(() => import('@/pages/RevisaoDados'))
 const Seguradoras = lazy(() => import('@/pages/Seguradoras'))
 const Grupos = lazy(() => import('@/pages/Grupos'))
 
@@ -80,6 +81,7 @@ function AreaPrivada() {
           <Route path="/utilizadores" element={<Utilizadores />} />
           <Route path="/grupos" element={<Grupos />} />
           <Route path="/importar" element={<Importar />} />
+          <Route path="/revisao-dados" element={<RevisaoDados />} />
           <Route path="/seguradoras" element={<Seguradoras />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
