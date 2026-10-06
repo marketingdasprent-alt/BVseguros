@@ -82,11 +82,12 @@ através de `server/local-api.js`.
 
 ## Importar a carteira
 
-Em **Administração → Importar** (só admin): primeiro os clientes, depois as apólices
-(ligam-se ao cliente pelo NIF). Cada ecrã tem "Descarregar modelo" com as colunas
-certas. Aceita o CSV do Excel em PT (`;`, acentos, `dd/mm/aaaa`, `1.234,56`); para
-`.xlsx`, guardar antes como **CSV UTF-8**. Linhas com problemas não entram e ficam num
-relatório descarregável.
+Em **Administração → Importar** (só admin): escolher Clientes ou Apólices (primeiro os
+clientes; as apólices ligam-se pelo NIF), descarregar o **modelo em Excel** e carregar o
+ficheiro. Aceita `.xlsx`, CSV do Excel em PT (`;`, acentos, `dd/mm/aaaa`, `1.234,56`) e o
+**PDF gerado a partir do modelo** (Excel → Guardar como PDF), lido no browser pela posição
+do texto (`lib/tabelaPdf.ts`), sem IA; um PDF digitalizado ou de outro sistema não serve.
+Linhas com problemas não entram e ficam num relatório em Excel.
 
 ## Aviso por email de leads do site (opcional)
 

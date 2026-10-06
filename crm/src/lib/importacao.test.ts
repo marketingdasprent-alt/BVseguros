@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { escreverCsv, lerCsv } from '@/lib/csv'
-import { lerData, lerImportacao, lerValor, nifValido } from '@/lib/importacao'
+import { celulaParaTexto } from '@/lib/ficheiroImportacao'
+import { chaveCabecalho, lerData, lerImportacao, lerValor, MODELOS, nifValido } from '@/lib/importacao'
+
+describe('celulaParaTexto (Excel)', () => {
+  it('datas, números e vazios no formato que a validação lê', () => {
+    expect(celulaParaTexto(new Date(Date.UTC(2026, 0, 31)))).toBe('31/01/2026')
+    expect(celulaParaTexto(912345678)).toBe('912345678')
+    expect(celulaParaTexto(450.5)).toBe('450.5')
+    expect(celulaParaTexto(null)).toBe('')
+    expect(celulaParaTexto('  Ana  ')).toBe('Ana')
+  })
+})
 
 describe('lerCsv', () => {
   it('lê o formato do Excel PT: ";" , BOM, CRLF e aspas', () => {
@@ -76,6 +87,15 @@ describe('lerImportacao', () => {
   it('apólices: junta todos os problemas da linha numa mensagem', () => {
     const r = lerImportacao('apolices', 'nif_cliente;numero_apolice;ramo;seguradora;data_inicio\n1;;Barcos;;ontem')
     expect(r.erros[0].mensagem).toBe('NIF do cliente 1 inválido; nº de apólice em falta; ramo "Barcos" desconhecido; seguradora em falta; data de início "ontem" inválida')
+  })
+
+  it('lê a tabela do modelo em Excel pelos títulos legíveis', () => {
+    const tabela = [MODELOS.apolices.rotulos, ['123456789', 'AP-9', 'Vida', 'Ageas', '120', '01/03/2026', '', '']]
+    const r = lerImportacao('apolices', tabela)
+    expect(r.erros).toEqual([])
+    expect(r.validas[0].dados).toMatchObject({ numero_apolice: 'AP-9', ramo: 'vida', premio_anual: 120, estado: 'ativa' })
+    expect(MODELOS.clientes.rotulos.map(chaveCabecalho)).toEqual(MODELOS.clientes.cabecalho)
+    expect(MODELOS.apolices.rotulos.map(chaveCabecalho)).toEqual(MODELOS.apolices.cabecalho)
   })
 
   it('avisa das colunas em falta em vez de dar erro em todas as linhas', () => {

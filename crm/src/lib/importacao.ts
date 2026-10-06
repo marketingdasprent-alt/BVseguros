@@ -36,14 +36,19 @@ export interface ResultadoLeitura<T> {
   total: number
 }
 
-// Cabeçalhos dos modelos para descarregar (a ordem é a das colunas).
-export const MODELOS: Record<TipoImportacao, { cabecalho: string[]; exemplo: string[] }> = {
+// Colunas dos modelos (a ordem é a das colunas). `rotulos` são os títulos do modelo em Excel;
+// `cabecalho` são as chaves internas, que também se aceitam como título (CSV antigos).
+export const MODELOS: Record<TipoImportacao, { cabecalho: string[]; rotulos: string[]; larguras: number[]; exemplo: string[] }> = {
   clientes: {
     cabecalho: ['nome', 'telefone', 'email', 'nif', 'morada', 'responsavel_email'],
-    exemplo: ['Nome e apelido', '912345678', 'cliente@exemplo.pt', '123456789', 'Rua, nº, código postal, localidade', 'mediador@bvseguros.pt'],
+    rotulos: ['Nome', 'Telefone', 'Email', 'NIF', 'Morada', 'Email do responsável'],
+    larguras: [28, 16, 28, 12, 40, 28],
+    exemplo: ['Ana Costa', '912345678', 'ana.costa@exemplo.pt', '123456789', 'Rua das Flores 10, 2410-232 Leiria', 'mediador@bvseguros.pt'],
   },
   apolices: {
     cabecalho: ['nif_cliente', 'numero_apolice', 'ramo', 'seguradora', 'premio_anual', 'data_inicio', 'data_fim', 'estado'],
+    rotulos: ['NIF do cliente', 'Nº da apólice', 'Ramo', 'Seguradora', 'Prémio anual (€)', 'Data de início', 'Data de fim', 'Estado'],
+    larguras: [14, 16, 22, 22, 16, 14, 14, 12],
     exemplo: ['123456789', 'AP-0001', 'Automóvel', 'Nome da seguradora', '450,00', '01/01/2026', '31/12/2026', 'Ativa'],
   },
 }
@@ -54,17 +59,23 @@ const SINONIMOS: Record<string, string> = {
   'e-mail': 'email', mail: 'email',
   contribuinte: 'nif', nif_cliente: 'nif_cliente', 'nif do cliente': 'nif_cliente',
   endereco: 'morada',
-  responsavel: 'responsavel_email', mediador: 'responsavel_email',
-  apolice: 'numero_apolice', 'n apolice': 'numero_apolice', 'numero da apolice': 'numero_apolice', numero: 'numero_apolice',
+  responsavel: 'responsavel_email', mediador: 'responsavel_email', 'email do responsavel': 'responsavel_email',
+  apolice: 'numero_apolice', 'n apolice': 'numero_apolice', 'n da apolice': 'numero_apolice', 'numero da apolice': 'numero_apolice', numero: 'numero_apolice',
   companhia: 'seguradora',
   premio: 'premio_anual', 'premio anual': 'premio_anual',
   inicio: 'data_inicio', 'data de inicio': 'data_inicio',
   fim: 'data_fim', 'data de fim': 'data_fim', vencimento: 'data_fim',
 }
 
-function chaveCabecalho(c: string): string {
-  const n = normalizar(c).replace(/[º°.]/g, '').replace(/\s+/g, ' ').trim()
+// Título de coluna → chave do modelo ("Prémio anual (€)" → premio_anual).
+export function chaveCabecalho(c: string): string {
+  const n = normalizar(c).replace(/\(.*?\)/g, '').replace(/[º°.]/g, '').replace(/\s+/g, ' ').trim()
   return SINONIMOS[n] ?? SINONIMOS[n.replace(/_/g, ' ')] ?? n.replace(/\s+/g, '_')
+}
+
+export const COLUNAS_OBRIGATORIAS: Record<TipoImportacao, string[]> = {
+  clientes: ['nome', 'telefone'],
+  apolices: ['nif_cliente', 'numero_apolice', 'ramo', 'seguradora', 'data_inicio'],
 }
 
 // NIF português: 9 dígitos com dígito de controlo (módulo 11).
@@ -103,20 +114,32 @@ export function lerValor(v: string): number | null {
   return /^-?\d+(\.\d+)?$/.test(t) ? Number(t) : NaN
 }
 
+// Valor de uma linha já validada, como se lê no ficheiro (pré-visualização): "auto" → "Automóvel".
+export function valorLegivel(chave: string, valor: unknown): string {
+  if (valor === null || valor === undefined || valor === '') return ''
+  if (chave === 'ramo') return RAMOS.find((r) => r.valor === valor)?.rotulo ?? String(valor)
+  if (chave === 'estado') return ESTADOS_APOLICE.find((e) => e.valor === valor)?.rotulo ?? String(valor)
+  if (chave === 'premio_anual' && typeof valor === 'number') return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(valor)
+  if (chave.startsWith('data_') && typeof valor === 'string') return valor.split('-').reverse().join('/')
+  return String(valor)
+}
+
 function porRotuloOuValor<T extends string>(lista: { valor: T; rotulo: string }[], v: string): T | null {
   const n = normalizar(v)
   return lista.find((i) => normalizar(i.valor) === n || normalizar(i.rotulo) === n)?.valor ?? null
 }
 
 // Primeira linha = cabeçalho. Números de linha como no Excel (cabeçalho = linha 1).
-export function lerImportacao(tipo: 'clientes', conteudo: string): ResultadoLeitura<LinhaCliente>
-export function lerImportacao(tipo: 'apolices', conteudo: string): ResultadoLeitura<LinhaApolice>
-export function lerImportacao(tipo: TipoImportacao, conteudo: string): ResultadoLeitura<LinhaCliente | LinhaApolice> {
-  const [cabecalho, ...linhas] = lerCsv(conteudo)
+// Aceita o texto de um CSV ou a tabela já lida de um Excel ou PDF.
+type Conteudo = string | string[][]
+export function lerImportacao(tipo: 'clientes', conteudo: Conteudo): ResultadoLeitura<LinhaCliente>
+export function lerImportacao(tipo: 'apolices', conteudo: Conteudo): ResultadoLeitura<LinhaApolice>
+export function lerImportacao(tipo: TipoImportacao, conteudo: Conteudo): ResultadoLeitura<LinhaCliente | LinhaApolice> {
+  const [cabecalho, ...linhas] = typeof conteudo === 'string' ? lerCsv(conteudo) : conteudo
   if (!cabecalho) return { validas: [], erros: [{ linha: 1, mensagem: 'O ficheiro está vazio.' }], total: 0 }
 
   const colunas = cabecalho.map(chaveCabecalho)
-  const obrigatorias = tipo === 'clientes' ? ['nome', 'telefone'] : ['nif_cliente', 'numero_apolice', 'ramo', 'seguradora', 'data_inicio']
+  const obrigatorias = COLUNAS_OBRIGATORIAS[tipo]
   // Num CSV de apólices a coluna pode chamar-se só "nif".
   if (tipo === 'apolices') colunas.forEach((c, i) => { if (c === 'nif' && !colunas.includes('nif_cliente')) colunas[i] = 'nif_cliente' })
   const emFalta = obrigatorias.filter((o) => !colunas.includes(o))
